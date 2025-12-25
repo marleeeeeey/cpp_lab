@@ -10,8 +10,8 @@
 
 SDL_AppResult AppInstance::init() {
   auto initSdlResult = initSDL();  // initialize SDL and set renderer
-  sceneRenderer.init(renderer);
   initImGui();
+  sceneRenderer.setRenderer(renderer);
   gameWorld.init();
   last_time = SDL_GetTicks();
   return initSdlResult;
@@ -43,23 +43,6 @@ SDL_AppResult AppInstance::iterate() {
   GameDataForRendering gameDataForRendering = gameWorld.getGameDataForRendering();
 
   //
-  // Begin Frame
-  //
-  ImGui_ImplSDLRenderer3_NewFrame();
-  ImGui_ImplSDL3_NewFrame();
-  ImGui::NewFrame();
-
-  //
-  // Describe GUI Frame
-  //
-  sceneRenderer.describeImGuiFrame(gameDataForRendering);
-
-  //
-  // End GUI Frame Descrition
-  //
-  ImGui::Render();
-
-  //
   // Clear Screen
   //
   /* as you can see from this, rendering draws over whatever was drawn before it. */
@@ -69,9 +52,17 @@ SDL_AppResult AppInstance::iterate() {
   SDL_RenderClear(renderer);                                   /* start with a blank canvas. */
 
   //
+  // Begin Frame
+  //
+  ImGui_ImplSDLRenderer3_NewFrame();
+  ImGui_ImplSDL3_NewFrame();
+  ImGui::NewFrame();
+
+  //
   // Render New Frame
   //
-  sceneRenderer.describeGameWorldScene(gameDataForRendering);             // render the game world
+  sceneRenderer.render(gameDataForRendering);
+  ImGui::Render();
   ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);  // render the GUI
   SDL_RenderPresent(renderer);                                            // show the rendered frame on screen
 

@@ -5,12 +5,17 @@
 
 #include "GameDataForRendering.h"
 
-void SceneRenderer::init(SDL_Renderer* renderer) {
+void SceneRenderer::setRenderer(SDL_Renderer* renderer) {
   assert(renderer);
   this->renderer = renderer;
 }
 
-void SceneRenderer::describeGameWorldScene(const GameDataForRendering& gameDataForRendering) {
+void SceneRenderer::render(const GameDataForRendering& gameDataForRendering) {
+  renderGameObjects(gameDataForRendering);
+  renderGUI(gameDataForRendering);
+}
+
+void SceneRenderer::renderGameObjects(const GameDataForRendering& gameDataForRendering) {
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE); /* white, full alpha */
   /* You can also draw single points with SDL_RenderPoint(), but it's
      cheaper (sometimes significantly so) to do them all at once. */
@@ -19,7 +24,7 @@ void SceneRenderer::describeGameWorldScene(const GameDataForRendering& gameDataF
                    gameDataForRendering.points.size());
 }
 
-void SceneRenderer::describeImGuiFrame(const GameDataForRendering& gameDataForRendering) {
+void SceneRenderer::renderGUI(const GameDataForRendering& gameDataForRendering) {
   // https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp
   // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
 

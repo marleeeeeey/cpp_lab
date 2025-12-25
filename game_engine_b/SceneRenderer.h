@@ -8,7 +8,10 @@ class SceneRenderer {
   SDL_Renderer* renderer = nullptr;
 
  public:
-  void init(SDL_Renderer* renderer);
-  void describeGameWorldScene(const GameDataForRendering& gameDataForRendering);
-  void describeImGuiFrame(const GameDataForRendering& gameDataForRendering);
+  void setRenderer(SDL_Renderer* renderer);
+  void render(const GameDataForRendering& gameDataForRendering);
+
+ private:
+  void renderGameObjects(const GameDataForRendering& gameDataForRendering);
+  void renderGUI(const GameDataForRendering& gameDataForRendering);
 };
