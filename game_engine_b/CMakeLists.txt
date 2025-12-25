@@ -2,11 +2,17 @@ add_executable(game_engine_b
         main.cpp
         AppInstance.cpp
         GameWorld.cpp
+        SceneRenderer.cpp
+        UserInputManger.cpp
 )
 
 find_package(SDL3 REQUIRED)
+find_package(imgui REQUIRED)
 
-target_link_libraries(game_engine_b PRIVATE SDL3::SDL3)
+target_link_libraries(game_engine_b PRIVATE
+        imgui::imgui
+        SDL3::SDL3
+)
 
 if (WIN32)
     add_custom_command(TARGET game_engine_b POST_BUILD

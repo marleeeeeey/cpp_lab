@@ -18,7 +18,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 
 /* This function runs once per frame, and is the heart of the program. */
 SDL_AppResult SDL_AppIterate(void* appstate) {
-  return ((AppInstance*)appstate)->onTick();
+  return ((AppInstance*)appstate)->iterate();
 }
 
 /* This function runs once at shutdown. */
