@@ -1,6 +1,7 @@
 add_executable(game_engine_b
         main.cpp
         AppInstance.cpp
+        GameWorld.cpp
 )
 
 find_package(SDL3 REQUIRED)
