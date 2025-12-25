@@ -36,8 +36,9 @@ SDL_AppResult AppInstance::onTick() {
   const Uint64 now = SDL_GetTicks();
   const float elapsed = ((float)(now - last_time)) / 1000.0f; /* seconds since last iteration */
 
-  gameWorld.iterate(elapsed);
-  auto points = gameWorld.getRenderData();
+  UserInputData userInputData;
+  gameWorld.iterate(elapsed, userInputData);
+  GameDataForRendering gameDataForRendering = gameWorld.getGameDataForRendering();
 
   last_time = now;
 
@@ -45,7 +46,9 @@ SDL_AppResult AppInstance::onTick() {
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);       /* black, full alpha */
   SDL_RenderClear(renderer);                                         /* start with a blank canvas. */
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE); /* white, full alpha */
-  SDL_RenderPoints(renderer, points.data(), points.size());         /* draw all the points! */
+  SDL_RenderPoints(renderer,                                         /* draw all the points! */
+                   gameDataForRendering.points.data(),
+                   gameDataForRendering.points.size());
 
   /* You can also draw single points with SDL_RenderPoint(), but it's
      cheaper (sometimes significantly so) to do them all at once. */
@@ -56,4 +59,6 @@ SDL_AppResult AppInstance::onTick() {
 }
 
 void AppInstance::onQuit() {
+  // ...
+  /* SDL will clean up the window/renderer for us. */
 }
