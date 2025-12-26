@@ -66,6 +66,8 @@ SDL_AppResult AppInstance::iterate() {
   ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);  // render the GUI
   SDL_RenderPresent(renderer);                                            // show the rendered frame on screen
 
+  userInputManger.onFrameEnd();
+
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
 

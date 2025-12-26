@@ -9,6 +9,7 @@
 class GameWorld {
   GameDataForRendering gameDataForRendering;
   std::vector<float> point_speeds;
+  float acceleration = 1.0f;
 
  public:
   void init();

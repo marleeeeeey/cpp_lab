@@ -19,6 +19,14 @@ void GameWorld::init() {
 }
 
 void GameWorld::iterate(double elapsed, const UserInputData& userInputData) {
+  if (userInputData.pressed.up) {
+    acceleration += 0.05f;
+    SDL_Log("acceleration: %f", acceleration);
+  } else if (userInputData.pressed.down) {
+    acceleration -= 0.05f;
+    SDL_Log("acceleration: %f", acceleration);
+  }
+
   /* let's move all our gameDataForRendering.points a little for a new frame. */
   for (int i = 0; i < gameDataForRendering.points.size(); i++) {
     const float distance = elapsed * point_speeds[i];
@@ -33,7 +41,7 @@ void GameWorld::iterate(double elapsed, const UserInputData& userInputData) {
         gameDataForRendering.points[i].x = 0.0f;
         gameDataForRendering.points[i].y = SDL_randf() * ((float)WINDOW_HEIGHT);
       }
-      point_speeds[i] = MIN_PIXELS_PER_SECOND + (SDL_randf() * (MAX_PIXELS_PER_SECOND - MIN_PIXELS_PER_SECOND));
+      point_speeds[i] = MIN_PIXELS_PER_SECOND + (SDL_randf() * (MAX_PIXELS_PER_SECOND - MIN_PIXELS_PER_SECOND) * acceleration);
     }
   }
 }

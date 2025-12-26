@@ -10,4 +10,5 @@ class UserInputManger {
  public:
   void applyEvent(SDL_Event* event);
   const UserInputData& getUserInputData() const;
+  void onFrameEnd();
 };
