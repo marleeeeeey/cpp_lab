@@ -19,9 +19,13 @@ void SceneRenderer::renderGameObjects(const GameDataForRendering& gameDataForRen
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE); /* white, full alpha */
   /* You can also draw single points with SDL_RenderPoint(), but it's
      cheaper (sometimes significantly so) to do them all at once. */
-  SDL_RenderPoints(renderer, /* draw all the points! */
-                   gameDataForRendering.points.data(),
-                   gameDataForRendering.points.size());
+  for (int i = 0; i < gameDataForRendering.points.size(); i++) {
+    const glm::vec2& point = gameDataForRendering.points[i];
+    SDL_RenderPoint(renderer, point.x, point.y);
+  }
+  // SDL_RenderPoints(renderer, /* draw all the points! */
+  //                  gameDataForRendering.points.data(),
+  //                  gameDataForRendering.points.size());
 }
 
 void SceneRenderer::renderGUI(const GameDataForRendering& gameDataForRendering) {

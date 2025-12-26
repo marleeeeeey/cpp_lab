@@ -8,10 +8,12 @@ add_executable(game_engine_b
 
 find_package(SDL3 REQUIRED)
 find_package(imgui REQUIRED)
+find_package(glm REQUIRED)
 
 target_link_libraries(game_engine_b PRIVATE
         imgui::imgui
         SDL3::SDL3
+        glm::glm
 )
 
 if (WIN32)
