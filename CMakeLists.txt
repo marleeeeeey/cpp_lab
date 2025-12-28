@@ -12,4 +12,5 @@ endif ()
 list(APPEND CMAKE_PREFIX_PATH ${PATH_TO_LIBRARIES})
 
 add_subdirectory(std_filesystem)
+add_subdirectory(chat_engine_a)
 add_subdirectory(game_engine_b)
