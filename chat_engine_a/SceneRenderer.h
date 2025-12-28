@@ -1,17 +1,13 @@
 #pragma once
 
 struct SDL_Renderer;
-struct GameDataForRendering;
+struct DataForRendering;
 
-// Renders the game world and ImGui GUI. Called by AppInstance.
+// Renders GUI for chat.
 class SceneRenderer {
   SDL_Renderer* renderer = nullptr;
 
  public:
   void setRenderer(SDL_Renderer* renderer);
-  void render(const GameDataForRendering& gameDataForRendering);
-
- private:
-  void renderGameObjects(const GameDataForRendering& gameDataForRendering);
-  void renderGUI(const GameDataForRendering& gameDataForRendering);
+  void renderGUI(const DataForRendering& dataForRendering);
 };

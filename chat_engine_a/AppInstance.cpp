@@ -12,7 +12,7 @@ SDL_AppResult AppInstance::init() {
   auto initSdlResult = initSDL();  // initialize SDL and set renderer
   initImGui();
   sceneRenderer.setRenderer(renderer);
-  gameWorld.init();
+  chatManager.init();
   last_time = SDL_GetTicks();
   return initSdlResult;
 }
@@ -23,7 +23,7 @@ SDL_AppResult AppInstance::onEvent(SDL_Event* event) {
     return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
   }
 
-  userInputManger.applyEvent(event);
+  // Paste here your event handling code if needed.
 
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
@@ -39,8 +39,8 @@ SDL_AppResult AppInstance::iterate() {
   //
   // Update game world
   //
-  gameWorld.iterate(elapsed, userInputManger.getUserInputData());
-  GameDataForRendering gameDataForRendering = gameWorld.getGameDataForRendering();
+  chatManager.iterate(elapsed);
+  DataForRendering gameDataForRendering = chatManager.getOutputDataForRendering();
 
   //
   // Clear Screen
@@ -61,12 +61,10 @@ SDL_AppResult AppInstance::iterate() {
   //
   // Render New Frame
   //
-  sceneRenderer.render(gameDataForRendering);
+  sceneRenderer.renderGUI(gameDataForRendering);
   ImGui::Render();
   ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);  // render the GUI
   SDL_RenderPresent(renderer);                                            // show the rendered frame on screen
-
-  userInputManger.onFrameEnd();
 
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
@@ -123,22 +121,4 @@ void AppInstance::initImGui() {
   // Setup Platform/Renderer backends
   ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
   ImGui_ImplSDLRenderer3_Init(renderer);
-
-  // Load Fonts
-  // - If fonts are not explicitly loaded, Dear ImGui will call AddFontDefault() to select an embedded font: either AddFontDefaultVector() or AddFontDefaultBitmap().
-  //   This selection is based on (style.FontSizeBase * style.FontScaleMain * style.FontScaleDpi) reaching a small threshold.
-  // - You can load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-  // - If a file cannot be loaded, AddFont functions will return a nullptr. Please handle those errors in your code (e.g. use an assertion, display an error and quit).
-  // - Read 'docs/FONTS.md' for more instructions and details.
-  // - Use '#define IMGUI_ENABLE_FREETYPE' in your imconfig file to use FreeType for higher quality font rendering.
-  // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-  // style.FontSizeBase = 20.0f;
-  // io.Fonts->AddFontDefaultVector();
-  // io.Fonts->AddFontDefaultBitmap();
-  // io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\segoeui.ttf");
-  // io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf");
-  // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf");
-  // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf");
-  // ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf");
-  // IM_ASSERT(font != nullptr);
 }

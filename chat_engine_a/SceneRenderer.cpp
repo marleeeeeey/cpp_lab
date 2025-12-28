@@ -3,53 +3,45 @@
 #include <SDL3/SDL.h>
 #include <imgui/imgui.h>
 
-#include "GameDataForRendering.h"
+#include "DataForRendering.h"
 
 void SceneRenderer::setRenderer(SDL_Renderer* renderer) {
   assert(renderer);
   this->renderer = renderer;
 }
 
-void SceneRenderer::render(const GameDataForRendering& gameDataForRendering) {
-  renderGameObjects(gameDataForRendering);
-  renderGUI(gameDataForRendering);
-}
-
-void SceneRenderer::renderGameObjects(const GameDataForRendering& gameDataForRendering) {
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE); /* white, full alpha */
-  /* You can also draw single points with SDL_RenderPoint(), but it's
-     cheaper (sometimes significantly so) to do them all at once. */
-  for (int i = 0; i < gameDataForRendering.points.size(); i++) {
-    const glm::vec2& point = gameDataForRendering.points[i];
-    SDL_RenderPoint(renderer, point.x, point.y);
-  }
-  // SDL_RenderPoints(renderer, /* draw all the points! */
-  //                  gameDataForRendering.points.data(),
-  //                  gameDataForRendering.points.size());
-}
-
-void SceneRenderer::renderGUI(const GameDataForRendering& gameDataForRendering) {
-  // https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp
-  // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-
-  static float f = 0.0f;
-  static int counter = 0;
-  static float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
-
+void SceneRenderer::renderGUI(const DataForRendering& dataForRendering) {
+  ImGui::SetNextWindowPos(ImVec2(0, 0));
   ImGuiIO& io = ImGui::GetIO();
+  ImGui::SetNextWindowSize(io.DisplaySize);
 
-  ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
+  ImGui::Begin("Chat Window", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
 
-  ImGui::Text("This is some useful text.");  // Display some text (you can use a format strings too)
+  // Connection status
+  ImGui::Text("Status: %s", dataForRendering.isConnected ? "Online" : "Offline");
+  ImGui::Separator();
 
-  ImGui::SliderFloat("float", &f, 0.0f, 1.0f);             // Edit 1 float using a slider from 0.0f to 1.0f
-  ImGui::ColorEdit3("clear color", (float*)&clear_color);  // Edit 3 floats representing a color
+  // Message history
+  ImGui::BeginChild("ScrollingRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), false, ImGuiWindowFlags_HorizontalScrollbar);
+  for (const auto& msg : dataForRendering.chatHistory) {
+    ImGui::TextWrapped("%s", msg.c_str());
+  }
+  if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+    ImGui::SetScrollHereY(1.0f);
+  ImGui::EndChild();
 
-  if (ImGui::Button("Button"))  // Buttons return true when clicked (most widgets return true when edited/activated)
-    counter++;
+  // Input field and send button
+  static char inputBuf[256] = "";
+  if (ImGui::InputText("##Input", inputBuf, IM_ARRAYSIZE(inputBuf), ImGuiInputTextFlags_EnterReturnsTrue)) {
+    // Called when Enter is pressed
+    // TODO: add message to chat history in ChatManager
+    inputBuf[0] = '\0';
+  }
   ImGui::SameLine();
-  ImGui::Text("counter = %d", counter);
+  if (ImGui::Button("Send")) {
+    // TODO: add message to chat history in ChatManager
+    inputBuf[0] = '\0';
+  }
 
-  ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
   ImGui::End();
 }

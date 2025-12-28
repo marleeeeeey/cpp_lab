@@ -1,9 +1,8 @@
 add_executable(chat_engine_a
         main.cpp
         AppInstance.cpp
-        GameWorld.cpp
+        ChatManager.cpp
         SceneRenderer.cpp
-        UserInputManger.cpp
 )
 
 find_package(SDL3 REQUIRED)
