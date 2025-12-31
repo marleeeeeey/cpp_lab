@@ -15,4 +15,5 @@ find_package(asio REQUIRED)
 
 target_link_libraries(chat_network_lib PUBLIC
         asio::asio
+        debug_log_lib
 )

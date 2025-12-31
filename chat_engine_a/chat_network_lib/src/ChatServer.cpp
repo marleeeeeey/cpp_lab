@@ -4,7 +4,7 @@
 #include <string>
 
 #include "ChatServerImpl.h"
-#include "DebugLog.h"
+#include "debug_log/DebugLog.h"
 
 using asio::ip::tcp;
 
@@ -15,6 +15,7 @@ struct ChatServer::Impl {
 
   explicit Impl(short port) : acceptor(io_context, tcp::endpoint(tcp::v4(), port)) {}
   ~Impl() { io_context.stop(); }
+
   void doAccept() {
     acceptor.async_accept(
         [this](std::error_code ec, tcp::socket socket) {

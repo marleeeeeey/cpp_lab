@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-
+#include <thread>
 
 // Simple logging function. Logs thread id before each line.
 // To enable/disable logging, use `DISABLE_DEBUG_LOG` macro.
