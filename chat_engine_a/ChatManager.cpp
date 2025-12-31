@@ -1,15 +1,18 @@
 #include "ChatManager.h"
 
 void ChatManager::init() {
-  // TODO
   dataForRendering.chatHistory.push_back("Hello world!");
-  dataForRendering.chatHistory.push_back("How are you?");
-  dataForRendering.chatHistory.push_back("I'm fine, thanks!");
   dataForRendering.isConnected = true;
+
+  chatServer.start(12345);
 }
 
 void ChatManager::iterate(double elapsed) {
-  // TODO
+  chatServer.poll();
+}
+
+void ChatManager::stop() {
+  chatServer.stop();
 }
 
 const DataForRendering& ChatManager::getOutputDataForRendering() const {

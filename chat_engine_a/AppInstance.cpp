@@ -70,6 +70,8 @@ SDL_AppResult AppInstance::iterate() {
 }
 
 void AppInstance::onQuit() {
+  chatManager.stop();
+
   ImGui_ImplSDLRenderer3_Shutdown();
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
