@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ChatServer.h"
 #include "DataForRendering.h"
+#include "chat_network/ChatServer.h"
 
 // Business logic for the chat engine.
 class ChatManager {

@@ -1,22 +1,21 @@
 add_executable(chat_engine_a
-        main.cpp
-        AppInstance.cpp
-        ChatManager.cpp
-        SceneRenderer.cpp
-        ChatServer.cpp
-        ChatServerImpl.cpp
+        src/main.cpp
+        src/AppInstance.cpp
+        src/ChatManager.cpp
+        src/SceneRenderer.cpp
 )
 
 find_package(SDL3 REQUIRED)
 find_package(imgui REQUIRED)
 find_package(glm REQUIRED)
-find_package(asio REQUIRED)
+
+add_subdirectory(chat_network_lib)
 
 target_link_libraries(chat_engine_a PRIVATE
         imgui::imgui
         SDL3::SDL3
         glm::glm
-        asio::asio
+        chat_network_lib
 )
 
 if (WIN32)
