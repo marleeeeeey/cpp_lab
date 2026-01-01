@@ -18,6 +18,7 @@ class ChatManager {
   DataForRendering dataForRendering;
   ChatServer chatServer;
   ChatClient chatClient;
+  uint8_t modeMask_ = Mode::None;
 
  public:
   void init(uint8_t modeMask);  // See enum Mode for details
@@ -25,4 +26,8 @@ class ChatManager {
   void stop();
   void sendMessage(const std::string& msg);  // Actual for sending messages to the server.
   const DataForRendering& getOutputDataForRendering() const;
+
+ private:
+  void startServer();
+  void connectToServer();
 };

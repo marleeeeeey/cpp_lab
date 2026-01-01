@@ -3,27 +3,35 @@
 #include <iostream>
 #include <ostream>
 
-void ChatManager::init(uint8_t modeMask) {
-  dataForRendering.chatHistory.push_back("Hello world!");
-  dataForRendering.isConnected = true;
+namespace {
+std::string gServerAddress = "127.0.0.1";
+short gServerPort = 12345;
+}  // namespace
 
-  short serverPort = 12345;
+void ChatManager::init(uint8_t modeMask) {
+  modeMask_ = modeMask;
 
   if (modeMask & Mode::Server) {
-    chatServer.start(serverPort);
+    startServer();
   }
 
   if (modeMask & Mode::Client) {
-    chatClient.start("127.0.0.1", serverPort, [this](const std::string& msg) {
-      std::cout << "Received message from server: " << msg << std::endl;
-      dataForRendering.chatHistory.push_back(msg);
-    });
+    connectToServer();
   }
 }
 
 void ChatManager::iterate(double elapsed) {
   chatServer.poll();
   chatClient.poll();
+
+  if (modeMask_ & Mode::Client) {
+    bool isConnected = chatClient.isConnected();
+    dataForRendering.isConnected = isConnected;
+
+    if (!isConnected) {
+      connectToServer();  // reconnect if the connection was lost
+    }
+  }
 }
 
 void ChatManager::stop() {
@@ -39,4 +47,15 @@ void ChatManager::sendMessage(const std::string& msg) {
 
 const DataForRendering& ChatManager::getOutputDataForRendering() const {
   return dataForRendering;
+}
+
+void ChatManager::startServer() {
+  chatServer.start(gServerPort);
+}
+
+void ChatManager::connectToServer() {
+  chatClient.start(gServerAddress, gServerPort, [this](const std::string& msg) {
+    std::cout << "Received message from server: " << msg << std::endl;
+    dataForRendering.chatHistory.push_back(msg);
+  });
 }

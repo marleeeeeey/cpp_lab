@@ -14,6 +14,7 @@ struct ChatServer::Impl {
   ChatRoom room;
 
   explicit Impl(short port) : acceptor(io_context, tcp::endpoint(tcp::v4(), port)) {}
+
   ~Impl() { io_context.stop(); }
 
   void doAccept() {

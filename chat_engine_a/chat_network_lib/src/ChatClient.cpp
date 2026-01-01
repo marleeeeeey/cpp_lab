@@ -12,6 +12,7 @@ struct ChatClient::Impl {
   tcp::socket socket;
   tcp::resolver resolver;
   char read_msg[1024];
+  bool isConnected = false;
 
   Impl() : socket(io_context), resolver(io_context) {}
 };
@@ -31,9 +32,11 @@ void ChatClient::start(const std::string& host, short port, const OnReceiveMessa
                       [this](std::error_code ec, tcp::endpoint) {
                         if (!ec) {
                           std::cout << "Connected to server!" << std::endl;
+                          pimpl->isConnected = true;
                           doRead();  // Start listening for messages
                         } else {
                           std::cerr << "Connection failed: " << ec.message() << std::endl;
+                          pimpl->isConnected = false;
                         }
                       });
 }
@@ -71,8 +74,7 @@ void ChatClient::send(const std::string& msg) {
 }
 
 bool ChatClient::isConnected() const {
-  assert(pimpl);
-  return pimpl && pimpl->socket.is_open();
+  return pimpl && pimpl->socket.is_open() && pimpl->isConnected;
 }
 
 void ChatClient::doRead() {
