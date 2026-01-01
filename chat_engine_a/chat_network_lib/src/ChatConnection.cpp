@@ -122,3 +122,7 @@ void ChatConnection::send(const std::string& msg) {
     pimpl->write();
   }
 }
+
+asio::ip::tcp::socket& ChatConnection::socket() {
+  return pimpl->socket;
+}

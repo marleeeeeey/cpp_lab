@@ -1,8 +1,9 @@
 #pragma once
 
-#include <functional>
 #include <memory>
 #include <string>
+
+#include "chat_network/Handlers.h"
 
 class ChatClient {
   struct Impl;
@@ -13,14 +14,10 @@ class ChatClient {
   ~ChatClient();
 
  public:
-  using OnReceiveMessageCallback = std::function<void(const std::string&)>;
-  void start(const std::string& host, short port, const OnReceiveMessageCallback& callback);
+  void start(const std::string& host, short port,
+             MessageHandler onMsg, ErrorHandler onErr);
   void stop();
   void poll();
   void send(const std::string& msg);
   bool isConnected() const;
-
- private:
-  OnReceiveMessageCallback onReceiveMessageCallback;
-  void read();
 };

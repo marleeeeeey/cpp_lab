@@ -3,6 +3,7 @@
 #include <iostream>
 #include <ostream>
 
+#include "chat_network/Handlers.h"
 #include "debug_log/DebugLog.h"
 
 namespace {
@@ -56,8 +57,12 @@ void ChatManager::startServer() {
 }
 
 void ChatManager::connectToServer() {
-  chatClient.start(gServerAddress, gServerPort, [this](const std::string& msg) {
+  MessageHandler onMsg = [this](const std::string& msg) {
     std::cout << "Client: Receive msg=" << msg << std::endl;
     dataForRendering.chatHistory.push_back(msg);
-  });
+  };
+
+  ErrorHandler onErr = [](const std::string& msg) { std::cerr << msg << std::endl; };
+
+  chatClient.start(gServerAddress, gServerPort, onMsg, onErr);
 }

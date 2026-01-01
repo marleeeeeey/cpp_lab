@@ -1,18 +1,16 @@
 #pragma once
 
 #include <asio.hpp>
-#include <functional>
 #include <memory>
 #include <string>
+
+#include "../include/chat_network/Handlers.h"
 
 class ChatConnection : public std::enable_shared_from_this<ChatConnection> {
   struct Impl;
   std::unique_ptr<Impl> pimpl;
 
  public:
-  using MessageHandler = std::function<void(const std::string&)>;
-  using ErrorHandler = std::function<void(const std::string&)>;
-
   explicit ChatConnection(asio::ip::tcp::socket socket);
   ~ChatConnection();
 
