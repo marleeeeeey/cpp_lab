@@ -31,11 +31,11 @@ void ChatClient::start(const std::string& host, short port, const OnReceiveMessa
   asio::async_connect(pimpl->socket, endpoints,
                       [this](std::error_code ec, tcp::endpoint) {
                         if (!ec) {
-                          std::cout << "Connected to server!" << std::endl;
+                          std::cout << "Client: Connected to server!" << std::endl;
                           pimpl->isConnected = true;
                           doRead();  // Start listening for messages
                         } else {
-                          std::cerr << "Connection failed: " << ec.message() << std::endl;
+                          std::cerr << "Client: Connection failed: " << ec.message() << std::endl;
                           pimpl->isConnected = false;
                         }
                       });
@@ -85,10 +85,10 @@ void ChatClient::doRead() {
                                     // Print received message to console
                                     auto msg = std::string(pimpl->read_msg, length);
                                     onReceiveMessageCallback(msg);
-                                    std::cout << "\nReceived: " << msg << "\n> " << std::flush;
+                                    debugLog() << "ChatClient: Received: " << msg << std::endl;
                                     doRead();  // Wait for more data
                                   } else {
-                                    std::cout << "Disconnected from server." << std::endl;
+                                    std::cout << "ChatClient: Disconnected from server." << std::endl;
                                     pimpl->socket.close();
                                   }
                                 });
@@ -105,7 +105,7 @@ void ChatClient::doWrite(std::shared_ptr<std::string> msgPtr) {
                       // IMPORTANT: This method is called from the io_context thread
                       debugLog() << "ChatClient::do_write: asio::async_write completed. Callback invoked." << std::endl;
                       if (ec) {
-                        std::cerr << "Write failed: " << ec.message() << std::endl;
+                        std::cerr << "ChatClient: Write failed: " << ec.message() << std::endl;
                       }
                       // IMPORTANT: msgPtr goes out of scope here, and the string is finally deleted
                     });

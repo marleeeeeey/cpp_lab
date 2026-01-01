@@ -2,21 +2,25 @@
 
 #include <iostream>
 
+#define DISABLE_DEBUG_LOG
+#include "debug_log/DebugLog.h"
+
 using asio::ip::tcp;
 
 void ChatRoom::join(std::shared_ptr<ClientSession> session) {
   sessions_.insert(session);
-  std::cout << "Client joined. Total clients: " << sessions_.size() << std::endl;
+  std::cout << "Server: Client joined. Total clients: " << sessions_.size() << std::endl;
 }
 
 void ChatRoom::leave(std::shared_ptr<ClientSession> session) {
   sessions_.erase(session);
-  std::cout << "Client left. Total clients: " << sessions_.size() << std::endl;
+  std::cout << "ChatRoom::leave: Client left. Total clients: " << sessions_.size() << std::endl;
 }
 
 void ChatRoom::deliver(const std::string& msg) {
+  debugLog() << "ChatRoom::deliver: msg= " << msg << std::endl;
   for (auto& session : sessions_) {
-    deliverMessage(session, msg);
+    session->deliver(msg);
   }
 }
 
@@ -46,15 +50,10 @@ void ClientSession::doRead() {
                           (std::error_code ec, std::size_t length) {
                             if (!ec) {
                               std::string msg(data_, length);
-                              std::cout << "Broadcasting: " << msg << std::endl;
                               room_.deliver(msg);  // Send to everyone
                               doRead();            // Wait for next message
                             } else {
                               room_.leave(shared_from_this());
                             }
                           });
-}
-
-void ChatRoom::deliverMessage(std::shared_ptr<ClientSession> session, const std::string& msg) {
-  session->deliver(msg);
 }

@@ -17,15 +17,12 @@ class ChatRoom {
   void join(std::shared_ptr<ClientSession> session);
   void leave(std::shared_ptr<ClientSession> session);
   void deliver(const std::string& msg);
-
- private:
-  // Using a helper to trigger the write on the session
-  void deliverMessage(std::shared_ptr<ClientSession> session, const std::string& msg);
 };
 
 // Represents a single client connection
 class ClientSession : public std::enable_shared_from_this<ClientSession> {
   enum { max_length = 1024 };
+
   char data_[max_length];
   asio::ip::tcp::socket socket_;
   ChatRoom& room_;

@@ -53,4 +53,4 @@ void SceneRenderer::renderGUI(const DataForRendering& dataForRendering) {
   ImGui::End();
 }
 
-void SceneRenderer::setOnMessageSent(const MessageSentCallback& callback) { onMessageSent = callback; }
+void SceneRenderer::setOnMessageSent(const OnMessageSentCallback& callback) { onMessageSent = callback; }

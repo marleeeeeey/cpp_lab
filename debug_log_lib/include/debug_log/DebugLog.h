@@ -7,12 +7,24 @@
 // To enable/disable logging, use `DISABLE_DEBUG_LOG` macro.
 // USAGE:
 // debugLog() << "line" << msg << std::endl;
-inline std::ostream& debugLog() {
-#ifdef DISABLE_DEBUG_LOG
-  static std::ostream nullStream(nullptr);
-  return nullStream;
-#else
+
+inline std::ostream& getDebugLogStream() {
   std::cout << "[" << std::this_thread::get_id() << "] ";
   return std::cout;
-#endif
 }
+
+struct NullStream {
+  template <typename T>
+  NullStream& operator<<(const T&) { return *this; }
+
+  NullStream& operator<<(std::ostream& (*)(std::ostream&)) { return *this; }
+};
+
+#ifdef DISABLE_DEBUG_LOG
+#define debugLog() \
+  if (true) {      \
+  } else           \
+    NullStream()
+#else
+#define debugLog() getDebugLogStream()
+#endif

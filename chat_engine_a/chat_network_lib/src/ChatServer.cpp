@@ -4,6 +4,8 @@
 #include <string>
 
 #include "ChatServerImpl.h"
+
+#define DISABLE_DEBUG_LOG
 #include "debug_log/DebugLog.h"
 
 using asio::ip::tcp;
@@ -21,7 +23,7 @@ struct ChatServer::Impl {
     acceptor.async_accept(
         [this](std::error_code ec, tcp::socket socket) {
           if (!ec) {
-            std::cout << "Accepted new connection " << socket.remote_endpoint() << std::endl;
+            std::cout << "Server: Accepted new connection " << socket.remote_endpoint() << std::endl;
             std::make_shared<ClientSession>(std::move(socket), room)->start();
           }
           doAccept();

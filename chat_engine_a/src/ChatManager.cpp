@@ -3,6 +3,8 @@
 #include <iostream>
 #include <ostream>
 
+#include "debug_log/DebugLog.h"
+
 namespace {
 std::string gServerAddress = "127.0.0.1";
 short gServerPort = 12345;
@@ -55,7 +57,7 @@ void ChatManager::startServer() {
 
 void ChatManager::connectToServer() {
   chatClient.start(gServerAddress, gServerPort, [this](const std::string& msg) {
-    std::cout << "Received message from server: " << msg << std::endl;
+    std::cout << "Client: Receive msg=" << msg << std::endl;
     dataForRendering.chatHistory.push_back(msg);
   });
 }
