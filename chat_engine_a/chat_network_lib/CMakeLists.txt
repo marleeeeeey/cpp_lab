@@ -1,14 +1,12 @@
 add_library(chat_network_lib STATIC
         src/ChatServer.cpp
         src/ChatServerImpl.cpp
+        src/ChatClient.cpp
 )
 
 target_include_directories(chat_network_lib
-        PUBLIC
-        include
-        PRIVATE
-        src
-        include/chat_network
+        PUBLIC include
+        PRIVATE src
 )
 
 find_package(asio REQUIRED)

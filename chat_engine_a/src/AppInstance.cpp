@@ -12,6 +12,9 @@ SDL_AppResult AppInstance::init() {
   auto initSdlResult = initSDL();  // initialize SDL and set renderer
   initImGui();
   sceneRenderer.setRenderer(renderer);
+  sceneRenderer.setOnMessageSent([this](const std::string& message) {
+    chatManager.sendMessage(message);
+  });
   chatManager.init();
   last_time = SDL_GetTicks();
   return initSdlResult;

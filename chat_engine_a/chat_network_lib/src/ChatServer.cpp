@@ -1,4 +1,4 @@
-#include "ChatServer.h"
+#include "chat_network/ChatServer.h"
 
 #include <iostream>
 #include <string>
@@ -44,5 +44,8 @@ void ChatServer::stop() {
 }
 
 void ChatServer::poll() {
+  if (!pimpl) {
+    return;
+  }
   pimpl->io_context.poll();
 }

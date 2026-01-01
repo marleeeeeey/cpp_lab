@@ -32,16 +32,25 @@ void SceneRenderer::renderGUI(const DataForRendering& dataForRendering) {
 
   // Input field and send button
   static char inputBuf[256] = "";
+  auto handleSend = [&]() {
+    if (inputBuf[0] != '\0') {
+      if (onMessageSent) {
+        onMessageSent(inputBuf);
+      }
+
+      std::fill(std::begin(inputBuf), std::end(inputBuf), '\0');
+      ImGui::SetKeyboardFocusHere(-1);
+    }
+  };
   if (ImGui::InputText("##Input", inputBuf, IM_ARRAYSIZE(inputBuf), ImGuiInputTextFlags_EnterReturnsTrue)) {
-    // Called when Enter is pressed
-    // TODO: add message to chat history in ChatManager
-    inputBuf[0] = '\0';
+    handleSend();
   }
   ImGui::SameLine();
   if (ImGui::Button("Send")) {
-    // TODO: add message to chat history in ChatManager
-    inputBuf[0] = '\0';
+    handleSend();
   }
 
   ImGui::End();
 }
+
+void SceneRenderer::setOnMessageSent(const MessageSentCallback& callback) { onMessageSent = callback; }
