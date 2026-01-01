@@ -12,9 +12,9 @@ struct ChatClient::Impl {
   asio::io_context io_context;
   tcp::resolver resolver;
   std::unique_ptr<ChatConnection> connection;  // Own the permanent socket
-  tcp::socket socket;                          // Temporary socket used for the connection process
+  tcp::socket tempSocket;                      // Temporary socket used for the connection process
 
-  Impl() : socket(io_context), resolver(io_context) {}
+  Impl() : tempSocket(io_context), resolver(io_context) {}
 };
 
 ChatClient::ChatClient() = default;
@@ -27,11 +27,11 @@ void ChatClient::start(const std::string& host, short port,
   asio::ip::basic_resolver_results<tcp> endpoints = pimpl->resolver.resolve(host, std::to_string(port));
 
   // Start connecting to the server
-  asio::async_connect(pimpl->socket, endpoints,
+  asio::async_connect(pimpl->tempSocket, endpoints,
                       [this, onMsg = std::move(onMsg), onErr = std::move(onErr)](std::error_code ec, tcp::endpoint) {
                         if (!ec) {
                           std::cout << "Client: Connected to server!" << std::endl;
-                          pimpl->connection = std::make_unique<ChatConnection>(std::move(pimpl->socket));
+                          pimpl->connection = std::make_unique<ChatConnection>(std::move(pimpl->tempSocket));
                           pimpl->connection->start(std::move(onMsg), std::move(onErr));
                         } else {
                           std::cerr << "Client: Connection failed: " << ec.message() << std::endl;
