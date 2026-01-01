@@ -3,8 +3,7 @@
 #include <iostream>
 #include <ostream>
 
-#include "chat_network/Handlers.h"
-#include "debug_log/DebugLog.h"
+#include "network_connection/Handlers.h"
 
 namespace {
 std::string gServerAddress = "127.0.0.1";

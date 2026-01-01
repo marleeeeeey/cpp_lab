@@ -1,4 +1,4 @@
-#include "NetworkConnection.h"
+#include "network_connection/NetworkConnection.h"
 
 #include <deque>
 

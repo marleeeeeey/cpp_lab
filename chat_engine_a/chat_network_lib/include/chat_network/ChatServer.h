@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "Handlers.h"
+#include "network_connection/Handlers.h"
 
 // Class is responsible for accepting incoming connections and handling them.
 // When a connection is accepted, ChatConnection is created and stored in the specific ChatRoom.

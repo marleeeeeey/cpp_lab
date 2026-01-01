@@ -5,8 +5,6 @@
 #include <set>
 #include <string>
 
-#include "NetworkConnection.h"
-
 class ClientSession;
 
 // Represents a chat room for managing client sessions and broadcasting messages.

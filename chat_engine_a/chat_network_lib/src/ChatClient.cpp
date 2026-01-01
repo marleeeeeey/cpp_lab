@@ -3,8 +3,8 @@
 #include <asio.hpp>
 
 #define DISABLE_DEBUG_LOG
-#include "NetworkConnection.h"
 #include "debug_log/DebugLog.h"
+#include "network_connection/NetworkConnection.h"
 
 using asio::ip::tcp;
 

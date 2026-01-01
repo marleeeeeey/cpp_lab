@@ -4,7 +4,7 @@
 #include <memory>
 #include <span>
 
-#include "chat_network/Handlers.h"
+#include "Handlers.h"
 
 // Represents a single network connection. It is a common class for both client and server.
 // It sends/receives a size of the data first and then the data itself.

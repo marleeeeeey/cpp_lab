@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "chat_network/Handlers.h"
+#include "network_connection/Handlers.h"
 
 // This class responsible for connecting to the server.
 // It wraps the ChatConnection class and reuses it for reading and writing messages.

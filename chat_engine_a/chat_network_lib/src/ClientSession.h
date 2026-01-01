@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include "NetworkConnection.h"
+#include "network_connection/NetworkConnection.h"
 
 class ChatRoom;
 
