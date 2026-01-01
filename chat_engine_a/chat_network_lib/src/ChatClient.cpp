@@ -20,9 +20,9 @@ ChatClient::ChatClient() = default;
 
 ChatClient::~ChatClient() = default;
 
-void ChatClient::start(const std::string& host, const std::string& port, const OnReceiveMessageCallback& callback) {
+void ChatClient::start(const std::string& host, short port, const OnReceiveMessageCallback& callback) {
   pimpl = std::make_unique<Impl>();
-  asio::ip::basic_resolver_results<tcp> endpoints = pimpl->resolver.resolve(host, port);
+  asio::ip::basic_resolver_results<tcp> endpoints = pimpl->resolver.resolve(host, std::to_string(port));
 
   onReceiveMessageCallback = callback;
 

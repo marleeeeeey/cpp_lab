@@ -7,12 +7,14 @@ void ChatManager::init(uint8_t modeMask) {
   dataForRendering.chatHistory.push_back("Hello world!");
   dataForRendering.isConnected = true;
 
+  short serverPort = 12345;
+
   if (modeMask & Mode::Server) {
-    chatServer.start(12345);
+    chatServer.start(serverPort);
   }
 
   if (modeMask & Mode::Client) {
-    chatClient.start("127.0.0.1", "12345", [this](const std::string& msg) {
+    chatClient.start("127.0.0.1", serverPort, [this](const std::string& msg) {
       std::cout << "Received message from server: " << msg << std::endl;
       dataForRendering.chatHistory.push_back(msg);
     });

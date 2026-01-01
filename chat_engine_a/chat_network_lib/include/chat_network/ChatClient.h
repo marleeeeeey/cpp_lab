@@ -14,7 +14,7 @@ class ChatClient {
 
  public:
   using OnReceiveMessageCallback = std::function<void(const std::string&)>;
-  void start(const std::string& host, const std::string& port, const OnReceiveMessageCallback& callback);
+  void start(const std::string& host, short port, const OnReceiveMessageCallback& callback);
   void stop();
   void poll();
   void send(const std::string& msg);
