@@ -51,7 +51,11 @@ const DataForRendering& ChatManager::getOutputDataForRendering() const {
 }
 
 void ChatManager::startServer() {
-  chatServer.start(gServerPort);
+  ErrorHandler onErr = [&](const std::error_code& ec) {
+    std::cerr << ec.message() << std::endl;
+  };
+
+  chatServer.start(gServerPort, onErr);
 }
 
 void ChatManager::connectToServer() {

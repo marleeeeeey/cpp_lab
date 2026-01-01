@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "Handlers.h"
+
 // Class is responsible for accepting incoming connections and handling them.
 // When a connection is accepted, ChatConnection is created and stored in the specific ChatRoom.
 class ChatServer {
@@ -16,7 +18,7 @@ class ChatServer {
 
  public:
   // Start method may be called multiple times to reconnect.
-  void start(short port);
+  void start(short port, ErrorHandler onErr);
 
   // Stop the current connection and close all sockets. May be reused by start method again.
   void stop();

@@ -37,6 +37,8 @@ void ChatClient::start(const std::string& host, short port,
                           std::cerr << "Client: Connection failed: " << ec.message() << std::endl;
                         }
                       });
+
+  std::cout << "Client: Client Started" << std::endl;
 }
 
 void ChatClient::stop() {

@@ -1,6 +1,7 @@
 add_library(chat_network_lib STATIC
         src/ChatServer.cpp
-        src/ChatServerImpl.cpp
+        src/ClientSession.cpp
+        src/ChatRoom.cpp
         src/ChatClient.cpp
         src/ChatConnection.cpp
 )
