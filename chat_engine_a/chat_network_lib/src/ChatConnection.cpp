@@ -2,6 +2,7 @@
 
 #include <deque>
 
+#define DISABLE_DEBUG_LOG
 #include "debug_log/DebugLog.h"
 
 struct OutgoingPackage {

@@ -25,35 +25,25 @@ void ChatRoom::deliver(const std::string& msg) {
 }
 
 ClientSession::ClientSession(tcp::socket socket, ChatRoom& room)
-    : socket_(std::move(socket)), room_(room) {}
+    : connection_(std::move(socket)), room_(room) {}
 
 void ClientSession::start() {
-  room_.join(shared_from_this());
-  read();
+  auto self = shared_from_this();
+
+  // Start the connection
+  MessageHandler onMsg = [this, self](const std::string& msg) {
+    room_.deliver(msg);
+  };
+  ErrorHandler onErr = [this, self](const std::string& msg) {
+    std::cerr << msg << std::endl;
+    room_.leave(shared_from_this());
+  };
+  connection_.start(onMsg, onErr);
+
+  // Register the session in the room
+  room_.join(self);
 }
 
 void ClientSession::deliver(const std::string& msg) {
-  auto self(shared_from_this());
-  auto msgCopy = std::make_shared<std::string>(msg);
-
-  asio::async_write(socket_, asio::buffer(*msgCopy),
-                    [self, msgCopy]  // Extent lifetime for self and asio::buffer
-                    (std::error_code ec, std::size_t /*length*/) {
-                      // If error occurs, the session will eventually be dropped by the read loop
-                    });
-}
-
-void ClientSession::read() {
-  auto self(shared_from_this());
-  socket_.async_read_some(asio::buffer(data_, max_length),
-                          [this, self]  // Extent lifetime for self
-                          (std::error_code ec, std::size_t length) {
-                            if (!ec) {
-                              std::string msg(data_, length);
-                              room_.deliver(msg);  // Send it to everyone
-                              read();              // Wait for the next message
-                            } else {
-                              room_.leave(shared_from_this());
-                            }
-                          });
+  connection_.send(msg);
 }

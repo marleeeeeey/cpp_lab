@@ -44,8 +44,6 @@ void ChatManager::stop() {
 
 void ChatManager::sendMessage(const std::string& msg) {
   chatClient.send(msg);
-  // Not needed to add a message to chat history, because it returns from the server.
-  // dataForRendering.chatHistory.push_back(msg);
 }
 
 const DataForRendering& ChatManager::getOutputDataForRendering() const {
@@ -62,7 +60,11 @@ void ChatManager::connectToServer() {
     dataForRendering.chatHistory.push_back(msg);
   };
 
-  ErrorHandler onErr = [](const std::string& msg) { std::cerr << msg << std::endl; };
+  ErrorHandler onErr = [&](const std::string& msg) {
+    std::cerr << msg << std::endl;
+    // TODO Should we restart the connection here or do it in the logic above?
+    chatClient.start(gServerAddress, gServerPort, onMsg, onErr);  // Reconnect on error.
+  };
 
   chatClient.start(gServerAddress, gServerPort, onMsg, onErr);
 }

@@ -5,6 +5,8 @@
 #include <set>
 #include <string>
 
+#include "ChatConnection.h"
+
 // Forward declaration
 class ClientSession;
 
@@ -21,10 +23,7 @@ class ChatRoom {
 
 // Represents a single client connection
 class ClientSession : public std::enable_shared_from_this<ClientSession> {
-  enum { max_length = 1024 };
-
-  char data_[max_length];
-  asio::ip::tcp::socket socket_;
+  ChatConnection connection_;
   ChatRoom& room_;
 
  public:
