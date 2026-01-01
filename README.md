@@ -2,6 +2,8 @@
 
 My C++ playground.
 
+The codebase is self-documenting. To understand the library interfaces, check the headers in the include folder of each subproject.
+
 **List of projects**:
 
 - [debug_log_lib](./debug_log_lib): A header-only library for console debug logging. Messages can be toggled using a preprocessor macro.
