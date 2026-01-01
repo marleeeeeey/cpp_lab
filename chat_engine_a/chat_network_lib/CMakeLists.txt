@@ -2,6 +2,7 @@ add_library(chat_network_lib STATIC
         src/ChatServer.cpp
         src/ChatServerImpl.cpp
         src/ChatClient.cpp
+        src/ChatConnection.cpp
 )
 
 target_include_directories(chat_network_lib
