@@ -18,7 +18,7 @@ class AppInstance {
   SceneRenderer sceneRenderer;
 
  public:
-  SDL_AppResult init();
+  SDL_AppResult init(const std::vector<std::string>& args = {});
   SDL_AppResult onEvent(SDL_Event* event);
   SDL_AppResult iterate();
   void onQuit();

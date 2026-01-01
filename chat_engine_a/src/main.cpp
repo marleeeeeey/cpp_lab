@@ -5,8 +5,14 @@
 
 /* This function runs once at startup. */
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
+  // Save args as vector of strings
+  std::vector<std::string> args;
+  for (int i = 1; i < argc; ++i) {
+    args.emplace_back(argv[i]);
+  }
+
   AppInstance* app = new AppInstance();
-  auto result = app->init();
+  auto result = app->init(args);
   *appstate = app;
   return result;
 }

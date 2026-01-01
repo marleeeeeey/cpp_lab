@@ -50,6 +50,11 @@ void ChatClient::poll() {
 }
 
 void ChatClient::send(const std::string& msg) {
+  if (!pimpl) {
+    std::cerr << "ChatClient::send: Method ChatClient::start must be called first." << std::endl;
+    return;
+  }
+
   // IMPORTANT: This method is called from the main thread
   debugLog() << "ChatClient::write: " << msg << std::endl;
 
@@ -66,10 +71,12 @@ void ChatClient::send(const std::string& msg) {
 }
 
 bool ChatClient::isConnected() const {
+  assert(pimpl);
   return pimpl && pimpl->socket.is_open();
 }
 
 void ChatClient::doRead() {
+  assert(pimpl);
   pimpl->socket.async_read_some(asio::buffer(pimpl->read_msg),
                                 [this](std::error_code ec, std::size_t length) {
                                   if (!ec) {
@@ -86,6 +93,7 @@ void ChatClient::doRead() {
 }
 
 void ChatClient::doWrite(std::shared_ptr<std::string> msgPtr) {
+  assert(pimpl);
   debugLog() << "ChatClient::do_write: msg=" << *msgPtr << std::endl;
   // IMPORTANT: This method is called from the io_context thread
   asio::async_write(pimpl->socket, asio::buffer(*msgPtr),

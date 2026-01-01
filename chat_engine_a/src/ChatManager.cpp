@@ -3,15 +3,20 @@
 #include <iostream>
 #include <ostream>
 
-void ChatManager::init() {
+void ChatManager::init(uint8_t modeMask) {
   dataForRendering.chatHistory.push_back("Hello world!");
   dataForRendering.isConnected = true;
 
-  chatServer.start(12345);
-  chatClient.start("127.0.0.1", "12345", [this](const std::string& msg) {
-    std::cout << "Received message from server: " << msg << std::endl;
-    dataForRendering.chatHistory.push_back(msg);
-  });
+  if (modeMask & Mode::Server) {
+    chatServer.start(12345);
+  }
+
+  if (modeMask & Mode::Client) {
+    chatClient.start("127.0.0.1", "12345", [this](const std::string& msg) {
+      std::cout << "Received message from server: " << msg << std::endl;
+      dataForRendering.chatHistory.push_back(msg);
+    });
+  }
 }
 
 void ChatManager::iterate(double elapsed) {

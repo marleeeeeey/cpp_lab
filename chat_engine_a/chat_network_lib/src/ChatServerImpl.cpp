@@ -46,7 +46,7 @@ void ClientSession::doRead() {
                           (std::error_code ec, std::size_t length) {
                             if (!ec) {
                               std::string msg(data_, length);
-                              std::cout << "Broadcasting: " << msg;
+                              std::cout << "Broadcasting: " << msg << std::endl;
                               room_.deliver(msg);  // Send to everyone
                               doRead();            // Wait for next message
                             } else {

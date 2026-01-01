@@ -8,14 +8,34 @@
 
 #include "GlobalConstants.h"
 
-SDL_AppResult AppInstance::init() {
-  auto initSdlResult = initSDL();  // initialize SDL and set renderer
+SDL_AppResult AppInstance::init(const std::vector<std::string>& args) {
+  //
+  // Init SDL and ImGui
+  //
+  auto initSdlResult = initSDL();
   initImGui();
   sceneRenderer.setRenderer(renderer);
   sceneRenderer.setOnMessageSent([this](const std::string& message) {
     chatManager.sendMessage(message);
   });
-  chatManager.init();
+
+  //
+  // Init chat manager (network layer)
+  //
+  uint8_t mode = ChatManager::None;
+  if (args.empty()) {
+    mode = ChatManager::Both;
+  } else {
+    for (const auto& arg : args) {
+      if (arg == "--server") mode |= ChatManager::Server;
+      if (arg == "--client") mode |= ChatManager::Client;
+    }
+  }
+  chatManager.init(mode);
+
+  //
+  // Finalize initialization
+  //
   last_time = SDL_GetTicks();
   return initSdlResult;
 }

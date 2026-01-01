@@ -6,12 +6,21 @@
 
 // Business logic for the chat engine.
 class ChatManager {
+ public:
+  enum Mode : uint8_t {
+    None = 0,
+    Client = 1 << 0,
+    Server = 1 << 1,
+    Both = Client | Server,
+  };
+
+ private:
   DataForRendering dataForRendering;
   ChatServer chatServer;
   ChatClient chatClient;
 
  public:
-  void init();
+  void init(uint8_t modeMask);  // See enum Mode for details
   void iterate(double elapsed);
   void stop();
   void sendMessage(const std::string& msg);  // Actual for sending messages to the server.
