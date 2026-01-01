@@ -1,4 +1,4 @@
-#include "ChatConnection.h"
+#include "NetworkConnection.h"
 
 #include <deque>
 
@@ -28,7 +28,7 @@ struct OutgoingPackage {
   }
 };
 
-struct ChatConnection::Impl {
+struct NetworkConnection::Impl {
   asio::ip::tcp::socket socket;
   uint32_t incomingSize = 0;
   std::vector<uint8_t> incomingData;
@@ -111,15 +111,15 @@ struct ChatConnection::Impl {
   }
 };
 
-ChatConnection::ChatConnection(asio::ip::tcp::socket socket)
+NetworkConnection::NetworkConnection(asio::ip::tcp::socket socket)
     : pimpl(std::make_unique<Impl>(std::move(socket))) {
 }
 
-ChatConnection::~ChatConnection() {
+NetworkConnection::~NetworkConnection() {
   pimpl->stop();
 }
 
-void ChatConnection::start(MessageHandler onMsg, ErrorHandler onErr) {
+void NetworkConnection::start(MessageHandler onMsg, ErrorHandler onErr) {
   assert(pimpl->isConnected);
 
   pimpl->onMessage = std::move(onMsg);
@@ -127,7 +127,7 @@ void ChatConnection::start(MessageHandler onMsg, ErrorHandler onErr) {
   pimpl->read();
 }
 
-void ChatConnection::send(std::span<const std::uint8_t> data) {
+void NetworkConnection::send(std::span<const std::uint8_t> data) {
   assert(pimpl->isConnected);
 
   bool writeInProgress = !pimpl->writeQueue.empty();
@@ -140,10 +140,10 @@ void ChatConnection::send(std::span<const std::uint8_t> data) {
   }
 }
 
-void ChatConnection::send(std::string_view msg) {
+void NetworkConnection::send(std::string_view msg) {
   send(std::span<const std::uint8_t>(reinterpret_cast<const std::uint8_t*>(msg.data()), msg.size()));
 }
 
-asio::ip::tcp::socket& ChatConnection::socket() {
+asio::ip::tcp::socket& NetworkConnection::socket() {
   return pimpl->socket;
 }

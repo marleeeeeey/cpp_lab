@@ -3,7 +3,7 @@ add_library(chat_network_lib STATIC
         src/ClientSession.cpp
         src/ChatRoom.cpp
         src/ChatClient.cpp
-        src/ChatConnection.cpp
+        src/NetworkConnection.cpp
 )
 
 target_include_directories(chat_network_lib

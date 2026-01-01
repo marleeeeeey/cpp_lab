@@ -3,7 +3,7 @@
 #include <asio.hpp>
 
 #define DISABLE_DEBUG_LOG
-#include "ChatConnection.h"
+#include "NetworkConnection.h"
 #include "debug_log/DebugLog.h"
 
 using asio::ip::tcp;
@@ -11,8 +11,8 @@ using asio::ip::tcp;
 struct ChatClient::Impl {
   asio::io_context io_context;
   tcp::resolver resolver;
-  std::unique_ptr<ChatConnection> connection;  // Own the permanent socket
-  tcp::socket tempSocket;                      // Temporary socket used for the connection process
+  std::unique_ptr<NetworkConnection> connection;  // Own the permanent socket
+  tcp::socket tempSocket;                         // Temporary socket used for the connection process
 
   Impl() : tempSocket(io_context), resolver(io_context) {}
 };
@@ -31,7 +31,7 @@ void ChatClient::start(const std::string& host, short port,
                       [this, onMsg = std::move(onMsg), onErr = std::move(onErr)](std::error_code ec, tcp::endpoint) {
                         if (!ec) {
                           std::cout << "Client: Connected to server!" << std::endl;
-                          pimpl->connection = std::make_unique<ChatConnection>(std::move(pimpl->tempSocket));
+                          pimpl->connection = std::make_unique<NetworkConnection>(std::move(pimpl->tempSocket));
                           pimpl->connection->start(std::move(onMsg), std::move(onErr));
                         } else {
                           std::cerr << "Client: Connection failed: " << ec.message() << std::endl;

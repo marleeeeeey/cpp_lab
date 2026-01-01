@@ -5,7 +5,7 @@
 #include <set>
 #include <string>
 
-#include "ChatConnection.h"
+#include "NetworkConnection.h"
 
 class ClientSession;
 
