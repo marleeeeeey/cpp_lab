@@ -11,8 +11,9 @@ struct ChatClient::Impl {
   asio::io_context io_context;
   tcp::socket socket;
   tcp::resolver resolver;
-  char read_msg[1024];
   bool isConnected = false;
+  uint32_t incoming_size;
+  std::vector<uint8_t> incoming_data;
 
   Impl() : socket(io_context), resolver(io_context) {}
 };
@@ -33,7 +34,7 @@ void ChatClient::start(const std::string& host, short port, const OnReceiveMessa
                         if (!ec) {
                           std::cout << "Client: Connected to server!" << std::endl;
                           pimpl->isConnected = true;
-                          doRead();  // Start listening for messages
+                          read();  // Start listening for messages
                         } else {
                           std::cerr << "Client: Connection failed: " << ec.message() << std::endl;
                           pimpl->isConnected = false;
@@ -52,61 +53,66 @@ void ChatClient::poll() {
   pimpl->io_context.poll();
 }
 
+bool ChatClient::isConnected() const {
+  return pimpl && pimpl->socket.is_open() && pimpl->isConnected;
+}
+
+struct OutgoingPackage {
+  uint32_t size;
+  std::string data;
+
+  explicit OutgoingPackage(std::string msg)
+      : size(static_cast<uint32_t>(msg.size())), data(std::move(msg)) {}
+};
+
 void ChatClient::send(const std::string& msg) {
   if (!pimpl) {
     std::cerr << "ChatClient::send: Method ChatClient::start must be called first." << std::endl;
     return;
   }
 
-  // IMPORTANT: This method is called from the main thread
   debugLog() << "ChatClient::write: " << msg << std::endl;
 
   // Create a copy of the message in the heap with shared ownership.
-  auto msgPtr = std::make_shared<std::string>(msg);
+  auto package = std::make_shared<OutgoingPackage>(msg);
 
-  // Post the write to the io_context thread to ensure thread safety
-  asio::post(pimpl->io_context, [this, msgPtr]  // IMPORTANT: Extend lifetime of msgPtr by capturing it in lambda.
-             () {
-               // IMPORTANT: This method is called from the io_context thread
-               debugLog() << "ChatClient::write: asio::post" << std::endl;
-               doWrite(msgPtr);  // IMPORTANT: Extend lifetime of msgPtr.
-             });
-}
+  std::vector<asio::const_buffer> buffers;
+  buffers.push_back(asio::buffer(&package->size, sizeof(package->size)));
+  buffers.push_back(asio::buffer(package->data));
 
-bool ChatClient::isConnected() const {
-  return pimpl && pimpl->socket.is_open() && pimpl->isConnected;
-}
-
-void ChatClient::doRead() {
-  assert(pimpl);
-  pimpl->socket.async_read_some(asio::buffer(pimpl->read_msg),
-                                [this](std::error_code ec, std::size_t length) {
-                                  if (!ec) {
-                                    // Print received message to console
-                                    auto msg = std::string(pimpl->read_msg, length);
-                                    onReceiveMessageCallback(msg);
-                                    debugLog() << "ChatClient: Received: " << msg << std::endl;
-                                    doRead();  // Wait for more data
-                                  } else {
-                                    std::cout << "ChatClient: Disconnected from server." << std::endl;
-                                    pimpl->socket.close();
-                                  }
-                                });
-}
-
-void ChatClient::doWrite(std::shared_ptr<std::string> msgPtr) {
-  assert(pimpl);
-  debugLog() << "ChatClient::do_write: msg=" << *msgPtr << std::endl;
-  // IMPORTANT: This method is called from the io_context thread
-  asio::async_write(pimpl->socket, asio::buffer(*msgPtr),
-                    [msgPtr]  // IMPORTANT: Extend the lifetime of msgPtr by capturing it in lambda.
-                              // Otherwise, it will be deleted and asio::buffer becomes invalid.
-                    (std::error_code ec, std::size_t) {
-                      // IMPORTANT: This method is called from the io_context thread
-                      debugLog() << "ChatClient::do_write: asio::async_write completed. Callback invoked." << std::endl;
-                      if (ec) {
-                        std::cerr << "ChatClient: Write failed: " << ec.message() << std::endl;
+  asio::async_write(pimpl->socket, buffers,
+                    [package, this]  // Extent lifetime of the package
+                    (std::error_code ec, std::size_t bytes_transferred) {
+                      if (!ec) {
+                        debugLog() << "ChatClient::send success: sent " << bytes_transferred << " bytes." << std::endl;
+                      } else {
+                        std::cerr << "ChatClient: Async write failed: " << ec.message() << std::endl;
+                        stop();  // Stop the connection on error
                       }
-                      // IMPORTANT: msgPtr goes out of scope here, and the string is finally deleted
                     });
+}
+
+void ChatClient::read() {
+  assert(pimpl);
+
+  // 1. Read the size of the incoming message
+  asio::async_read(pimpl->socket, asio::buffer(&pimpl->incoming_size, sizeof(pimpl->incoming_size)),
+                   [this](std::error_code ec, std::size_t) {
+                     if (!ec) {
+                       // 2. Read the incoming message with the specified size
+                       pimpl->incoming_data.resize(pimpl->incoming_size);
+                       asio::async_read(pimpl->socket, asio::buffer(pimpl->incoming_data),
+                                        [this](std::error_code ec, std::size_t /*length*/) {
+                                          if (!ec) {
+                                            std::string msg(pimpl->incoming_data.begin(), pimpl->incoming_data.end());
+                                            if (onReceiveMessageCallback) onReceiveMessageCallback(msg);
+                                            debugLog() << "ChatClient: Received: " << msg << std::endl;
+                                            read();  // 3. Wait for the next message
+                                          }
+                                        });
+                     } else {
+                       std::cerr << "ChatClient: Read failed: " << ec.message() << std::endl;
+                       stop();  // If error stop the connection
+                     }
+                   });
 }

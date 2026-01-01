@@ -29,7 +29,7 @@ ClientSession::ClientSession(tcp::socket socket, ChatRoom& room)
 
 void ClientSession::start() {
   room_.join(shared_from_this());
-  doRead();
+  read();
 }
 
 void ClientSession::deliver(const std::string& msg) {
@@ -43,15 +43,15 @@ void ClientSession::deliver(const std::string& msg) {
                     });
 }
 
-void ClientSession::doRead() {
+void ClientSession::read() {
   auto self(shared_from_this());
   socket_.async_read_some(asio::buffer(data_, max_length),
                           [this, self]  // Extent lifetime for self
                           (std::error_code ec, std::size_t length) {
                             if (!ec) {
                               std::string msg(data_, length);
-                              room_.deliver(msg);  // Send to everyone
-                              doRead();            // Wait for next message
+                              room_.deliver(msg);  // Send it to everyone
+                              read();              // Wait for the next message
                             } else {
                               room_.leave(shared_from_this());
                             }

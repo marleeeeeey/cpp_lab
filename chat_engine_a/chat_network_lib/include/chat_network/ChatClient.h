@@ -22,8 +22,5 @@ class ChatClient {
 
  private:
   OnReceiveMessageCallback onReceiveMessageCallback;
-
- private:
-  void doRead();
-  void doWrite(std::shared_ptr<std::string> msgPtr);
+  void read();
 };

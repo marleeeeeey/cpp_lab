@@ -16,7 +16,7 @@ class ChatRoom {
  public:
   void join(std::shared_ptr<ClientSession> session);
   void leave(std::shared_ptr<ClientSession> session);
-  void deliver(const std::string& msg);
+  void deliver(const std::string& msg);  // broadcasts the message to all sessions(clients)
 };
 
 // Represents a single client connection
@@ -29,9 +29,9 @@ class ClientSession : public std::enable_shared_from_this<ClientSession> {
 
  public:
   ClientSession(asio::ip::tcp::socket socket, ChatRoom& room);
-  void start();
+  void start();  // Starts the asynchronous read operation
   void deliver(const std::string& msg);
 
  private:
-  void doRead();
+  void read();
 };

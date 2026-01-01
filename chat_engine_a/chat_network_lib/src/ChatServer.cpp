@@ -19,14 +19,14 @@ struct ChatServer::Impl {
 
   ~Impl() { io_context.stop(); }
 
-  void doAccept() {
+  void accept() {
     acceptor.async_accept(
         [this](std::error_code ec, tcp::socket socket) {
           if (!ec) {
             std::cout << "Server: Accepted new connection " << socket.remote_endpoint() << std::endl;
             std::make_shared<ClientSession>(std::move(socket), room)->start();
           }
-          doAccept();
+          accept();  // Wait for the next connection
         });
   }
 };
@@ -38,7 +38,7 @@ ChatServer::~ChatServer() = default;
 void ChatServer::start(short port) {
   debugLog() << "ChatServer::start: port=" << port << std::endl;
   pimpl = std::make_unique<Impl>(port);
-  pimpl->doAccept();
+  pimpl->accept();
 }
 
 void ChatServer::stop() {
