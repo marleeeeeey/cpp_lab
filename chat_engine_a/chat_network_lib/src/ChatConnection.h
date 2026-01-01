@@ -2,6 +2,7 @@
 
 #include <asio.hpp>
 #include <memory>
+#include <span>
 #include <string>
 
 #include "chat_network/Handlers.h"
@@ -23,7 +24,8 @@ class ChatConnection : public std::enable_shared_from_this<ChatConnection> {
   void start(MessageHandler onMsg, ErrorHandler onErr);
 
   // Add a message to the outgoing queue and initiate an asynchronous write operation.
-  void send(const std::string& msg);
+  void send(std::span<const std::uint8_t> data);
+  void send(std::string_view msg);
 
   // Access the underlying socket. This object is only an owner of the socket.
   asio::ip::tcp::socket& socket();

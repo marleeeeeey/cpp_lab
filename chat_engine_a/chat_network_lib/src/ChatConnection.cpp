@@ -7,16 +7,31 @@
 
 struct OutgoingPackage {
   uint32_t size;
-  std::string data;
+  std::vector<uint8_t> data;
 
-  explicit OutgoingPackage(std::string msg)
-      : size(static_cast<uint32_t>(msg.size())), data(std::move(msg)) {}
+  // 1. Handle raw byte spans
+  explicit OutgoingPackage(std::span<const uint8_t> buffer)
+      : size(static_cast<uint32_t>(buffer.size())),
+        data(buffer.begin(), buffer.end()) {}
+
+  // 2. Handle strings and string_views
+  explicit OutgoingPackage(std::string_view msg)
+      : size(static_cast<uint32_t>(msg.size())),
+        data(reinterpret_cast<const uint8_t*>(msg.data()),
+             reinterpret_cast<const uint8_t*>(msg.data()) + msg.size()) {}
+
+  // 3. Handle direct std::string moves
+  explicit OutgoingPackage(std::string&& msg)
+      : size(static_cast<uint32_t>(msg.size())) {
+    data.assign(reinterpret_cast<const uint8_t*>(msg.data()),
+                reinterpret_cast<const uint8_t*>(msg.data()) + msg.size());
+  }
 };
 
 struct ChatConnection::Impl {
   asio::ip::tcp::socket socket;
-  uint32_t incoming_size = 0;
-  std::vector<uint8_t> incoming_data;
+  uint32_t incomingSize = 0;
+  std::vector<uint8_t> incomingData;
   std::deque<std::shared_ptr<OutgoingPackage>> writeQueue;
   MessageHandler onMessage;
   ErrorHandler onError;
@@ -31,24 +46,23 @@ struct ChatConnection::Impl {
   // If an error occurs, the onError callback will be called.
   void read() {
     // 1. Read the size of the incoming message
-    asio::async_read(socket, asio::buffer(&incoming_size, sizeof(pimpl->incoming_size)),
+    asio::async_read(socket, asio::buffer(&incomingSize, sizeof(pimpl->incomingSize)),
                      [this](std::error_code ec, std::size_t) {
                        if (!ec) {
                          // 2. Read the incoming message with the specified size
-                         incoming_data.resize(incoming_size);
-                         asio::async_read(socket, asio::buffer(incoming_data),
+                         incomingData.resize(incomingSize);
+                         asio::async_read(socket, asio::buffer(incomingData),
                                           [this](std::error_code ec, std::size_t /*length*/) {
                                             if (!ec) {
-                                              std::string msg(incoming_data.begin(), incoming_data.end());
-                                              if (onMessage) onMessage(msg);
-                                              debugLog() << "ChatClient: Received: " << msg << std::endl;
+                                              std::span<const std::uint8_t> data = incomingData;
+                                              if (onMessage) onMessage(data);
                                               read();  // 3. Wait for the next message
                                             }
                                           });
                        } else {
                          std::cerr << "ChatClient: Read failed: " << ec.message() << std::endl;
                          stop();
-                         if (onError) onError(ec.message());
+                         if (onError) onError(ec);
                        }
                      });
   }
@@ -77,7 +91,7 @@ struct ChatConnection::Impl {
                         } else {
                           std::cerr << "ChatClient: Async write failed: " << ec.message() << std::endl;
                           stop();
-                          if (onError) onError(ec.message());
+                          if (onError) onError(ec);
                         }
                       });
   }
@@ -92,6 +106,8 @@ struct ChatConnection::Impl {
     socket.close(ec);                                           // Close the socket. This triggers 'operation_aborted' in all pending async handlers.
     writeQueue.clear();                                         // Clear the queue as messages can no longer be delivered
     isConnected = false;
+
+    std::cerr << "ChatClient: Connection closed." << std::endl;
   }
 };
 
@@ -111,17 +127,21 @@ void ChatConnection::start(MessageHandler onMsg, ErrorHandler onErr) {
   pimpl->read();
 }
 
-void ChatConnection::send(const std::string& msg) {
+void ChatConnection::send(std::span<const std::uint8_t> data) {
   assert(pimpl->isConnected);
 
   bool writeInProgress = !pimpl->writeQueue.empty();
 
   // Create a copy of the message in the heap with shared ownership.
-  pimpl->writeQueue.push_back(std::make_shared<OutgoingPackage>(msg));
+  pimpl->writeQueue.push_back(std::make_shared<OutgoingPackage>(data));
 
   if (!writeInProgress) {
     pimpl->write();
   }
+}
+
+void ChatConnection::send(std::string_view msg) {
+  send(std::span<const std::uint8_t>(reinterpret_cast<const std::uint8_t*>(msg.data()), msg.size()));
 }
 
 asio::ip::tcp::socket& ChatConnection::socket() {

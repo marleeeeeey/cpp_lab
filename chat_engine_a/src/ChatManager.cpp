@@ -55,13 +55,14 @@ void ChatManager::startServer() {
 }
 
 void ChatManager::connectToServer() {
-  MessageHandler onMsg = [this](const std::string& msg) {
+  MessageHandler onMsg = [this](std::span<const std::uint8_t> data) {
+    std::string msg(reinterpret_cast<const char*>(data.data()), data.size());
     std::cout << "Client: Receive msg=" << msg << std::endl;
     dataForRendering.chatHistory.push_back(msg);
   };
 
-  ErrorHandler onErr = [&](const std::string& msg) {
-    std::cerr << msg << std::endl;
+  ErrorHandler onErr = [&](const std::error_code& ec) {
+    std::cerr << ec.message() << std::endl;
     // TODO Should we restart the connection here or do it in the logic above?
     chatClient.start(gServerAddress, gServerPort, onMsg, onErr);  // Reconnect on error.
   };
