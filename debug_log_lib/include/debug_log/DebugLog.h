@@ -1,17 +1,19 @@
+// Simple logging function. Logs thread id before each line. USAGE:
+/*
+#include "debug_log/DebugLog.h"
+#define DISABLE_DEBUG_LOG // disable logging
+#define DEBUG_LOG_PREFIX "[APP] " // override prefix for this file
+debugLog() << "line" << msg << std::endl;
+*/
+
 #pragma once
 
 #include <iostream>
 #include <thread>
 
-// Simple logging function. Logs thread id before each line.
-// To enable/disable logging, use `DISABLE_DEBUG_LOG` macro.
-// USAGE:
-// debugLog() << "line" << msg << std::endl;
-
-inline std::ostream& getDebugLogStream() {
-  std::cout << "[" << std::this_thread::get_id() << "] ";
-  return std::cout;
-}
+#ifndef DEBUG_LOG_PREFIX
+#define DEBUG_LOG_PREFIX "[DEBUG] "
+#endif
 
 struct NullStream {
   template <typename T>
@@ -26,5 +28,5 @@ struct NullStream {
   } else           \
     NullStream()
 #else
-#define debugLog() getDebugLogStream()
+#define debugLog() std::cout << DEBUG_LOG_PREFIX << "[" << std::this_thread::get_id() << "] "
 #endif

@@ -4,8 +4,8 @@
 
 #include "network_connection/Handlers.h"
 
-// Class is responsible for accepting incoming connections and handling them.
-// When a connection is accepted, ChatConnection is created and stored in the specific ChatRoom.
+// Class is responsible for accepting incoming connections and delivering messages to the appropriate clients.
+// Can be run in the main thread. All methods are non-blocking. Handlers are called in the same thread.
 class ChatServer {
   struct Impl;
   std::unique_ptr<Impl> pimpl;
@@ -20,7 +20,7 @@ class ChatServer {
   // Start method may be called multiple times to reconnect.
   void start(short port, ErrorHandler onErr);
 
-  // Stop the current connection and close all sockets. May be reused by start method again.
+  // Stop the current connection and close all sockets.
   void stop();
 
   // Should be called every frame. It initiates asynchronous read operations for all active connections.

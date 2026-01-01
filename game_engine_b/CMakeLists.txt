@@ -1,9 +1,9 @@
 add_executable(game_engine_b
-        main.cpp
-        AppInstance.cpp
-        GameWorld.cpp
-        SceneRenderer.cpp
-        UserInputManger.cpp
+        src/main.cpp
+        src/AppInstance.cpp
+        src/GameWorld.cpp
+        src/SceneRenderer.cpp
+        src/UserInputManger.cpp
 )
 
 find_package(SDL3 REQUIRED)

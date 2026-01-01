@@ -9,8 +9,6 @@ find_package(SDL3 REQUIRED)
 find_package(imgui REQUIRED)
 find_package(glm REQUIRED)
 
-add_subdirectory(chat_network_lib)
-
 target_link_libraries(chat_engine_a PRIVATE
         imgui::imgui
         SDL3::SDL3

@@ -44,7 +44,7 @@ struct ChatServer::Impl {
     acceptor.listen(asio::socket_base::max_listen_connections, ec);
     accept();
 
-    std::cout << "Server: Server Started" << std::endl;
+    std::cout << "Server: Server Started. Listening port " << port << " for incoming connections" << std::endl;
   }
 
  private:
@@ -78,6 +78,7 @@ void ChatServer::stop() {
 
 void ChatServer::poll() {
   if (!pimpl) {
+    std::cerr << "Server: Server not started! Run start() first" << std::endl;
     return;
   }
   pimpl->io_context.poll();

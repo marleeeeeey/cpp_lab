@@ -5,8 +5,8 @@
 
 #include "network_connection/Handlers.h"
 
-// This class responsible for connecting to the server.
-// It wraps the ChatConnection class and reuses it for reading and writing messages.
+// This class responsible for connecting to the server and sending/receiving messages.
+// Can be run in the main thread. All methods are non-blocking. Handlers are called in the same thread.
 class ChatClient {
   struct Impl;
   std::unique_ptr<Impl> pimpl;
