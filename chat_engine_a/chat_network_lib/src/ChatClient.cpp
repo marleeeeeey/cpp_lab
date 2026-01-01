@@ -51,7 +51,10 @@ void ChatClient::poll() {
 }
 
 void ChatClient::send(const std::string& msg) {
-  assert(pimpl && pimpl->connection);
+  if (!isConnected()) {
+    std::cerr << "Client: Not connected!" << std::endl;
+    return;
+  }
   pimpl->connection->send(msg);
 }
 

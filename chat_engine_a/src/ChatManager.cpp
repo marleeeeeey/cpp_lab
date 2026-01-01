@@ -62,9 +62,9 @@ void ChatManager::connectToServer() {
   };
 
   ErrorHandler onErr = [&](const std::error_code& ec) {
+    // Here is just printed the error message,
+    // Connection should be retried in the code above manually
     std::cerr << ec.message() << std::endl;
-    // TODO Should we restart the connection here or do it in the logic above?
-    chatClient.start(gServerAddress, gServerPort, onMsg, onErr);  // Reconnect on error.
   };
 
   chatClient.start(gServerAddress, gServerPort, onMsg, onErr);

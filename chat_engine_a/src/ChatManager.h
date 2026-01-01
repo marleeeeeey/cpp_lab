@@ -28,6 +28,6 @@ class ChatManager {
   const DataForRendering& getOutputDataForRendering() const;
 
  private:
-  void startServer();
-  void connectToServer();
+  void startServer();      // Accepts incoming connections even if an error occurs
+  void connectToServer();  // In case of an error connection should be created again manually
 };
