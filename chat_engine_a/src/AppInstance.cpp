@@ -46,7 +46,11 @@ SDL_AppResult AppInstance::onEvent(SDL_Event* event) {
     return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
   }
 
-  // Paste here your event handling code if needed.
+  if (event->type == SDL_EVENT_KEY_DOWN) {
+    if (event->key.key == SDLK_ESCAPE) {
+      return SDL_APP_SUCCESS;  // close the application on Escape key press
+    }
+  }
 
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }

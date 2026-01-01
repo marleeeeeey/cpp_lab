@@ -20,6 +20,11 @@ struct ChatServer::Impl {
   // Change: Constructor no longer binds the socket immediately
   explicit Impl() : acceptor(io_context) {}
 
+  ~Impl() {
+    io_context.stop();
+    std::cerr << "Server: Server Stopped" << std::endl;
+  }
+
   void start(short port, ErrorHandler onErr_) {
     onErr = std::move(onErr_);
 
@@ -38,9 +43,9 @@ struct ChatServer::Impl {
 
     acceptor.listen(asio::socket_base::max_listen_connections, ec);
     accept();
-  }
 
-  ~Impl() { io_context.stop(); }
+    std::cout << "Server: Server Started" << std::endl;
+  }
 
  private:
   void accept() {
@@ -65,12 +70,10 @@ void ChatServer::start(short port, ErrorHandler onErr) {
   debugLog() << "ChatServer::start: port=" << port << std::endl;
   pimpl = std::make_unique<Impl>();
   pimpl->start(port, std::move(onErr));
-  std::cout << "Server: Server Started" << std::endl;
 }
 
 void ChatServer::stop() {
   pimpl.reset();
-  debugLog() << "ChatServer::stop: OK" << std::endl;
 }
 
 void ChatServer::poll() {

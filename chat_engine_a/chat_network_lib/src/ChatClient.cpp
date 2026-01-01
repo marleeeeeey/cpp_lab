@@ -15,6 +15,11 @@ struct ChatClient::Impl {
   tcp::socket tempSocket;                         // Temporary socket used for the connection process
 
   Impl() : tempSocket(io_context), resolver(io_context) {}
+
+  ~Impl() {
+    io_context.stop();
+    std::cerr << "Client: Client Stopped" << std::endl;
+  }
 };
 
 ChatClient::ChatClient() = default;

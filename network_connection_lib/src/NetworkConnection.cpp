@@ -106,8 +106,6 @@ struct NetworkConnection::Impl {
     socket.close(ec);                                           // Close the socket. This triggers 'operation_aborted' in all pending async handlers.
     writeQueue.clear();                                         // Clear the queue as messages can no longer be delivered
     isConnected = false;
-
-    std::cerr << "ChatClient: Connection closed." << std::endl;
   }
 };
 
