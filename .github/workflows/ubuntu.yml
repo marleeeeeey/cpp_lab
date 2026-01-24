@@ -19,10 +19,14 @@ jobs:
 
   gcc:
     runs-on: ubuntu-latest
+
     container: gcc:latest
 
     steps:
+
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          submodules: recursive
 
       - name: Install OpenSSL
         run: |
@@ -41,8 +45,11 @@ jobs:
 
 
   emscripten:
+
     runs-on: ubuntu-latest
+
     steps:
+
       - name: Harden Runner
         uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
@@ -52,6 +59,8 @@ jobs:
         uses: mymindstorm/setup-emsdk@6ab9eb1bda2574c4ddb79809fc9247783eaf9021 # v14
 
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          submodules: recursive
 
       - name: Build host flatc (matches FlatBuffers headers version)
         run: |
