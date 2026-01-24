@@ -10,8 +10,6 @@ target_include_directories(chat_network_lib
         PRIVATE src
 )
 
-find_package(asio REQUIRED)
-
 target_link_libraries(chat_network_lib PUBLIC
         asio::asio
         debug_log_lib

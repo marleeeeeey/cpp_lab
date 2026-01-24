@@ -7,8 +7,6 @@ target_include_directories(network_connection_lib
         PRIVATE src
 )
 
-find_package(asio REQUIRED)
-
 target_link_libraries(network_connection_lib PUBLIC
         asio::asio
         debug_log_lib

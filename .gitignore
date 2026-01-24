@@ -1,3 +1,4 @@
 /build-preset/
 /build/
-/**/.*
+/.idea/
+/external/

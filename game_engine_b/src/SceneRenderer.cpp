@@ -1,7 +1,7 @@
 #include "SceneRenderer.h"
 
 #include <SDL3/SDL.h>
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 #include "GameDataForRendering.h"
 

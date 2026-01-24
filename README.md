@@ -17,20 +17,26 @@ The codebase is self-documenting. To understand the library interfaces, check th
 
 ### Configure and build 
 
-Default
-
 ```shell
 cmake -S . -B build && cmake --build build
 ```
 
-Preset clang-debug
+**[Emscripten](https://emscripten.org/docs/getting_started/downloads.html)** build requires options `CMAKE_TOOLCHAIN_FILE` and
+`FLATC_HOST_EXECUTABLE` to be set.
 
-```shell
-cmake --preset clang-debug && cmake --build --preset clang-debug
-```
+`FLATC_HOST_EXECUTABLE` - path to the flatbuffer compiler executable `flatc.exe` from the flatbuffers package.
 
-Preset clang-release
+Example:
 
-```shell
-cmake --preset clang-release && cmake --build --preset clang-release
+```powershell
+cd .\cpp_lab
+cmake -S . -B build `
+  -DCMAKE_TOOLCHAIN_FILE="$env:EMSDK\upstream\emscripten\cmake\Modules\Platform\Emscripten.cmake" `
+  -DFLATC_HOST_EXECUTABLE="C:\path\to\flatc.exe" `
+  -DCMAKE_C_COMPILER="$env:EMSDK\upstream\emscripten\emcc.bat" `
+  -DCMAKE_CXX_COMPILER="$env:EMSDK\upstream\emscripten\em++.bat" `
+  -DCMAKE_BUILD_TYPE=Release `
+  -DCMAKE_MAKE_PROGRAM="C:\path\to\ninja.exe" `
+  -G Ninja
+cmake --build build
 ```
