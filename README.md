@@ -25,6 +25,7 @@ cmake -S . -B build && cmake --build build
 `FLATC_HOST_EXECUTABLE` to be set.
 
 `FLATC_HOST_EXECUTABLE` - path to the flatbuffer compiler executable `flatc.exe` from the flatbuffers package.
+It can be downloaded from https://github.com/google/flatbuffers/releases/tag/v25.12.19.
 
 Example:
 
