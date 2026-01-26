@@ -17,7 +17,7 @@ add_subdirectory(3rd_party)
 # Internal
 # ----------------------------
 
-add_subdirectory(std_filesystem)
+add_subdirectory(std)
 add_subdirectory(game_engine_b)
 add_subdirectory(debug_log_lib)
 
