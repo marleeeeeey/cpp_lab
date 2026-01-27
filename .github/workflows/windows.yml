@@ -80,3 +80,12 @@ jobs:
 
       - name: Build (Emscripten)
         run: cmake --build build-emscripten --parallel 10
+
+      - uses: Oval-Tutu/publish-to-itch-with-butler@v1
+        with:
+          api-key: ${{ secrets.BUTLER_API_KEY }}
+          itch_user: marleeeeeey
+          itch_game: transport_layer_client
+          channel: web
+          package: ./build-emscripten/transport_layer_client/itch-web.zip
+          version: ${{ github.sha }}
