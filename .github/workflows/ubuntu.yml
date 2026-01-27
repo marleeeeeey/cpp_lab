@@ -93,17 +93,16 @@ jobs:
       - name: Build
         run: cmake --build build
 
-      - name: Upload binary to server
+      - name: Upload artifacts to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_SSH_HOST }}
           username: ${{ secrets.VPS_SSH_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           port: ${{ secrets.VPS_SSH_PORT }}
-          source: "dist/${{ env.SERVICE_NAME }}"
+          source: "dist/*"
           target: "${{ env.DEPLOY_DIR }}"
-          rm: true  # remove old binary before uploading
-          strip_components: 0
+          rm: true
           overwrite: true
 
       - name: Restart server via systemd
