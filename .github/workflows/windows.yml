@@ -41,7 +41,7 @@ jobs:
           -G "Ninja" `
           -DCMAKE_C_COMPILER="C:/Program Files/LLVM/bin/clang.exe" `
           -DCMAKE_CXX_COMPILER="C:/Program Files/LLVM/bin/clang++.exe" `
-          -D3RD_PARTY_BUILD_EXAMPLES=ON
+          -D3RD_PARTY_BUILD_EXAMPLES=OFF
 
       - name: Build
         run: cmake --build build --parallel 10
@@ -75,7 +75,7 @@ jobs:
           $toolchain = "$env:EMSDK\upstream\emscripten\cmake\Modules\Platform\Emscripten.cmake"
           cmake -S . -B build-emscripten -G "Ninja" `
             -DCMAKE_TOOLCHAIN_FILE="$toolchain" `
-            -D3RD_PARTY_BUILD_EXAMPLES=ON `
+            -D3RD_PARTY_BUILD_EXAMPLES=OFF `
             -DFLATC_HOST_EXECUTABLE="${{ env.FLATC_HOST_EXECUTABLE }}"
 
       - name: Build (Emscripten)
