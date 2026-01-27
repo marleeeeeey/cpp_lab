@@ -10,6 +10,7 @@ endif ()
 # External
 # ----------------------------
 
+set(3RD_PARTY_SKIP "tracy;openal-soft;box2d;EnTT" CACHE STRING "" FORCE)
 add_subdirectory(3rd_party)
 
 
