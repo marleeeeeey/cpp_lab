@@ -81,11 +81,12 @@ jobs:
       - name: Build (Emscripten)
         run: cmake --build build-emscripten --parallel 10
 
-      - uses: Oval-Tutu/publish-to-itch-with-butler@0b95cb236877c16fc132580efb1134b262db3c8a # v1
+      - name: Publish to itch.io (butler)
+        uses: ./.github/actions/butler_install_and_push
         with:
-          api-key: ${{ secrets.BUTLER_API_KEY }}
-          itch_user: marleeeeeey
-          itch_game: transport_layer_client
-          channel: web
-          package: ./build-emscripten/transport_layer_client/itch-web.zip
-          version: ${{ github.sha }}
+          butler-api-key: ${{ secrets.BUTLER_API_KEY }}
+          itch-user: marleeeeeey
+          itch-game: transport_layer_client
+          itch-channel: web
+          game-package: ./build-emscripten/transport_layer_client/itch-web.zip
+          game-version: ${{ github.sha }}

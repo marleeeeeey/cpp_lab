@@ -1,0 +1,56 @@
+name: Install Butler and Push Game to itch.io
+
+inputs:
+  butler-api-key:
+    description: "itch.io butler API key"
+    required: true
+  itch-user:
+    required: true
+  itch-game:
+    required: true
+  itch-channel:
+    required: true
+  game-package:
+    required: true
+  game-version:
+    required: true
+
+runs:
+  using: composite
+  steps:
+
+    - name: Download and unpack butler (Windows, PowerShell)
+      shell: pwsh
+      run: |
+        # Constants
+        $butlerUrl = "https://broth.itch.zone/butler/windows-amd64/15.24.0/archive/default"
+        $zipPath   = Join-Path $PWD "butler-windows-amd64.zip"
+        $destDir   = Join-Path $PWD "butler"
+        
+        # Download
+        Invoke-WebRequest -Uri $butlerUrl -OutFile $zipPath
+        
+        # Unzip
+        if (Test-Path $destDir) { Remove-Item -Recurse -Force $destDir }
+        New-Item -ItemType Directory -Path $destDir | Out-Null
+        Expand-Archive -Path $zipPath -DestinationPath $destDir -Force
+        
+        # Verify
+        $exe = Join-Path $destDir "butler.exe"
+        if (!(Test-Path $exe)) { throw "butler.exe not found at: $exe" }
+        
+        # Make butler available to subsequent steps
+        $destDir | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+    - name: Verify butler installation
+      shell: pwsh
+      run: |
+        butler --version
+
+    - name: Push Game to itch.io via butler push
+      shell: pwsh
+      env:
+        BUTLER_API_KEY: ${{ inputs.butler-api-key }}
+      run: |
+        butler --version
+        butler push "${{ inputs.game-package }}" "${{ inputs.itch-user }}/${{ inputs.itch-game }}:${{ inputs.itch-channel }}" --userversion "${{ inputs.game-version }}"
