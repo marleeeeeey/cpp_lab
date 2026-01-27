@@ -86,7 +86,7 @@ jobs:
         with:
           butler-api-key: ${{ secrets.BUTLER_API_KEY }}
           itch-user: marleeeeeey
-          itch-game: transport_layer_client
+          itch-game: transport-layer-client
           itch-channel: web
           game-package: ./build-emscripten/transport_layer_client/itch-web.zip
           game-version: ${{ github.sha }}
