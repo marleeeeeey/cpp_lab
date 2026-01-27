@@ -40,7 +40,7 @@ jobs:
         run: cmake -S . -B build -D3RD_PARTY_BUILD_EXAMPLES=OFF
 
       - name: Build
-        run: cmake --build build
+        run: cmake --build build --verbose
 
 
 
