@@ -93,24 +93,20 @@ jobs:
       - name: Build
         run: cmake --build build
 
-      - name: Pack artifact
-        run: |
-          mkdir -p dist
-          cp ${BIN_REAL_NAME} dist/${SERVICE_NAME}
-          chmod +x dist/${SERVICE_NAME}
-          tar -czf dist/${SERVICE_NAME}.tar.gz -C dist ${SERVICE_NAME}
-
-      - name: Upload archive to server
+      - name: Upload binary to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_SSH_HOST }}
           username: ${{ secrets.VPS_SSH_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           port: ${{ secrets.VPS_SSH_PORT }}
-          source: "dist/${{ env.SERVICE_NAME }}.tar.gz"
+          source: "dist/${{ env.SERVICE_NAME }}"
           target: "${{ env.DEPLOY_DIR }}"
+          rm: true  # remove old binary before uploading
+          strip_components: 0
+          overwrite: true
 
-      - name: Unpack and restart
+      - name: Restart server via systemd
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_SSH_HOST }}
@@ -120,7 +116,6 @@ jobs:
           script: |
             set -e
             cd ${{ env.DEPLOY_DIR }}
-            tar -xzf ${{ env.SERVICE_NAME }}.tar.gz
-            chmod +x ${{ env.DEPLOY_DIR }}/${{ env.SERVICE_NAME }}
-            sudo systemctl restart my_server
-            sudo systemctl status my_server --no-pager
+            chmod +x ${SERVICE_NAME}
+            sudo systemctl restart ${SERVICE_NAME}
+            sudo systemctl status ${SERVICE_NAME} --no-pager
