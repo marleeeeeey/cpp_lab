@@ -1,5 +1,5 @@
-add_executable(std_filesystem
+add_executable(std
         main.cpp
 )
 
-target_link_libraries(std_filesystem PRIVATE GTest::gtest_main)
+target_link_libraries(std PRIVATE GTest::gtest_main)

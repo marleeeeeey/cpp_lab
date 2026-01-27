@@ -25,7 +25,7 @@ add_subdirectory(transport_layer_client)
 
 add_custom_target(build_all_projects)
 add_dependencies(build_all_projects
-        std_filesystem
+        std
         game_engine_b
         debug_log_lib
         transport_layer
@@ -37,10 +37,12 @@ if (NOT EMSCRIPTEN)
     add_subdirectory(chat_engine_a)
     add_subdirectory(network_connection_lib) # TODO make this layer buildable for Emscripten
     add_subdirectory(chat_network_lib)
+    add_subdirectory(web_sockets_echo_server_no_ssl)
 
     add_dependencies(build_all_projects
             chat_engine_a
             network_connection_lib
             chat_network_lib
+            web_sockets_echo_server_no_ssl
     )
 endif ()

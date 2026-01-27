@@ -6,7 +6,14 @@
 
 std::shared_ptr<ITransport> globalTransport;
 
-int main() {
+int main(int argc, char** argv) {
+  std::string url = "wss://echo.websocket.org";  // example:   ws://127.0.0.1:9001
+  for (int i = 1; i < argc; ++i) {
+    if (std::string_view(argv[i]) == "--url" && i + 1 < argc) {
+      url = argv[i + 1];
+    }
+  }
+
   // ---------------------------------------
   // Get transport interface
   // ---------------------------------------
@@ -16,7 +23,6 @@ int main() {
   // ---------------------------------------
   // Initiate connection and message loop
   // ---------------------------------------
-  std::string url = "wss://echo.websocket.org";
   globalTransport->onOpen = []() {
     std::cout << "Connected to server" << std::endl;
   };
