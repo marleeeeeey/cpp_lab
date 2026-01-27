@@ -66,6 +66,7 @@ DesktopWebSocketTransport::~DesktopWebSocketTransport() {
   debugLog() << "Destroyed" << std::endl;
 }
 
+// Start or restart a working thread.
 void DesktopWebSocketTransport::connect(std::string url) {
   std::lock_guard<std::mutex> lock(mu_);
   url_ = std::move(url);
@@ -82,12 +83,15 @@ void DesktopWebSocketTransport::connect(std::string url) {
   }
 }
 
+// Almost always is non-blocking. It may be blocking if you're trying to send
+// a message from several threads.
 void DesktopWebSocketTransport::sendText(std::string_view text) {
   // ixwebsocket copies data internally; safe to pass a temporary std::string.
   debugLog() << "sendText: " << text << std::endl;
   ws_.sendText(std::string(text));
 }
 
+// This is a blocking method. It waits when the working thread is done.
 void DesktopWebSocketTransport::close() {
   const bool wasStarted = started_.exchange(false);
   if (wasStarted) {
