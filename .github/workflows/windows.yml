@@ -81,7 +81,7 @@ jobs:
       - name: Build (Emscripten)
         run: cmake --build build-emscripten --parallel 10
 
-      - uses: Oval-Tutu/publish-to-itch-with-butler@v1
+      - uses: Oval-Tutu/publish-to-itch-with-butler@0b95cb236877c16fc132580efb1134b262db3c8a # v1
         with:
           api-key: ${{ secrets.BUTLER_API_KEY }}
           itch_user: marleeeeeey
