@@ -26,13 +26,14 @@ inputs:
     description: "Target directory on the server where the service will be deployed."
     required: false
     default: "/opt"
-  service_source:
-    description: "Path to the binary file on build machine to deploy."
-    required: true
   service_args:
     description: "Arguments to pass to the service binary upon startup."
     required: false
     default: ""
+
+  build_artifact:
+    description: "Path to the binary file on build machine to deploy."
+    required: true
 
 
 
@@ -45,7 +46,7 @@ runs:
     - name: Rename source binary to service name
       shell: bash
       run: |
-        cp ${{ inputs.service_source }} ${{ inputs.service_name }}
+        cp ${{ inputs.build_artifact }} ${{ inputs.service_name }}
         chmod +x ${{ inputs.service_name }}
 
     - name: Create service directories on server

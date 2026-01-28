@@ -96,6 +96,6 @@ jobs:
 
           service_name: ws_echo3
           service_dir: /opt/ws_echo3
-          service_source: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
           service_args: --port 8083
 
+          build_artifact: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
