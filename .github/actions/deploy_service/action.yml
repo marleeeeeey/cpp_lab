@@ -1,10 +1,24 @@
 name: Deploy Service to Server via SSH
 description: >-
   Deploy a service to a remote server via SSH. 
-  This script requires next secrets: VPS_SSH_HOST, VPS_SSH_USER, VPS_SSH_PRIVATE_KEY, VPS_SSH_PORT.
   Your service will be deployed to /service_dir/service_name.
 
+
 inputs:
+
+  ssh_host:
+    description: SSH host
+    required: true
+  ssh_user:
+    description: SSH username
+    required: true
+  ssh_key:
+    description: SSH private key
+    required: true
+  ssh_port:
+    description: SSH port
+    required: true
+
   service_name:
     description: "Name of target service. Will be used as filename on server."
     required: true
@@ -20,7 +34,10 @@ inputs:
     required: false
     default: ""
 
+
+
 runs:
+
   using: composite
 
   steps:
@@ -34,29 +51,29 @@ runs:
     - name: Create service directories on server
       uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
       with:
-        host: ${{ secrets.VPS_SSH_HOST }}
-        username: ${{ secrets.VPS_SSH_USER }}
-        key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-        port: ${{ secrets.VPS_SSH_PORT }}
+        host: ${{ inputs.ssh_host }}
+        username: ${{ inputs.ssh_user }}
+        key: ${{ inputs.ssh_key }}
+        port: ${{ inputs.ssh_port }}
         script: |
           set -e            
           
           # Ensure service working directory exists
           sudo mkdir -p ${{ inputs.service_dir }}
-          sudo chown ${{ secrets.VPS_SSH_USER }}:${{ secrets.VPS_SSH_USER }} ${{ inputs.service_dir }}
+          sudo chown ${{ inputs.ssh_user }}:${{ inputs.ssh_user }} ${{ inputs.service_dir }}
           sudo chmod 755 ${{ inputs.service_dir }}
           
           # Ensure logs directory exists
           sudo mkdir -p /var/log/${{ inputs.service_name }}
-          sudo chown ${{ secrets.VPS_SSH_USER }}:${{ secrets.VPS_SSH_USER }} /var/log/${{ inputs.service_name }}
+          sudo chown ${{ inputs.ssh_user }}:${{ inputs.ssh_user }} /var/log/${{ inputs.service_name }}
 
     - name: Upload artifacts to server
       uses: appleboy/scp-action@917f8b81dfc1ccd331fef9e2d61bdc6c8be94634 # v0.1.7
       with:
-        host: ${{ secrets.VPS_SSH_HOST }}
-        username: ${{ secrets.VPS_SSH_USER }}
-        key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-        port: ${{ secrets.VPS_SSH_PORT }}
+        host: ${{ inputs.ssh_host }}
+        username: ${{ inputs.ssh_user }}
+        key: ${{ inputs.ssh_key }}
+        port: ${{ inputs.ssh_port }}
         source: "${{ inputs.service_name }}" # scp file list - only file in my case
         target: "${{ inputs.service_dir }}" # target directory on the server
         rm: false # Remove the target directory before upload
@@ -65,10 +82,10 @@ runs:
     - name: Restart server via systemd
       uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
       with:
-        host: ${{ secrets.VPS_SSH_HOST }}
-        username: ${{ secrets.VPS_SSH_USER }}
-        key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-        port: ${{ secrets.VPS_SSH_PORT }}
+        host: ${{ inputs.ssh_host }}
+        username: ${{ inputs.ssh_user }}
+        key: ${{ inputs.ssh_key }}
+        port: ${{ inputs.ssh_port }}
         script: |
           set -e            
           
@@ -81,7 +98,7 @@ runs:
           
           [Service]
           Type=simple
-          User=${{ secrets.VPS_SSH_USER }}
+          User=${{ inputs.ssh_user }}
           WorkingDirectory=${{ inputs.service_dir }}
           ExecStart=${{ inputs.service_dir }}/${{ inputs.service_name }} ${{ inputs.service_args }}
           Restart=always

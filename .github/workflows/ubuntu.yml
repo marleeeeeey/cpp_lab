@@ -67,12 +67,6 @@ jobs:
 
     container: gcc:latest
 
-    env:
-      name: ws_echo2
-      pwd: /opt/ws_echo2
-      source: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
-      args: --port 8080
-
     steps:
 
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -95,7 +89,13 @@ jobs:
 
       - uses: ./.github/actions/deploy_service
         with:
+          ssh_host: ${{ secrets.VPS_SSH_HOST }}
+          ssh_user: ${{ secrets.VPS_SSH_USER }}
+          ssh_key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          ssh_port: ${{ secrets.VPS_SSH_PORT }}
+
           service_name: ws_echo3
           service_dir: /opt/ws_echo3
           service_source: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
           args: --port 8083
+
