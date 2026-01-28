@@ -69,8 +69,9 @@ jobs:
 
     env:
       SERVICE_NAME: my_server
-      PATH_TO_BUILD_BINANY: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
-      # PORT: 8080
+      SERVICE_DIR: /opt/my_server
+      SERVICE_SOURCE: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
+      SERVICE_PORT: 8080
 
     steps:
 
@@ -95,8 +96,8 @@ jobs:
       - name: Pack artifact
         run: |
           mkdir -p ${SERVICE_NAME}
-          cp ${PATH_TO_BUILD_BINANY} ${SERVICE_NAME}/${SERVICE_NAME}
-          chmod +x ${SERVICE_NAME}/${SERVICE_NAME}
+          cp ${SERVICE_SOURCE} ${SERVICE_NAME} # result: service/service
+          chmod +x ${SERVICE_NAME}
 
       - name: Upload artifacts to server
         uses: appleboy/scp-action@v0.1.7
@@ -105,8 +106,8 @@ jobs:
           username: ${{ secrets.VPS_SSH_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           port: ${{ secrets.VPS_SSH_PORT }}
-          source: "${{ env.SERVICE_NAME }}/*" # scp file list
-          target: "/opt/${{ env.SERVICE_NAME }}" # target path on the server, must be a directory path.
+          source: "${{ env.SERVICE_NAME }}" # scp file list - only file in my case
+          target: "${{ env.SERVICE_DIR }}" # target path on the server, must be a directory path. Result: SERVICE_DIR/service
           rm: false # Remove the target directory before upload
           overwrite: true # Overwrite existing files with tar
 
@@ -118,8 +119,35 @@ jobs:
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           port: ${{ secrets.VPS_SSH_PORT }}
           script: |
-            set -e
-            chmod +x /opt/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}
+            set -e            
+            
+            # Ensure logs directory exists
+            sudo mkdir -p /var/log/${{ env.SERVICE_NAME }}
+            sudo chown deploy:deploy /var/log/${{ env.SERVICE_NAME }}
+
+            # Create/update systemd unit before restart
+            sudo tee /etc/systemd/system/${{ env.SERVICE_NAME }}.service > /dev/null <<'EOF'
+            [Unit]
+            Description=My Server
+            After=network-online.target
+            Wants=network-online.target
+
+            [Service]
+            Type=simple
+            User=deploy
+            WorkingDirectory=${{ env.SERVICE_DIR }}
+            ExecStart=${{ env.SERVICE_DIR }}/${{ env.SERVICE_NAME }} --port ${{ env.SERVICE_PORT }}
+            Restart=always
+            RestartSec=2
+            StandardOutput=append:/var/log/${{ env.SERVICE_NAME }}/stdout.log
+            StandardError=append:/var/log/${{ env.SERVICE_NAME }}/stderr.log
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF
+            
+            
+            chmod +x ${{ env.SERVICE_DIR }}/${{ env.SERVICE_NAME }}
             sudo systemctl daemon-reload
             sudo systemctl restart ${{ env.SERVICE_NAME }}
             sudo systemctl status ${{ env.SERVICE_NAME }} --no-pager

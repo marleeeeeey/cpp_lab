@@ -1,16 +1,25 @@
 cmake_minimum_required(VERSION 3.20)
 project(cpp_lab)
 
+
+# ----------------------------
+# Options
+# ----------------------------
+
 if (EMSCRIPTEN)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
 endif ()
+
+set(CPP_LAB_ENABLE_OBSOLETE_PROJECTS OFF CACHE BOOL "Enable/Disable obsolete projects from ALL target to speedup build")
 
 
 # ----------------------------
 # External
 # ----------------------------
 
-set(3RD_PARTY_SKIP "tracy;openal-soft;box2d;EnTT;implot;SDL3_image;spdlog;enet;cxxopts;nlohmann_json;asio" CACHE STRING "" FORCE)
+if (NOT CPP_LAB_ENABLE_OBSOLETE_PROJECTS)
+    set(3RD_PARTY_SKIP "tracy;openal-soft;box2d;EnTT;implot;SDL3_image;spdlog;enet;cxxopts;nlohmann_json;asio" CACHE STRING "" FORCE)
+endif ()
 add_subdirectory(3rd_party)
 
 
@@ -24,24 +33,13 @@ add_subdirectory(debug_log_lib)
 add_subdirectory(transport_layer)
 add_subdirectory(transport_layer_client)
 
-add_custom_target(build_all_projects)
-add_dependencies(build_all_projects
-        std
-        game_engine_b
-        debug_log_lib
-        transport_layer
-        transport_layer_client
-)
-
-# Disable examples with Asio, OpenSSL and uWebSockets for Emscripten
+# Disable projects with Asio, OpenSSL and uWebSockets for Emscripten
 if (NOT EMSCRIPTEN)
 
-    # Disable build of obsolete projects. Keep their code as reference.
-    # add_subdirectory(obsolete)
+    if (NOT CPP_LAB_ENABLE_OBSOLETE_PROJECTS)
+        add_subdirectory(obsolete)
+    endif ()
 
     add_subdirectory(web_sockets_echo_server_no_ssl)
 
-    add_dependencies(build_all_projects
-            web_sockets_echo_server_no_ssl
-    )
 endif ()
