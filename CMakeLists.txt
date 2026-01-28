@@ -36,8 +36,8 @@ add_subdirectory(transport_layer_client)
 # Disable projects with Asio, OpenSSL and uWebSockets for Emscripten
 if (NOT EMSCRIPTEN)
 
-    if (NOT CPP_LAB_ENABLE_OBSOLETE_PROJECTS)
-        add_subdirectory(obsolete)
+    if (CPP_LAB_ENABLE_OBSOLETE_PROJECTS)
+        add_subdirectory(obsolete/asio_projects)
     endif ()
 
     add_subdirectory(web_sockets_echo_server_no_ssl)
