@@ -160,7 +160,7 @@ jobs:
             WantedBy=multi-user.target
             EOF
             
-            // Restart service and check status
+            # Restart service and check status
             chmod +x ${{ env.SERVICE_DIR }}/${{ env.SERVICE_NAME }}
             sudo systemctl daemon-reload
             sudo systemctl restart ${{ env.SERVICE_NAME }}
