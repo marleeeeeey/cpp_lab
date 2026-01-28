@@ -10,7 +10,7 @@ endif ()
 # External
 # ----------------------------
 
-set(3RD_PARTY_SKIP "tracy;openal-soft;box2d;EnTT" CACHE STRING "" FORCE)
+set(3RD_PARTY_SKIP "tracy;openal-soft;box2d;EnTT;implot;sdl3-image;spdlog;enet;cxxopts;nlohmann_json" CACHE STRING "" FORCE)
 add_subdirectory(3rd_party)
 
 
