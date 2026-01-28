@@ -67,11 +67,6 @@ jobs:
 
     container: gcc:latest
 
-    # On server, you should create a directory for your service and set permissions:
-    #  sudo mkdir -p /opt/my_server
-    #  sudo chown deploy:deploy /opt/my_server
-    #  sudo chmod 755 /opt/my_server
-
     env:
       SERVICE_NAME: ws_echo2
       SERVICE_DIR: /opt/ws_echo2
@@ -103,6 +98,25 @@ jobs:
           cp ${SERVICE_SOURCE} ${SERVICE_NAME} # result: buildname -> servicename
           chmod +x ${SERVICE_NAME}
 
+      - name: Create service directories on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_SSH_HOST }}
+          username: ${{ secrets.VPS_SSH_USER }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT }}
+          script: |
+            set -e            
+            
+            // Ensure service working directory exists
+            sudo mkdir -p /opt/${{ env.SERVICE_NAME }}
+            sudo chown ${{ secrets.VPS_SSH_USER }}:${{ secrets.VPS_SSH_USER }} /opt/${{ env.SERVICE_NAME }}
+            sudo chmod 755 /opt/${{ env.SERVICE_NAME }}
+            
+            # Ensure logs directory exists
+            sudo mkdir -p /var/log/${{ env.SERVICE_NAME }}
+            sudo chown ${{ secrets.VPS_SSH_USER }}:${{ secrets.VPS_SSH_USER }} /var/log/${{ env.SERVICE_NAME }}
+
       - name: Upload artifacts to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -125,10 +139,6 @@ jobs:
           script: |
             set -e            
             
-            # Ensure logs directory exists
-            sudo mkdir -p /var/log/${{ env.SERVICE_NAME }}
-            sudo chown deploy:deploy /var/log/${{ env.SERVICE_NAME }}
-
             # Create/update systemd unit before restart
             sudo tee /etc/systemd/system/${{ env.SERVICE_NAME }}.service > /dev/null <<'EOF'
             [Unit]
@@ -138,7 +148,7 @@ jobs:
 
             [Service]
             Type=simple
-            User=deploy
+            User=${{ secrets.VPS_SSH_USER }}
             WorkingDirectory=${{ env.SERVICE_DIR }}
             ExecStart=${{ env.SERVICE_DIR }}/${{ env.SERVICE_NAME }} --port ${{ env.SERVICE_PORT }}
             Restart=always
@@ -150,7 +160,7 @@ jobs:
             WantedBy=multi-user.target
             EOF
             
-            
+            // Restart service and check status
             chmod +x ${{ env.SERVICE_DIR }}/${{ env.SERVICE_NAME }}
             sudo systemctl daemon-reload
             sudo systemctl restart ${{ env.SERVICE_NAME }}
