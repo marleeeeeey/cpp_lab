@@ -67,9 +67,14 @@ jobs:
 
     container: gcc:latest
 
+    # On server, you should create a directory for your service and set permissions:
+    #  sudo mkdir -p /opt/my_server
+    #  sudo chown deploy:deploy /opt/my_server
+    #  sudo chmod 755 /opt/my_server
+
     env:
-      SERVICE_NAME: my_server
-      SERVICE_DIR: /opt/my_server
+      SERVICE_NAME: ws_echo
+      SERVICE_DIR: /opt/ws_echo
       SERVICE_SOURCE: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
       SERVICE_PORT: 8080
 
@@ -95,8 +100,7 @@ jobs:
 
       - name: Pack artifact
         run: |
-          mkdir -p ${SERVICE_NAME}
-          cp ${SERVICE_SOURCE} ${SERVICE_NAME} # result: service/service
+          cp ${SERVICE_SOURCE} ${SERVICE_NAME} # result: buildname -> servicename
           chmod +x ${SERVICE_NAME}
 
       - name: Upload artifacts to server
@@ -107,7 +111,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           port: ${{ secrets.VPS_SSH_PORT }}
           source: "${{ env.SERVICE_NAME }}" # scp file list - only file in my case
-          target: "${{ env.SERVICE_DIR }}" # target path on the server, must be a directory path. Result: SERVICE_DIR/service
+          target: "${{ env.SERVICE_DIR }}" # target path on the server, must be a directory path. Result after copy: SERVICE_DIR/service
           rm: false # Remove the target directory before upload
           overwrite: true # Overwrite existing files with tar
 
