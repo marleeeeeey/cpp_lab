@@ -7,7 +7,12 @@
 std::shared_ptr<ITransport> globalTransport;
 
 int main(int argc, char** argv) {
-  std::string url = "wss://echo.websocket.org";  // example:   ws://127.0.0.1:9001
+  // -----------------------------------------------------------
+  // Parsing arguments
+  // transport_layer_client.exe --url ws://your.service.com:8080
+  // transport_layer_client.exe --url ws://127.0.0.1:9001
+  // -----------------------------------------------------------
+  std::string url = "wss://echo.websocket.org";
   for (int i = 1; i < argc; ++i) {
     if (std::string_view(argv[i]) == "--url" && i + 1 < argc) {
       url = argv[i + 1];

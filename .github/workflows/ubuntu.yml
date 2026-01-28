@@ -73,10 +73,10 @@ jobs:
     #  sudo chmod 755 /opt/my_server
 
     env:
-      SERVICE_NAME: ws_echo
-      SERVICE_DIR: /opt/ws_echo
+      SERVICE_NAME: ws_echo2
+      SERVICE_DIR: /opt/ws_echo2
       SERVICE_SOURCE: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
-      SERVICE_PORT: 8080
+      SERVICE_PORT: 8082
 
     steps:
 
