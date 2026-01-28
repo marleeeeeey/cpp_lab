@@ -1,0 +1,100 @@
+name: Deploy Service to Server via SSH
+description: >-
+  Deploy a service to a remote server via SSH. 
+  This script requires next secrets: VPS_SSH_HOST, VPS_SSH_USER, VPS_SSH_PRIVATE_KEY, VPS_SSH_PORT.
+  Your service will be deployed to /service_dir/service_name.
+
+inputs:
+  service_name:
+    description: "Name of target service. Will be used as filename on server."
+    required: true
+  service_dir:
+    description: "Target directory on the server where the service will be deployed."
+    required: false
+    default: "/opt"
+  service_source:
+    description: "Path to the binary file on build machine to deploy."
+    required: true
+  service_args:
+    description: "Arguments to pass to the service binary upon startup."
+    required: false
+    default: ""
+
+runs:
+  using: composite
+
+  steps:
+
+    - name: Rename source binary to service name
+      shell: bash
+      run: |
+        cp ${{ inputs.service_source }} ${{ inputs.service_name }}
+        chmod +x ${{ inputs.service_name }}
+
+    - name: Create service directories on server
+      uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
+      with:
+        host: ${{ secrets.VPS_SSH_HOST }}
+        username: ${{ secrets.VPS_SSH_USER }}
+        key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+        port: ${{ secrets.VPS_SSH_PORT }}
+        script: |
+          set -e            
+          
+          # Ensure service working directory exists
+          sudo mkdir -p ${{ inputs.service_dir }}
+          sudo chown ${{ secrets.VPS_SSH_USER }}:${{ secrets.VPS_SSH_USER }} ${{ inputs.service_dir }}
+          sudo chmod 755 ${{ inputs.service_dir }}
+          
+          # Ensure logs directory exists
+          sudo mkdir -p /var/log/${{ inputs.service_name }}
+          sudo chown ${{ secrets.VPS_SSH_USER }}:${{ secrets.VPS_SSH_USER }} /var/log/${{ inputs.service_name }}
+
+    - name: Upload artifacts to server
+      uses: appleboy/scp-action@917f8b81dfc1ccd331fef9e2d61bdc6c8be94634 # v0.1.7
+      with:
+        host: ${{ secrets.VPS_SSH_HOST }}
+        username: ${{ secrets.VPS_SSH_USER }}
+        key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+        port: ${{ secrets.VPS_SSH_PORT }}
+        source: "${{ inputs.service_name }}" # scp file list - only file in my case
+        target: "${{ inputs.service_dir }}" # target directory on the server
+        rm: false # Remove the target directory before upload
+        overwrite: true # Overwrite existing files
+
+    - name: Restart server via systemd
+      uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
+      with:
+        host: ${{ secrets.VPS_SSH_HOST }}
+        username: ${{ secrets.VPS_SSH_USER }}
+        key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+        port: ${{ secrets.VPS_SSH_PORT }}
+        script: |
+          set -e            
+          
+          # Create/update systemd unit before restart
+          sudo tee /etc/systemd/system/${{ inputs.service_name }}.service > /dev/null <<'EOF'
+          [Unit]
+          Description=My Server
+          After=network-online.target
+          Wants=network-online.target
+          
+          [Service]
+          Type=simple
+          User=${{ secrets.VPS_SSH_USER }}
+          WorkingDirectory=${{ inputs.service_dir }}
+          ExecStart=${{ inputs.service_dir }}/${{ inputs.service_name }} ${{ inputs.service_args }}
+          Restart=always
+          RestartSec=2
+          StandardOutput=append:/var/log/${{ inputs.service_name }}/stdout.log
+          StandardError=append:/var/log/${{ inputs.service_name }}/stderr.log
+          
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+          
+          # Restart service and check status
+          chmod +x ${{ inputs.service_dir }}/${{ inputs.service_name }}
+          sudo systemctl daemon-reload
+          sudo systemctl restart ${{ inputs.service_name }}
+          sudo systemctl status ${{ inputs.service_name }} --no-pager

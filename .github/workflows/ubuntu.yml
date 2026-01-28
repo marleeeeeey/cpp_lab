@@ -68,10 +68,10 @@ jobs:
     container: gcc:latest
 
     env:
-      SERVICE_NAME: ws_echo2
-      SERVICE_DIR: /opt/ws_echo2
-      SERVICE_SOURCE: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
-      SERVICE_PORT: 8082
+      name: ws_echo2
+      pwd: /opt/ws_echo2
+      source: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
+      args: --port 8080
 
     steps:
 
@@ -93,75 +93,9 @@ jobs:
       - name: Build
         run: cmake --build build
 
-      - name: Pack artifact
-        run: |
-          cp ${SERVICE_SOURCE} ${SERVICE_NAME} # result: buildname -> servicename
-          chmod +x ${SERVICE_NAME}
-
-      - name: Create service directories on server
-        uses: appleboy/ssh-action@v1.0.3
+      - uses: ./.github/actions/deploy_service
         with:
-          host: ${{ secrets.VPS_SSH_HOST }}
-          username: ${{ secrets.VPS_SSH_USER }}
-          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          port: ${{ secrets.VPS_SSH_PORT }}
-          script: |
-            set -e            
-            
-            # Ensure service working directory exists
-            sudo mkdir -p /opt/${{ env.SERVICE_NAME }}
-            sudo chown ${{ secrets.VPS_SSH_USER }}:${{ secrets.VPS_SSH_USER }} /opt/${{ env.SERVICE_NAME }}
-            sudo chmod 755 /opt/${{ env.SERVICE_NAME }}
-            
-            # Ensure logs directory exists
-            sudo mkdir -p /var/log/${{ env.SERVICE_NAME }}
-            sudo chown ${{ secrets.VPS_SSH_USER }}:${{ secrets.VPS_SSH_USER }} /var/log/${{ env.SERVICE_NAME }}
-
-      - name: Upload artifacts to server
-        uses: appleboy/scp-action@917f8b81dfc1ccd331fef9e2d61bdc6c8be94634 # v0.1.7
-        with:
-          host: ${{ secrets.VPS_SSH_HOST }}
-          username: ${{ secrets.VPS_SSH_USER }}
-          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          port: ${{ secrets.VPS_SSH_PORT }}
-          source: "${{ env.SERVICE_NAME }}" # scp file list - only file in my case
-          target: "${{ env.SERVICE_DIR }}" # target directory on the server
-          rm: false # Remove the target directory before upload
-          overwrite: true # Overwrite existing files
-
-      - name: Restart server via systemd
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
-        with:
-          host: ${{ secrets.VPS_SSH_HOST }}
-          username: ${{ secrets.VPS_SSH_USER }}
-          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-          port: ${{ secrets.VPS_SSH_PORT }}
-          script: |
-            set -e            
-            
-            # Create/update systemd unit before restart
-            sudo tee /etc/systemd/system/${{ env.SERVICE_NAME }}.service > /dev/null <<'EOF'
-            [Unit]
-            Description=My Server
-            After=network-online.target
-            Wants=network-online.target
-
-            [Service]
-            Type=simple
-            User=${{ secrets.VPS_SSH_USER }}
-            WorkingDirectory=${{ env.SERVICE_DIR }}
-            ExecStart=${{ env.SERVICE_DIR }}/${{ env.SERVICE_NAME }} --port ${{ env.SERVICE_PORT }}
-            Restart=always
-            RestartSec=2
-            StandardOutput=append:/var/log/${{ env.SERVICE_NAME }}/stdout.log
-            StandardError=append:/var/log/${{ env.SERVICE_NAME }}/stderr.log
-
-            [Install]
-            WantedBy=multi-user.target
-            EOF
-            
-            # Restart service and check status
-            chmod +x ${{ env.SERVICE_DIR }}/${{ env.SERVICE_NAME }}
-            sudo systemctl daemon-reload
-            sudo systemctl restart ${{ env.SERVICE_NAME }}
-            sudo systemctl status ${{ env.SERVICE_NAME }} --no-pager
+          service_name: ws_echo3
+          service_dir: /opt/ws_echo3
+          service_source: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
+          args: --port 8083
