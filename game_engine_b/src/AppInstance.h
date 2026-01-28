@@ -2,12 +2,24 @@
 
 #include <SDL3/SDL.h>
 
+#include <memory>
+
 #include "GameWorld.h"
 #include "SceneRenderer.h"
 #include "UserInputManger.h"
 
-// The main application object. It manages the SDL window and renderer, and the game world.
-// AppInstance is a bridge between GameWorld, SceneRenderer, and UserInputManger.
+// ------------------------------------
+// Forward declarations
+// ------------------------------------
+
+class ITransport;
+
+// -----------------------------------------------------------
+// The main application object.
+// It manages the SDL window and renderer, and the game world.
+// AppInstance is a bridge between GameWorld, SceneRenderer,
+// UserInputManger and Network.
+// -----------------------------------------------------------
 class AppInstance {
  private:  // Technical Data
   SDL_Window* window = nullptr;
@@ -18,6 +30,7 @@ class AppInstance {
   GameWorld gameWorld;
   SceneRenderer sceneRenderer;
   UserInputManger userInputManger;
+  std::shared_ptr<ITransport> networkTransport;
 
  public:
   SDL_AppResult init();

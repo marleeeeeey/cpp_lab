@@ -17,20 +17,19 @@ void SceneRenderer::render(const GameDataForRendering& gameDataForRendering) {
 
 void SceneRenderer::renderGameObjects(const GameDataForRendering& gameDataForRendering) {
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE); /* white, full alpha */
-  /* You can also draw single points with SDL_RenderPoint(), but it's
-     cheaper (sometimes significantly so) to do them all at once. */
+
   for (int i = 0; i < gameDataForRendering.points.size(); i++) {
     const glm::vec2& point = gameDataForRendering.points[i];
     SDL_RenderPoint(renderer, point.x, point.y);
   }
-  // SDL_RenderPoints(renderer, /* draw all the points! */
-  //                  gameDataForRendering.points.data(),
-  //                  gameDataForRendering.points.size());
 }
 
 void SceneRenderer::renderGUI(const GameDataForRendering& gameDataForRendering) {
+  // -------------------------------------------------------------
   // https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp
-  // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+  // Show a simple window that we create ourselves.
+  // We use a Begin/End pair to create a named window.
+  // -------------------------------------------------------------
 
   static float f = 0.0f;
   static int counter = 0;

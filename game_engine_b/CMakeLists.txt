@@ -10,6 +10,7 @@ target_link_libraries(game_engine_b PRIVATE
         imgui::imgui
         SDL3::SDL3
         glm::glm
+        transport_layer
 )
 
 if (NOT EMSCRIPTEN) # Emscripten always use static libraries. Coping is not needed.
