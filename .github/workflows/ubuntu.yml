@@ -126,7 +126,7 @@ jobs:
           port: ${{ secrets.VPS_SSH_PORT }}
           source: "${{ env.SERVICE_NAME }}" # scp file list - only file in my case
           target: "${{ env.SERVICE_DIR }}" # target directory on the server
-          rm: true # Remove the target directory before upload
+          rm: false # Remove the target directory before upload
           overwrite: true # Overwrite existing files
 
       - name: Restart server via systemd
