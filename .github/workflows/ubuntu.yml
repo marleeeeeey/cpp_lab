@@ -121,6 +121,6 @@ jobs:
           script: |
             set -e
             cd ${{ env.DEPLOY_DIR }}
-            chmod +x ${SERVICE_NAME}
-            sudo systemctl restart ${SERVICE_NAME}
-            sudo systemctl status ${SERVICE_NAME} --no-pager
+            chmod +x ${{ env.SERVICE_NAME }}
+            sudo systemctl restart ${{ env.SERVICE_NAME }}
+            sudo systemctl status ${{ env.SERVICE_NAME }} --no-pager
