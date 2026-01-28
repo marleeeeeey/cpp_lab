@@ -69,9 +69,8 @@ jobs:
 
     env:
       SERVICE_NAME: my_server
-      BIN_REAL_NAME: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
-      DEPLOY_DIR: /opt/my_server
-      PORT: 8080
+      PATH_TO_BUILD_BINANY: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
+      # PORT: 8080
 
     steps:
 
@@ -95,9 +94,9 @@ jobs:
 
       - name: Pack artifact
         run: |
-          mkdir -p dist
-          cp ${BIN_REAL_NAME} dist/${SERVICE_NAME}
-          chmod +x dist/${SERVICE_NAME}
+          mkdir -p ${SERVICE_NAME}
+          cp ${PATH_TO_BUILD_BINANY} ${SERVICE_NAME}/${SERVICE_NAME}
+          chmod +x ${SERVICE_NAME}/${SERVICE_NAME}
 
       - name: Upload artifacts to server
         uses: appleboy/scp-action@v0.1.7
@@ -106,10 +105,10 @@ jobs:
           username: ${{ secrets.VPS_SSH_USER }}
           key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           port: ${{ secrets.VPS_SSH_PORT }}
-          source: "dist/${{ env.SERVICE_NAME }}"
-          target: "${{ env.DEPLOY_DIR }}"
-          rm: false
-          overwrite: true
+          source: "${{ env.SERVICE_NAME }}/*" # scp file list
+          target: "/opt/${{ env.SERVICE_NAME }}" # target path on the server, must be a directory path.
+          rm: false # Remove the target directory before upload
+          overwrite: true # Overwrite existing files with tar
 
       - name: Restart server via systemd
         uses: appleboy/ssh-action@v1.0.3
@@ -120,7 +119,7 @@ jobs:
           port: ${{ secrets.VPS_SSH_PORT }}
           script: |
             set -e
-            chmod +x ${{ env.DEPLOY_DIR }}/${{ env.SERVICE_NAME }}
+            chmod +x /opt/${{ env.SERVICE_NAME }}/${{ env.SERVICE_NAME }}
             sudo systemctl daemon-reload
             sudo systemctl restart ${{ env.SERVICE_NAME }}
             sudo systemctl status ${{ env.SERVICE_NAME }} --no-pager
