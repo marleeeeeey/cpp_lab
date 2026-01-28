@@ -93,6 +93,12 @@ jobs:
       - name: Build
         run: cmake --build build
 
+      - name: Pack artifact
+        run: |
+          mkdir -p dist
+          cp ${BIN_REAL_NAME} dist/${SERVICE_NAME}
+          chmod +x dist/${SERVICE_NAME}
+
       - name: Upload artifacts to server
         uses: appleboy/scp-action@v0.1.7
         with:
