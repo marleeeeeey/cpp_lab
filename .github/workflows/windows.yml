@@ -81,7 +81,7 @@ jobs:
       - name: Build (Emscripten)
         run: cmake --build build-emscripten --parallel 10
 
-      - name: Publish to itch.io (butler)
+      - name: Publish transport_layer_client to itch.io
         uses: ./.github/actions/butler_install_and_push
         with:
           butler-api-key: ${{ secrets.BUTLER_API_KEY }}
@@ -89,4 +89,14 @@ jobs:
           itch-game: transport-layer-client
           itch-channel: web
           game-package: ./build-emscripten/transport_layer_client/transport_layer_client_itch_web.zip
+          game-version: ${{ github.sha }}
+
+      - name: Publish game_engine_b to itch.io
+        uses: ./.github/actions/butler_install_and_push
+        with:
+          butler-api-key: ${{ secrets.BUTLER_API_KEY }}
+          itch-user: marleeeeeey
+          itch-game: game-engine-b
+          itch-channel: web
+          game-package: ./build-emscripten/game_engine_b/game_engine_b_itch_web.zip
           game-version: ${{ github.sha }}

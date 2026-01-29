@@ -67,7 +67,7 @@ function(itch_pack_emscripten_web)
             "${ITCH_TEMP_DIR}/${ITCH_WASM_NAME}"
 
             # zip files
-            COMMAND "${CMAKE_COMMAND}" -E echo "Creating ${_zip_path} from ${ITCH_TEMP_DIR} content"
+            COMMAND "${CMAKE_COMMAND}" -E echo "Creating ${_zip_path}"
             COMMAND "${CMAKE_COMMAND}" -E chdir "${ITCH_TEMP_DIR}"
             "${CMAKE_COMMAND}" -E tar "cfv" "${_zip_path}" --format=zip -- .
 

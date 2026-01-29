@@ -24,3 +24,15 @@ if (NOT EMSCRIPTEN) # Emscripten always use static libraries. Coping is not need
         message(WARNING "Place here a code to copy SDL3 shared library for your system")
     endif ()
 endif ()
+
+
+# ----------------------------------
+# Archive for publication to itch.io
+# ----------------------------------
+if (EMSCRIPTEN)
+    include("${CPP_LAB_ROOT}/ItchWebPack.cmake")
+    itch_pack_emscripten_web(
+            TARGET game_engine_b
+            ZIP_NAME "game_engine_b_itch_web.zip"
+    )
+endif ()
