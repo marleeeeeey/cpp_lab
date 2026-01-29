@@ -11,6 +11,7 @@ target_link_libraries(game_engine_b PRIVATE
         SDL3::SDL3
         glm::glm
         transport_layer
+        debug_log_lib
 )
 
 if (NOT EMSCRIPTEN) # Emscripten always use static libraries. Coping is not needed.

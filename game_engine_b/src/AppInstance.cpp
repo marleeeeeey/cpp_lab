@@ -1,8 +1,10 @@
 #include "AppInstance.h"
 
+#include <debug_log/DebugLog.h>
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlrenderer3.h>
+#include <transport_layer/TransportFactory.h>
 
 #include <sstream>
 
@@ -13,6 +15,7 @@ SDL_AppResult AppInstance::init() {
   initImGui();
   sceneRenderer.setRenderer(renderer);
   gameWorld.init();
+  initNetwork();
   last_time = SDL_GetTicks();
   return initSdlResult;
 }
@@ -35,6 +38,17 @@ SDL_AppResult AppInstance::iterate() {
   const Uint64 now = SDL_GetTicks();
   const float elapsed = ((float)(now - last_time)) / 1000.0f; /* seconds since last iteration */
   last_time = now;
+
+  // ---------------------------------------
+  // Sent message to network every 5 seconds
+  // ---------------------------------------
+  gameTimeSeconds += elapsed;
+  sendAccumSeconds += elapsed;
+  constexpr double kSendPeriodSeconds = 5.0;
+  if (sendAccumSeconds >= kSendPeriodSeconds) {
+    sendAccumSeconds -= kSendPeriodSeconds;
+    networkTransport->sendText(std::format("GameTime: {:.2f}", gameTimeSeconds));
+  }
 
   // -----------------------
   // Update game world
@@ -75,6 +89,8 @@ void AppInstance::onQuit() {
   ImGui_ImplSDLRenderer3_Shutdown();
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
+
+  networkTransport->close();
 }
 
 SDL_AppResult AppInstance::initSDL() {
@@ -126,4 +142,27 @@ void AppInstance::initImGui() {
   // ---------------------------------
   ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
   ImGui_ImplSDLRenderer3_Init(renderer);
+}
+
+void AppInstance::initNetwork() {
+  std::string url = "wss://echo.websocket.org";
+
+  networkTransport = createTransport();
+
+  // ---------------------------------------
+  // Initiate connection and message loop
+  // ---------------------------------------
+  networkTransport->onOpen = []() {
+    debugLog() << "Connected to server" << std::endl;
+  };
+  networkTransport->onError = [](std::string_view errorMsg) {
+    std::cerr << "Failed to connect: " << errorMsg << std::endl;
+  };
+  networkTransport->onText = [](std::string_view msg) {
+    debugLog() << "Recv: " << msg << std::endl;
+  };
+  networkTransport->onClose = [](int code, std::string_view reason) {
+    debugLog() << "Connection closed. Code: " << code << ", reason: " << reason << std::endl;
+  };
+  networkTransport->connect(url);
 }
