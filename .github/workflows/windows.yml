@@ -88,5 +88,5 @@ jobs:
           itch-user: marleeeeeey
           itch-game: transport-layer-client
           itch-channel: web
-          game-package: ./build-emscripten/transport_layer_client/itch-web.zip
+          game-package: ./build-emscripten/transport_layer_client/transport_layer_client_itch_web.zip
           game-version: ${{ github.sha }}
