@@ -158,8 +158,9 @@ void AppInstance::initNetwork() {
   networkTransport->onError = [](std::string_view errorMsg) {
     std::cerr << "Failed to connect: " << errorMsg << std::endl;
   };
-  networkTransport->onText = [](std::string_view msg) {
+  networkTransport->onText = [this](std::string_view msg) {
     debugLog() << "Recv: " << msg << std::endl;
+    gameWorld.getGameDataForRendering().latestMessageFromServer = std::string(msg);
   };
   networkTransport->onClose = [](int code, std::string_view reason) {
     debugLog() << "Connection closed. Code: " << code << ", reason: " << reason << std::endl;
