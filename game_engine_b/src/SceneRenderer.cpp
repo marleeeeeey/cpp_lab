@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 #include <imgui.h>
 
+#include "ChatDataForRendering.h"
 #include "GameDataForRendering.h"
 
 void SceneRenderer::setRenderer(SDL_Renderer* renderer) {
@@ -10,9 +11,9 @@ void SceneRenderer::setRenderer(SDL_Renderer* renderer) {
   this->renderer = renderer;
 }
 
-void SceneRenderer::render(const GameDataForRendering& gameDataForRendering) {
+void SceneRenderer::render(const GameDataForRendering& gameDataForRendering, const ChatDataForRendering& chatDataForRendering) {
   renderGameObjects(gameDataForRendering);
-  renderGUI(gameDataForRendering);
+  renderGUI(gameDataForRendering, chatDataForRendering);
 }
 
 void SceneRenderer::renderGameObjects(const GameDataForRendering& gameDataForRendering) {
@@ -24,7 +25,7 @@ void SceneRenderer::renderGameObjects(const GameDataForRendering& gameDataForRen
   }
 }
 
-void SceneRenderer::renderGUI(const GameDataForRendering& gameDataForRendering) {
+void SceneRenderer::renderGUI(const GameDataForRendering& gameDataForRendering, const ChatDataForRendering& chatDataForRendering) {
   // -------------------------------------------------------------
   // https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp
   // Show a simple window that we create ourselves.
@@ -51,7 +52,7 @@ void SceneRenderer::renderGUI(const GameDataForRendering& gameDataForRendering) 
 
   ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
-  ImGui::Text("Msg from server: %s", gameDataForRendering.latestMessageFromServer.c_str());
+  ImGui::Text("Msg from server: %s", chatDataForRendering.latestMessage.c_str());
 
   ImGui::End();
 }

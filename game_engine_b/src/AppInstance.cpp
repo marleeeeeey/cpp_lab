@@ -1,5 +1,6 @@
 #include "AppInstance.h"
 
+#define DEBUG_LOG_DISABLE_DEBUG_LEVEL
 #include <debug_log/DebugLog.h>
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
@@ -8,14 +9,22 @@
 
 #include <sstream>
 
+#include "ChatDataForRendering.h"
 #include "GlobalConstants.h"
+#include "cxxopts.hpp"
 
-SDL_AppResult AppInstance::init() {
+SDL_AppResult AppInstance::init(int argc, char* argv[]) {
+  initOptions(argc, argv);
   auto initSdlResult = initSDL();  // initialize SDL and set renderer
   initImGui();
   sceneRenderer.setRenderer(renderer);
   gameWorld.init();
-  initNetwork();
+
+  networkManager = std::make_unique<NetworkManager>(NetworkManager::NetworkOptions{
+      .useOutboundQueue = true,
+      .url = appOptions_.url});
+  networkManager->start();
+
   last_time = SDL_GetTicks();
   return initSdlResult;
 }
@@ -39,15 +48,43 @@ SDL_AppResult AppInstance::iterate() {
   const float elapsed = ((float)(now - last_time)) / 1000.0f; /* seconds since last iteration */
   last_time = now;
 
+  // ----------------------------------
+  // Poll network events (non-blocking)
+  // ----------------------------------
+  NetEvent ev{};
+  int processed = 0;
+  constexpr int kMaxEventsPerFrame = 256;
+  while (processed < kMaxEventsPerFrame && networkManager->poll(ev)) {
+    ++processed;
+    switch (ev.type) {
+      case NetEvent::Type::Connected:
+        debugLog() << "Net: Connected" << std::endl;
+        chatDataForRendering.latestMessage = "Connected to server";
+        break;
+      case NetEvent::Type::Disconnected:
+        debugLog() << "Net: Disconnected, reason=" << ev.payload << std::endl;
+        chatDataForRendering.latestMessage = "Disconnected from server. Reason: " + ev.payload;
+        break;
+      case NetEvent::Type::Error:
+        debugLog() << "Net: Error=" << ev.payload << std::endl;
+        chatDataForRendering.latestMessage = "Error: " + ev.payload;
+        break;
+      case NetEvent::Type::TextMessage:
+        debugLog() << "Net: Text=" << ev.payload << std::endl;
+        chatDataForRendering.latestMessage = ev.payload;
+        break;
+    }
+  }
+
   // ---------------------------------------
-  // Sent message to network every 5 seconds
+  // Sent message to network every X seconds
   // ---------------------------------------
   gameTimeSeconds += elapsed;
   sendAccumSeconds += elapsed;
-  constexpr double kSendPeriodSeconds = 5.0;
+  constexpr double kSendPeriodSeconds = 0.1;
   if (sendAccumSeconds >= kSendPeriodSeconds) {
     sendAccumSeconds -= kSendPeriodSeconds;
-    networkTransport->sendText(std::format("GameTime: {:.2f}", gameTimeSeconds));
+    networkManager->send(std::format("GameTime: {:.2f}", gameTimeSeconds));
   }
 
   // -----------------------
@@ -75,7 +112,7 @@ SDL_AppResult AppInstance::iterate() {
   // -----------------------
   // Render New Frame
   // -----------------------
-  sceneRenderer.render(gameDataForRendering);
+  sceneRenderer.render(gameDataForRendering, chatDataForRendering);
   ImGui::Render();
   ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);  // render the GUI
   SDL_RenderPresent(renderer);                                            // show the rendered frame on screen
@@ -90,7 +127,7 @@ void AppInstance::onQuit() {
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
 
-  networkTransport->close();
+  networkManager->stop();
 }
 
 SDL_AppResult AppInstance::initSDL() {
@@ -144,26 +181,15 @@ void AppInstance::initImGui() {
   ImGui_ImplSDLRenderer3_Init(renderer);
 }
 
-void AppInstance::initNetwork() {
-  std::string url = "wss://echo.websocket.org";
-
-  networkTransport = createTransport();
-
-  // ---------------------------------------
-  // Initiate connection and message loop
-  // ---------------------------------------
-  networkTransport->onOpen = []() {
-    debugLog() << "Connected to server" << std::endl;
-  };
-  networkTransport->onError = [](std::string_view errorMsg) {
-    std::cerr << "Failed to connect: " << errorMsg << std::endl;
-  };
-  networkTransport->onText = [this](std::string_view msg) {
-    debugLog() << "Recv: " << msg << std::endl;
-    gameWorld.getGameDataForRendering().latestMessageFromServer = std::string(msg);
-  };
-  networkTransport->onClose = [](int code, std::string_view reason) {
-    debugLog() << "Connection closed. Code: " << code << ", reason: " << reason << std::endl;
-  };
-  networkTransport->connect(url);
+void AppInstance::initOptions(int argc, char* argv[]) {
+  try {
+    cxxopts::Options options(argv[0]);
+    options.add_options()("u,url", "Url", cxxopts::value<std::string>());
+    auto result = options.parse(argc, argv);
+    if (result.count("url")) {
+      appOptions_.url = result["url"].as<std::string>();
+    }
+  } catch (const std::exception& e) {
+    std::cerr << "Command line parse error: " << e.what() << std::endl;
+  }
 }

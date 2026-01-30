@@ -6,7 +6,7 @@
 /* This function runs once at startup. */
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
   AppInstance* app = new AppInstance();
-  auto result = app->init();
+  auto result = app->init(argc, argv);
   *appstate = app;
   return result;
 }

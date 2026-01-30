@@ -4,7 +4,9 @@
 
 #include <memory>
 
+#include "ChatDataForRendering.h"
 #include "GameWorld.h"
+#include "NetworkManager.h"
 #include "SceneRenderer.h"
 #include "UserInputManger.h"
 
@@ -22,27 +24,52 @@ class ITransport;
 // AppInstance is a bridge between GameWorld, SceneRenderer,
 // UserInputManger and Network.
 class AppInstance {
- private:  // Technical Data
+  // -------------------
+  // Technical Data
+  // -------------------
+
   SDL_Window* window = nullptr;
-  SDL_Renderer* renderer = nullptr; /* We will use this renderer to draw into this window every frame. */
+  SDL_Renderer* renderer = nullptr;
   Uint64 last_time = 0;
   double gameTimeSeconds = 0;
   double sendAccumSeconds = 0.0;
 
- private:  // Game Domain Data
+  // -------------------
+  // Game Domain Data
+  // -------------------
+
   GameWorld gameWorld;
   SceneRenderer sceneRenderer;
   UserInputManger userInputManger;
-  std::shared_ptr<ITransport> networkTransport;
+  std::unique_ptr<NetworkManager> networkManager;
+  ChatDataForRendering chatDataForRendering;
 
  public:
-  SDL_AppResult init();
+  // -------------------
+  // Public Interface
+  // -------------------
+
+  SDL_AppResult init(int argc, char* argv[]);
   SDL_AppResult onEvent(SDL_Event* event);
   SDL_AppResult iterate();
   void onQuit();
 
  private:
+  // ---------------------
+  // Application Options
+  // ---------------------
+
+  struct Options {
+    std::string url = "wss://echo.websocket.org";
+  };
+
+  void initOptions(int argc, char* argv[]);
+  Options appOptions_;
+
+  // ------------------------------
+  // Other Methods
+  // ------------------------------
+
   SDL_AppResult initSDL();
   void initImGui();
-  void initNetwork();
 };

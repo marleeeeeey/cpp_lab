@@ -4,6 +4,7 @@ add_executable(game_engine_b
         src/GameWorld.cpp
         src/SceneRenderer.cpp
         src/UserInputManger.cpp
+        src/NetworkManager.cpp
 )
 
 target_link_libraries(game_engine_b PRIVATE
@@ -12,6 +13,9 @@ target_link_libraries(game_engine_b PRIVATE
         glm::glm
         transport_layer
         debug_log_lib
+        concurrentqueue
+        cxxopts
+        magic_enum::magic_enum
 )
 
 if (NOT EMSCRIPTEN) # Emscripten always use static libraries. Coping is not needed.
