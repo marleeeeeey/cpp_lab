@@ -2,6 +2,7 @@
 
 #include <concurrentqueue.h>
 
+#include <condition_variable>
 #include <memory>
 #include <string>
 
