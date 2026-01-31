@@ -3,7 +3,7 @@
 #include <deque>
 
 #define DISABLE_DEBUG_LOG
-#include "debug_log/DebugLog.h"
+#include "DebugLog/DebugLog.h"
 
 struct OutgoingPackage {
   uint32_t size;

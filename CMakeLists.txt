@@ -31,7 +31,7 @@ add_subdirectory(3rd_party)
 
 add_subdirectory(std)
 add_subdirectory(game_engine_b)
-add_subdirectory(debug_log_lib)
+add_subdirectory(DebugLog)
 add_subdirectory(NetworkTransport)
 add_subdirectory(WsConsoleClient)
 

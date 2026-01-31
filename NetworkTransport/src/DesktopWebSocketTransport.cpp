@@ -2,7 +2,7 @@
 
 #define DEBUG_LOG_DISABLE_DEBUG_LEVEL
 #define DEBUG_LOG_USER_PREFIX "[DesktopWebSocketTransport]"
-#include <debug_log/DebugLog.h>
+#include <DebugLog/DebugLog.h>
 #include <ixwebsocket/IXNetSystem.h>
 
 #include <utility>

@@ -12,6 +12,6 @@ target_include_directories(chat_network_lib
 
 target_link_libraries(chat_network_lib PUBLIC
         asio::asio
-        debug_log_lib
+        DebugLog
         network_connection_lib
 )

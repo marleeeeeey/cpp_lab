@@ -3,8 +3,8 @@
 #define DEBUG_LOG_DISABLE_DEBUG_LEVEL
 #include <magic_enum/magic_enum.hpp>
 
+#include "DebugLog/DebugLog.h"
 #include "NetworkTransport/TransportFactory.h"
-#include "debug_log/DebugLog.h"
 
 NetworkManager::NetworkManager(NetworkOptions inOptions) : networkOptions(inOptions) {
 }

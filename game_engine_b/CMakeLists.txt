@@ -12,7 +12,7 @@ target_link_libraries(game_engine_b PRIVATE
         SDL3::SDL3
         glm::glm
         NetworkTransport
-        debug_log_lib
+        DebugLog
         concurrentqueue
         cxxopts
         magic_enum::magic_enum
