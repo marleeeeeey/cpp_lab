@@ -62,7 +62,6 @@ class AppInstance {
   struct Options {
     std::string url = "wss://echo.websocket.org";
   };
-
   void initOptions(int argc, char* argv[]);
   Options appOptions_;
 

@@ -31,6 +31,10 @@ struct NetEvent {
 
 // NetworkManager adds inbound and (optionally) outbound queues on top of the underlying transport layer.
 class NetworkManager {
+  // -----------------------------
+  // Class options and constructor
+  // -----------------------------
+
  public:
   struct NetworkOptions {
     // useOutboundQueue:
@@ -42,12 +46,18 @@ class NetworkManager {
 
   NetworkManager(NetworkOptions inOptions);
 
+ private:
+  NetworkOptions networkOptions_;
+
+  // -----------------------------
+  // NetworkManager interface
+  // -----------------------------
+
+ public:
   void start();                // Starts network thread (non-blocking)
   void stop();                 // Correctly terminates (blocking)
   bool poll(NetEvent& out);    // try-pop one-event (non-blocking)
   void send(std::string msg);  // Sends message (non-blocking)
-
-  const NetworkOptions networkOptions;
 
  private:
   // -------------------------------------------

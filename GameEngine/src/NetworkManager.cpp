@@ -3,10 +3,20 @@
 #define DEBUG_LOG_DISABLE_DEBUG_LEVEL
 #include <magic_enum/magic_enum.hpp>
 
+#include "CanUseThreads.h"
 #include "DebugLog/DebugLog.h"
 #include "NetworkTransport/TransportFactory.h"
 
-NetworkManager::NetworkManager(NetworkOptions inOptions) : networkOptions(inOptions) {
+NetworkManager::NetworkManager(NetworkOptions inOptions) : networkOptions_(inOptions) {
+  // Block using threads if not supported by browser
+  bool oldUseThreads = networkOptions_.useOutboundQueue;
+  networkOptions_.useOutboundQueue = canUseThreads() && networkOptions_.useOutboundQueue;
+
+  if (oldUseThreads == true && networkOptions_.useOutboundQueue == false) {
+    std::cerr << "Using threads is not supported by browser. "
+                 "Falling back to synchronous mode. Outgoing queue will be disabled."
+              << std::endl;
+  }
 }
 
 void NetworkManager::start() {
@@ -46,9 +56,9 @@ void NetworkManager::start() {
   };
 
   // Start a thread to accept incoming messages
-  networkTransport_->connect(networkOptions.url);
+  networkTransport_->connect(networkOptions_.url);
 
-  if (networkOptions.useOutboundQueue) {
+  if (networkOptions_.useOutboundQueue) {
     // Start a sender thread. Otherwise, it will use transport layer functionality
     sendThread_ = std::thread([this]() { sendLoop_(); });
   }
@@ -82,7 +92,7 @@ void NetworkManager::send(std::string msg) {
     std::cerr << "Network transport isn't initialized!" << std::endl;
   }
 
-  if (!networkOptions.useOutboundQueue) {
+  if (!networkOptions_.useOutboundQueue) {
     // Without a queue there is no guaranty that "send before connect" will be successful.
     // Set networkOptions_.useOutgoingQueue to true to enable this guaranty.
     networkTransport_->sendText(msg);

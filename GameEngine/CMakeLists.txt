@@ -5,6 +5,7 @@ add_executable(GameEngine
         src/SceneRenderer.cpp
         src/UserInputManger.cpp
         src/NetworkManager.cpp
+        src/CanUseThreads.cpp
 )
 
 target_link_libraries(GameEngine PRIVATE
