@@ -32,7 +32,7 @@ add_subdirectory(3rd_party)
 add_subdirectory(std)
 add_subdirectory(game_engine_b)
 add_subdirectory(debug_log_lib)
-add_subdirectory(transport_layer)
+add_subdirectory(NetworkTransport)
 add_subdirectory(transport_layer_client)
 
 # Disable projects with Asio, OpenSSL and uWebSockets for Emscripten

@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "transport_layer/Transport.h"
+#include "NetworkTransport/Transport.h"
 
 class BrowserWebSocketTransport final : public ITransport {
  public:

@@ -1,4 +1,4 @@
-#include "transport_layer/TransportFactory.h"
+#include "NetworkTransport/TransportFactory.h"
 
 #ifdef __EMSCRIPTEN__
 #include <BrowserWebSocketTransport.h>

@@ -5,7 +5,7 @@
 #include <mutex>
 #include <string>
 
-#include "transport_layer/Transport.h"
+#include "NetworkTransport/Transport.h"
 
 class DesktopWebSocketTransport final : public ITransport {
  public:
