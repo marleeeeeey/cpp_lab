@@ -5,13 +5,13 @@
 #
 #   include("${CPP_LAB_ROOT}/ItchWebPack.cmake")
 #   itch_pack_emscripten_web(
-#           TARGET transport_layer_client
-#           ZIP_NAME "transport_layer_client_web.zip"
+#           TARGET WsConsoleClient
+#           ZIP_NAME "WsConsoleClient_web.zip"
 #   )
 #
 # Creates:
 #
-#   ./build-emscripten/transport_layer_client/transport_layer_client_web.zip
+#   ./build-emscripten/WsConsoleClient/WsConsoleClient_web.zip
 #
 # -----------------------------------------------------------------
 function(itch_pack_emscripten_web)

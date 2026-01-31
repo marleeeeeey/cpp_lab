@@ -33,7 +33,7 @@ add_subdirectory(std)
 add_subdirectory(game_engine_b)
 add_subdirectory(debug_log_lib)
 add_subdirectory(NetworkTransport)
-add_subdirectory(transport_layer_client)
+add_subdirectory(WsConsoleClient)
 
 # Disable projects with Asio, OpenSSL and uWebSockets for Emscripten
 if (NOT EMSCRIPTEN)
@@ -42,6 +42,6 @@ if (NOT EMSCRIPTEN)
         add_subdirectory(obsolete/asio_projects)
     endif ()
 
-    add_subdirectory(web_sockets_echo_server_no_ssl)
+    add_subdirectory(WsEchoServer)
 
 endif ()

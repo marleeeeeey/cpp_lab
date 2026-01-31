@@ -2,7 +2,7 @@
 # Sources
 # -----------------------------------------------------
 
-add_executable(transport_layer_client
+add_executable(WsConsoleClient
         main.cpp
 )
 
@@ -11,8 +11,8 @@ add_executable(transport_layer_client
 # Link
 # -----------------------------------------------------
 
-target_link_libraries(transport_layer_client PRIVATE
-        transport_layer
+target_link_libraries(WsConsoleClient PRIVATE
+        NetworkTransport
 )
 
 
@@ -22,7 +22,7 @@ target_link_libraries(transport_layer_client PRIVATE
 if (EMSCRIPTEN)
     include("${CPP_LAB_ROOT}/ItchWebPack.cmake")
     itch_pack_emscripten_web(
-            TARGET transport_layer_client
-            ZIP_NAME "transport_layer_client_itch_web.zip"
+            TARGET WsConsoleClient
+            ZIP_NAME "WsConsoleClient_itch_web.zip"
     )
 endif ()
