@@ -101,4 +101,4 @@ jobs:
           service_dir: /opt/ws_echo3
           service_args: --port 8083
 
-          build_artifact: build/web_sockets_echo_server_no_ssl/web_sockets_echo_server_no_ssl
+          build_artifact: build/WsEchoServer/WsEchoServer
