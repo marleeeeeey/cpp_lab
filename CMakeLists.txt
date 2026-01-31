@@ -29,7 +29,7 @@ add_subdirectory(3rd_party)
 # Internal
 # ----------------------------
 
-add_subdirectory(std)
+add_subdirectory(CodeSamples)
 add_subdirectory(GameEngine)
 add_subdirectory(DebugLog)
 add_subdirectory(NetworkTransport)
