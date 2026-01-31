@@ -8,6 +8,10 @@ project(cpp_lab)
 
 if (EMSCRIPTEN)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
+
+    # Enable std::thread / pthreads in WASM
+    add_compile_options(-pthread)
+    add_link_options(-pthread)
 endif ()
 
 set(CPP_LAB_ENABLE_OBSOLETE_PROJECTS OFF CACHE BOOL "Enable/Disable obsolete projects from ALL target to speedup build")
