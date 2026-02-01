@@ -47,6 +47,7 @@ function(itch_pack_emscripten_web)
     endif ()
 
     set(_zip_path "${CMAKE_CURRENT_BINARY_DIR}/${ITCH_ZIP_NAME}")
+    set(_html_path "${CMAKE_CURRENT_BINARY_DIR}/${ITCH_HTML_NAME}")
 
     add_custom_command(TARGET "${ITCH_TARGET}" POST_BUILD
             COMMAND "${CMAKE_COMMAND}" -E make_directory "${ITCH_TEMP_DIR}"
@@ -68,6 +69,7 @@ function(itch_pack_emscripten_web)
 
             # zip files
             COMMAND "${CMAKE_COMMAND}" -E echo "Creating ${_zip_path}"
+            COMMAND "${CMAKE_COMMAND}" -E echo "Original HTML: ${_html_path}:1:1: note: click to open in editor"
             COMMAND "${CMAKE_COMMAND}" -E chdir "${ITCH_TEMP_DIR}"
             "${CMAKE_COMMAND}" -E tar "cfv" "${_zip_path}" --format=zip -- .
 

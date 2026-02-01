@@ -201,7 +201,11 @@ void AppInstance::initImGui() {
 void AppInstance::initOptions(int argc, char* argv[]) {
   try {
     cxxopts::Options options(argv[0]);
-    options.add_options()("u,url", "Url", cxxopts::value<std::string>()->default_value("wss://echo.websocket.org"));
+    options.add_options()("u,url", "Url", cxxopts::value<std::string>()
+                                              // -------------------------------------------------------------------------
+                                              // ->default_value("wss://echo.websocket.org"));
+                                              ->default_value("wss://marleeeeeey.duckdns.org"));
+    // -------------------------------------------------------------------------------------------------------------------
     auto result = options.parse(argc, argv);
     appOptions_.url = result["url"].as<std::string>();
   } catch (const std::exception& e) {
