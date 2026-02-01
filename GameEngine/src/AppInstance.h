@@ -6,7 +6,7 @@
 
 #include "ChatDataForRendering.h"
 #include "GameWorld.h"
-#include "NetworkManager.h"
+#include "NetworkManager/INetworkManager.h"
 #include "SceneRenderer.h"
 #include "UserInputManger.h"
 
@@ -41,7 +41,7 @@ class AppInstance {
   GameWorld gameWorld;
   SceneRenderer sceneRenderer;
   UserInputManger userInputManger;
-  std::unique_ptr<NetworkManager> networkManager;
+  std::unique_ptr<INetworkManager> networkManager;
   ChatDataForRendering chatDataForRendering;
 
  public:

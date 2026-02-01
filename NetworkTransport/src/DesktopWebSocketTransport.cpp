@@ -67,7 +67,7 @@ DesktopWebSocketTransport::~DesktopWebSocketTransport() {
 }
 
 // Start or restart a working thread.
-void DesktopWebSocketTransport::connect(std::string url) {
+void DesktopWebSocketTransport::connect(std::string_view url) {
   std::lock_guard<std::mutex> lock(mu_);
   url_ = std::move(url);
 

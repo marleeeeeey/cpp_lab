@@ -1,5 +1,6 @@
 #pragma once
 
+#include <NetworkManager/INetworkManager.h>
 #include <concurrentqueue.h>
 
 #include <condition_variable>
@@ -13,24 +14,11 @@
 class ITransport;
 
 // ------------------------
-// NetEvent
-// ------------------------
-
-struct NetEvent {
-  enum class Type { Connected,
-                    Disconnected,
-                    TextMessage,
-                    Error };
-  Type type;
-  std::string payload;
-};
-
-// ------------------------
 // NetworkManager
 // ------------------------
 
 // NetworkManager adds inbound and (optionally) outbound queues on top of the underlying transport layer.
-class NetworkManager {
+class NetworkManager : public INetworkManager {
   // -----------------------------
   // Class options and constructor
   // -----------------------------
@@ -41,7 +29,6 @@ class NetworkManager {
     // Probably this queue already implemented in the transport layer and may be disabled.
     // If "false", there is no guaranty that "send before connect" will be successful.
     bool useOutboundQueue = true;
-    std::string url = "wss://echo.websocket.org";
   };
 
   NetworkManager(NetworkOptions inOptions);
@@ -54,10 +41,10 @@ class NetworkManager {
   // -----------------------------
 
  public:
-  void start();                // Starts network thread (non-blocking)
-  void stop();                 // Correctly terminates (blocking)
-  bool poll(NetEvent& out);    // try-pop one-event (non-blocking)
-  void send(std::string msg);  // Sends message (non-blocking)
+  void start(std::string_view url);  // Starts network thread (non-blocking)
+  void stop();                       // Correctly terminates (blocking)
+  bool poll(NetEvent& out);          // try-pop one-event (non-blocking)
+  void send(std::string msg);        // Sends message (non-blocking)
 
  private:
   // -------------------------------------------

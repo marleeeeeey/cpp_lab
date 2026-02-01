@@ -2,7 +2,7 @@
 
 #define DEBUG_LOG_DISABLE_DEBUG_LEVEL
 #include <DebugLog/DebugLog.h>
-#include <NetworkTransport/TransportFactory.h>
+#include <NetworkManager/NetworkManagerFactory.h>
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlrenderer3.h>
@@ -20,10 +20,8 @@ SDL_AppResult AppInstance::init(int argc, char* argv[]) {
   sceneRenderer.setRenderer(renderer);
   gameWorld.init();
 
-  networkManager = std::make_unique<NetworkManager>(NetworkManager::NetworkOptions{
-      .useOutboundQueue = true,
-      .url = appOptions_.url});
-  networkManager->start();
+  networkManager = NetworkManagerFactory::createNetworkManager();
+  networkManager->start(appOptions_.url);
 
   last_time = SDL_GetTicks();
   return initSdlResult;
@@ -184,7 +182,7 @@ void AppInstance::initImGui() {
 void AppInstance::initOptions(int argc, char* argv[]) {
   try {
     cxxopts::Options options(argv[0]);
-    options.add_options()("u,url", "Url", cxxopts::value<std::string>());
+    options.add_options()("u,url", "Url", cxxopts::value<std::string>()->default_value("wss://echo.websocket.org"));
     auto result = options.parse(argc, argv);
     if (result.count("url")) {
       appOptions_.url = result["url"].as<std::string>();

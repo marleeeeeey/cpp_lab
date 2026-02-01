@@ -1,6 +1,5 @@
 #pragma once
 #include <functional>
-#include <string>
 #include <string_view>
 
 struct ITransport {
@@ -11,7 +10,7 @@ struct ITransport {
 
   virtual ~ITransport() = default;
 
-  virtual void connect(std::string url) = 0;
+  virtual void connect(std::string_view url) = 0;
   virtual void sendText(std::string_view text) = 0;
   virtual void close() = 0;
 

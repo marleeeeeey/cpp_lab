@@ -150,7 +150,7 @@ BrowserWebSocketTransport::~BrowserWebSocketTransport() {
   debugLog() << "Destroyed" << std::endl;
 }
 
-void BrowserWebSocketTransport::connect(std::string url) {
+void BrowserWebSocketTransport::connect(std::string_view url) {
   url_ = std::move(url);
 
   detached_ = false;

@@ -2,6 +2,7 @@
 
 #define DEBUG_LOG_DISABLE_DEBUG_LEVEL
 #include <magic_enum/magic_enum.hpp>
+#include <mutex>
 
 #include "CanUseThreads.h"
 #include "DebugLog/DebugLog.h"
@@ -19,7 +20,7 @@ NetworkManager::NetworkManager(NetworkOptions inOptions) : networkOptions_(inOpt
   }
 }
 
-void NetworkManager::start() {
+void NetworkManager::start(std::string_view url) {
   debugLog() << "NetworkManager::start() called" << std::endl;
   if (running_.exchange(true)) {
     return;  // already started
@@ -56,7 +57,7 @@ void NetworkManager::start() {
   };
 
   // Start a thread to accept incoming messages
-  networkTransport_->connect(networkOptions_.url);
+  networkTransport_->connect(url);
 
   if (networkOptions_.useOutboundQueue) {
     // Start a sender thread. Otherwise, it will use transport layer functionality

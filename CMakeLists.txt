@@ -37,6 +37,7 @@ add_subdirectory(CodeSamples)
 add_subdirectory(GameEngine)
 add_subdirectory(DebugLog)
 add_subdirectory(NetworkTransport)
+add_subdirectory(NetworkManager)
 add_subdirectory(WsConsoleClient)
 
 # Disable projects with Asio, OpenSSL and uWebSockets for Emscripten
