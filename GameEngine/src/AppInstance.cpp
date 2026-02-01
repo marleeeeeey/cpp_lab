@@ -115,7 +115,7 @@ SDL_AppResult AppInstance::iterate() {
   // -----------------------
   sceneRenderer.renderGameObjects(gameDataForRendering);
   // sceneRenderer.renderHelloWorldWindow();
-  sceneRenderer.renderChatWindow(chatDataForRendering, [this](auto& message) {
+  sceneRenderer.renderChatWindow(chatDataForRendering, [this](const std::string& message) {
     networkManager->send(message);
   });
   ImGui::Render();
