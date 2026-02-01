@@ -184,9 +184,7 @@ void AppInstance::initOptions(int argc, char* argv[]) {
     cxxopts::Options options(argv[0]);
     options.add_options()("u,url", "Url", cxxopts::value<std::string>()->default_value("wss://echo.websocket.org"));
     auto result = options.parse(argc, argv);
-    if (result.count("url")) {
-      appOptions_.url = result["url"].as<std::string>();
-    }
+    appOptions_.url = result["url"].as<std::string>();
   } catch (const std::exception& e) {
     std::cerr << "Command line parse error: " << e.what() << std::endl;
   }
