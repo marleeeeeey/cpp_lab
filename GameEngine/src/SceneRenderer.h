@@ -1,4 +1,7 @@
 #pragma once
+#include <functional>
+#include <string>
+#include <string_view>
 
 // ---------------------
 // Forward Declarations
@@ -18,9 +21,9 @@ class SceneRenderer {
 
  public:
   void setRenderer(SDL_Renderer* renderer);
-  void render(const GameDataForRendering& gameDataForRendering, const ChatDataForRendering& chatDataForRendering);
 
- private:
   void renderGameObjects(const GameDataForRendering& gameDataForRendering);
-  void renderGUI(const GameDataForRendering& gameDataForRendering, const ChatDataForRendering& chatDataForRendering);
+  void renderHelloWorldWindow();
+  using OnMessageSentCallback = std::function<void(const std::string&)>;
+  void renderChatWindow(const ChatDataForRendering& chatDataForRendering, const OnMessageSentCallback& onMessageSentCallback);
 };

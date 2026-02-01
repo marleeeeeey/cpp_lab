@@ -4,6 +4,7 @@ add_executable(GameEngine
         src/GameWorld.cpp
         src/SceneRenderer.cpp
         src/UserInputManger.cpp
+        src/ChatDataForRendering.cpp
 )
 
 target_link_libraries(GameEngine PRIVATE

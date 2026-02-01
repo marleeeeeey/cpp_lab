@@ -57,19 +57,22 @@ SDL_AppResult AppInstance::iterate() {
     switch (ev.type) {
       case NetEvent::Type::Connected:
         debugLog() << "Net: Connected" << std::endl;
-        chatDataForRendering.latestMessage = "Connected to server";
+        chatDataForRendering.isConnected = true;
+        chatDataForRendering.addMessage("Connected to server");
         break;
       case NetEvent::Type::Disconnected:
         debugLog() << "Net: Disconnected, reason=" << ev.payload << std::endl;
-        chatDataForRendering.latestMessage = "Disconnected from server. Reason: " + ev.payload;
+        chatDataForRendering.isConnected = false;
+        chatDataForRendering.addMessage("Disconnected from server. Reason: " + ev.payload);
         break;
       case NetEvent::Type::Error:
         debugLog() << "Net: Error=" << ev.payload << std::endl;
-        chatDataForRendering.latestMessage = "Error: " + ev.payload;
+        chatDataForRendering.isConnected = false;
+        chatDataForRendering.addMessage("Error: " + ev.payload);
         break;
       case NetEvent::Type::TextMessage:
         debugLog() << "Net: Text=" << ev.payload << std::endl;
-        chatDataForRendering.latestMessage = ev.payload;
+        chatDataForRendering.addMessage(ev.payload);
         break;
     }
   }
@@ -79,7 +82,7 @@ SDL_AppResult AppInstance::iterate() {
   // ---------------------------------------
   gameTimeSeconds += elapsed;
   sendAccumSeconds += elapsed;
-  constexpr double kSendPeriodSeconds = 0.1;
+  constexpr double kSendPeriodSeconds = 5.0;
   if (sendAccumSeconds >= kSendPeriodSeconds) {
     sendAccumSeconds -= kSendPeriodSeconds;
     networkManager->send(std::format("GameTime: {:.2f}", gameTimeSeconds));
@@ -110,7 +113,11 @@ SDL_AppResult AppInstance::iterate() {
   // -----------------------
   // Render New Frame
   // -----------------------
-  sceneRenderer.render(gameDataForRendering, chatDataForRendering);
+  sceneRenderer.renderGameObjects(gameDataForRendering);
+  // sceneRenderer.renderHelloWorldWindow();
+  sceneRenderer.renderChatWindow(chatDataForRendering, [this](auto& message) {
+    networkManager->send(message);
+  });
   ImGui::Render();
   ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);  // render the GUI
   SDL_RenderPresent(renderer);                                            // show the rendered frame on screen
