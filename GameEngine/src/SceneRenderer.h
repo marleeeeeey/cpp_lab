@@ -25,5 +25,6 @@ class SceneRenderer {
   void renderGameObjects(const GameDataForRendering& gameDataForRendering);
   void renderHelloWorldWindow();
   using OnMessageSentCallback = std::function<void(const std::string&)>;
-  void renderChatWindow(const ChatDataForRendering& chatDataForRendering, const OnMessageSentCallback& onMessageSentCallback);
+  void renderChatWindow(const ChatDataForRendering& chatDataForRendering,
+                        const OnMessageSentCallback& onMessageSentCallback);
 };

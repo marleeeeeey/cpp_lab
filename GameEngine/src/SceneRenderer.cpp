@@ -57,7 +57,8 @@ void SceneRenderer::renderHelloWorldWindow() {
   ImGui::End();
 }
 
-void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRendering, const OnMessageSentCallback& onMessageSentCallback) {
+void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRendering,
+                                     const OnMessageSentCallback& onMessageSentCallback) {
   // --------------------------------------------------
   // Create window "Chat history and new message sent"
   // --------------------------------------------------

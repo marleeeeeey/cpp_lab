@@ -149,7 +149,15 @@ SDL_AppResult AppInstance::initSDL() {
     SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
     return SDL_APP_FAILURE;
   }
-  SDL_SetRenderLogicalPresentation(renderer, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+
+  // IMPORTANT:
+  // SDL logical presentation (LETTERBOX) changes render coordinates,
+  // but mouse events remain in window coords,
+  // which breaks ImGui hit-testing after resize.
+  // Keep renderer in native window coordinates when using ImGui.
+  // The next line should be commented.
+  // SDL_SetRenderLogicalPresentation(renderer, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
 
@@ -176,8 +184,12 @@ void AppInstance::initImGui() {
   // Setup scaling
   // ------------------------
   ImGuiStyle& style = ImGui::GetStyle();
-  style.ScaleAllSizes(main_scale);  // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
-  style.FontScaleDpi = main_scale;  // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
+  // Bake a fixed style scale. (until we have a solution for dynamic style scaling,
+  // changing this requires resetting Style + calling this again)
+  style.ScaleAllSizes(main_scale);
+  // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary.
+  // We leave both here for documentation purpose)
+  style.FontScaleDpi = main_scale;
 
   // ---------------------------------
   // Setup Platform/Renderer backends
