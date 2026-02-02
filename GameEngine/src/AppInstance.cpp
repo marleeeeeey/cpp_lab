@@ -57,23 +57,19 @@ SDL_AppResult AppInstance::iterate() {
     switch (ev.type) {
       case NetEvent::Type::Connected: {
         std::ostringstream ss;
-        ss << "Connected to server " << appOptions_.url;
-        debugLog() << "Net: " << ss.str() << std::endl;
+        debugLog() << "Net: Connected to server" << std::endl;
         chatDataForRendering_.isConnected = true;
-        chatDataForRendering_.addMessage(ss.str());
         break;
       }
       case NetEvent::Type::Disconnected: {
         debugLog() << "Net: Disconnected, reason=" << ev.payload << std::endl;
         chatDataForRendering_.isConnected = false;
-        chatDataForRendering_.addMessage("Disconnected from server. Reason: " + ev.payload);
         networkManager_->start(appOptions_.url);  // try to reconnect
         break;
       }
       case NetEvent::Type::Error: {
         debugLog() << "Net: Error=" << ev.payload << std::endl;
         chatDataForRendering_.isConnected = false;
-        chatDataForRendering_.addMessage("Error: " + ev.payload);
         networkManager_->start(appOptions_.url);  // try to reconnect
         break;
       }
