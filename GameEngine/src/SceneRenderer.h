@@ -9,7 +9,7 @@
 
 struct SDL_Renderer;
 struct GameDataForRendering;
-struct ChatDataForRendering;
+class ChatDataForRendering;
 
 // ----------------------
 // SceneRenderer class
