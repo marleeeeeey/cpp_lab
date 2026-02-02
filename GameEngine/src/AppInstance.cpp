@@ -85,17 +85,6 @@ SDL_AppResult AppInstance::iterate() {
     }
   }
 
-  // ---------------------------------------
-  // Sent message to network every X seconds
-  // ---------------------------------------
-  gameTimeSeconds_ += elapsed;
-  sendAccumSeconds_ += elapsed;
-  constexpr double kSendPeriodSeconds = 5.0;
-  if (sendAccumSeconds_ >= kSendPeriodSeconds) {
-    sendAccumSeconds_ -= kSendPeriodSeconds;
-    networkManager_->send(std::format("GameTime: {:.2f}", gameTimeSeconds_));
-  }
-
   // -----------------------
   // Update game world
   // -----------------------

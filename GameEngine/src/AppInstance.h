@@ -31,8 +31,6 @@ class AppInstance {
   SDL_Window* window_ = nullptr;
   SDL_Renderer* renderer_ = nullptr;
   Uint64 lastTime_ = 0;
-  double gameTimeSeconds_ = 0;
-  double sendAccumSeconds_ = 0.0;
 
   // -------------------
   // Game Domain Data

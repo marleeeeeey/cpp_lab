@@ -32,10 +32,8 @@ void GameWorld::iterate(double elapsed, const UserInputData& userInputData) {
   float rotateAngleDeg = elapsed * 100.0f;
   if (userInputData.held.up) {
     acceleration_ += accelerationShift;
-    SDL_Log("acceleration: %f", acceleration_);
   } else if (userInputData.held.down) {
     acceleration_ -= accelerationShift;
-    SDL_Log("acceleration: %f", acceleration_);
   } else if (userInputData.held.left) {
     glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(rotateAngleDeg), glm::vec3(0.0f, 0.0f, 1.0f));
     globalDirection_ = glm::vec2(rotation * glm::vec4(globalDirection_, 0.0f, 0.0f));
