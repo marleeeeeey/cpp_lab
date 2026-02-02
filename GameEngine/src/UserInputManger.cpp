@@ -7,36 +7,36 @@ void UserInputManger::applyEvent(SDL_Event* event) {
         break;  // ignore repeating keys
       switch (event->key.key) {
         case SDLK_UP:
-          userInputData.pressed.up = true;
-          userInputData.held.up = true;
+          userInputData_.pressed.up = true;
+          userInputData_.held.up = true;
           break;
         case SDLK_DOWN:
-          userInputData.pressed.down = true;
-          userInputData.held.down = true;
+          userInputData_.pressed.down = true;
+          userInputData_.held.down = true;
           break;
         case SDLK_LEFT:
-          userInputData.pressed.left = true;
-          userInputData.held.left = true;
+          userInputData_.pressed.left = true;
+          userInputData_.held.left = true;
           break;
         case SDLK_RIGHT:
-          userInputData.pressed.right = true;
-          userInputData.held.right = true;
+          userInputData_.pressed.right = true;
+          userInputData_.held.right = true;
           break;
       }
       break;
     case SDL_EVENT_KEY_UP:
       switch (event->key.key) {
         case SDLK_UP:
-          userInputData.held.up = false;
+          userInputData_.held.up = false;
           break;
         case SDLK_DOWN:
-          userInputData.held.down = false;
+          userInputData_.held.down = false;
           break;
         case SDLK_LEFT:
-          userInputData.held.left = false;
+          userInputData_.held.left = false;
           break;
         case SDLK_RIGHT:
-          userInputData.held.right = false;
+          userInputData_.held.right = false;
           break;
       }
       break;
@@ -44,9 +44,9 @@ void UserInputManger::applyEvent(SDL_Event* event) {
 }
 
 const UserInputData& UserInputManger::getUserInputData() const {
-  return userInputData;
+  return userInputData_;
 }
 
 void UserInputManger::onFrameEnd() {
-  userInputData.pressed = {};
+  userInputData_.pressed = {};
 }

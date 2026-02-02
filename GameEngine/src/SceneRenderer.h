@@ -17,7 +17,7 @@ struct ChatDataForRendering;
 
 // Renders the game world and ImGui GUI. Called by AppInstance.
 class SceneRenderer {
-  SDL_Renderer* renderer = nullptr;
+  SDL_Renderer* renderer_ = nullptr;
 
  public:
   void setRenderer(SDL_Renderer* renderer);

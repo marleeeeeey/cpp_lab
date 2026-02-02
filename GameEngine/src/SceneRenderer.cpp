@@ -10,15 +10,15 @@
 
 void SceneRenderer::setRenderer(SDL_Renderer* renderer) {
   assert(renderer);
-  this->renderer = renderer;
+  this->renderer_ = renderer;
 }
 
 void SceneRenderer::renderGameObjects(const GameDataForRendering& gameDataForRendering) {
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE); /* white, full alpha */
+  SDL_SetRenderDrawColor(renderer_, 255, 255, 255, SDL_ALPHA_OPAQUE); /* white, full alpha */
 
   for (int i = 0; i < gameDataForRendering.points.size(); i++) {
     const glm::vec2& point = gameDataForRendering.points[i];
-    SDL_RenderPoint(renderer, point.x, point.y);
+    SDL_RenderPoint(renderer_, point.x, point.y);
   }
 }
 

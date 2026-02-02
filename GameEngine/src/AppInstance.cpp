@@ -17,13 +17,13 @@ SDL_AppResult AppInstance::init(int argc, char* argv[]) {
   initOptions(argc, argv);
   auto initSdlResult = initSDL();  // initialize SDL and set renderer
   initImGui();
-  sceneRenderer.setRenderer(renderer);
-  gameWorld.init();
+  sceneRenderer_.setRenderer(renderer_);
+  gameWorld_.init();
 
-  networkManager = NetworkManagerFactory::createNetworkManager();
-  networkManager->start(appOptions_.url);
+  networkManager_ = NetworkManagerFactory::createNetworkManager();
+  networkManager_->start(appOptions_.url);
 
-  last_time = SDL_GetTicks();
+  lastTime_ = SDL_GetTicks();
   return initSdlResult;
 }
 
@@ -33,7 +33,7 @@ SDL_AppResult AppInstance::onEvent(SDL_Event* event) {
     return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
   }
 
-  userInputManger.applyEvent(event);
+  userInputManger_.applyEvent(event);
 
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
@@ -43,8 +43,8 @@ SDL_AppResult AppInstance::iterate() {
   // Calculate Delta Time
   // -----------------------
   const Uint64 now = SDL_GetTicks();
-  const float elapsed = ((float)(now - last_time)) / 1000.0f; /* seconds since last iteration */
-  last_time = now;
+  const float elapsed = ((float)(now - lastTime_)) / 1000.0f; /* seconds since last iteration */
+  lastTime_ = now;
 
   // ----------------------------------
   // Poll network events (non-blocking)
@@ -52,34 +52,34 @@ SDL_AppResult AppInstance::iterate() {
   NetEvent ev{};
   int processed = 0;
   constexpr int kMaxEventsPerFrame = 256;
-  while (processed < kMaxEventsPerFrame && networkManager->poll(ev)) {
+  while (processed < kMaxEventsPerFrame && networkManager_->poll(ev)) {
     ++processed;
     switch (ev.type) {
       case NetEvent::Type::Connected: {
         std::ostringstream ss;
         ss << "Connected to server " << appOptions_.url;
         debugLog() << "Net: " << ss.str() << std::endl;
-        chatDataForRendering.isConnected = true;
-        chatDataForRendering.addMessage(ss.str());
+        chatDataForRendering_.isConnected = true;
+        chatDataForRendering_.addMessage(ss.str());
         break;
       }
       case NetEvent::Type::Disconnected: {
         debugLog() << "Net: Disconnected, reason=" << ev.payload << std::endl;
-        chatDataForRendering.isConnected = false;
-        chatDataForRendering.addMessage("Disconnected from server. Reason: " + ev.payload);
-        networkManager->start(appOptions_.url);  // try to reconnect
+        chatDataForRendering_.isConnected = false;
+        chatDataForRendering_.addMessage("Disconnected from server. Reason: " + ev.payload);
+        networkManager_->start(appOptions_.url);  // try to reconnect
         break;
       }
       case NetEvent::Type::Error: {
         debugLog() << "Net: Error=" << ev.payload << std::endl;
-        chatDataForRendering.isConnected = false;
-        chatDataForRendering.addMessage("Error: " + ev.payload);
-        networkManager->start(appOptions_.url);  // try to reconnect
+        chatDataForRendering_.isConnected = false;
+        chatDataForRendering_.addMessage("Error: " + ev.payload);
+        networkManager_->start(appOptions_.url);  // try to reconnect
         break;
       }
       case NetEvent::Type::TextMessage: {
         debugLog() << "Net: Text=" << ev.payload << std::endl;
-        chatDataForRendering.addMessage(ev.payload);
+        chatDataForRendering_.addMessage(ev.payload);
         break;
       }
     }
@@ -88,28 +88,28 @@ SDL_AppResult AppInstance::iterate() {
   // ---------------------------------------
   // Sent message to network every X seconds
   // ---------------------------------------
-  gameTimeSeconds += elapsed;
-  sendAccumSeconds += elapsed;
+  gameTimeSeconds_ += elapsed;
+  sendAccumSeconds_ += elapsed;
   constexpr double kSendPeriodSeconds = 5.0;
-  if (sendAccumSeconds >= kSendPeriodSeconds) {
-    sendAccumSeconds -= kSendPeriodSeconds;
-    networkManager->send(std::format("GameTime: {:.2f}", gameTimeSeconds));
+  if (sendAccumSeconds_ >= kSendPeriodSeconds) {
+    sendAccumSeconds_ -= kSendPeriodSeconds;
+    networkManager_->send(std::format("GameTime: {:.2f}", gameTimeSeconds_));
   }
 
   // -----------------------
   // Update game world
   // -----------------------
-  gameWorld.iterate(elapsed, userInputManger.getUserInputData());
-  GameDataForRendering gameDataForRendering = gameWorld.getGameDataForRendering();
+  gameWorld_.iterate(elapsed, userInputManger_.getUserInputData());
+  GameDataForRendering gameDataForRendering = gameWorld_.getGameDataForRendering();
 
   // -----------------------
   // Clear Screen
   // -----------------------
   /* as you can see from this, rendering draws over whatever was drawn before it. */
   ImGuiIO& io = ImGui::GetIO();
-  SDL_SetRenderScale(renderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE); /* black, full alpha */
-  SDL_RenderClear(renderer);                                   /* start with a blank canvas. */
+  SDL_SetRenderScale(renderer_, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
+  SDL_SetRenderDrawColor(renderer_, 0, 0, 0, SDL_ALPHA_OPAQUE); /* black, full alpha */
+  SDL_RenderClear(renderer_);                                   /* start with a blank canvas. */
 
   // -----------------------
   // Begin Frame
@@ -121,16 +121,16 @@ SDL_AppResult AppInstance::iterate() {
   // -----------------------
   // Render New Frame
   // -----------------------
-  sceneRenderer.renderGameObjects(gameDataForRendering);
+  sceneRenderer_.renderGameObjects(gameDataForRendering);
   // sceneRenderer.renderHelloWorldWindow();
-  sceneRenderer.renderChatWindow(chatDataForRendering, [this](const std::string& message) {
-    networkManager->send(message);
+  sceneRenderer_.renderChatWindow(chatDataForRendering_, [this](const std::string& message) {
+    networkManager_->send(message);
   });
   ImGui::Render();
-  ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer);  // render the GUI
-  SDL_RenderPresent(renderer);                                            // show the rendered frame on screen
+  ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer_);  // render the GUI
+  SDL_RenderPresent(renderer_);                                            // show the rendered frame on screen
 
-  userInputManger.onFrameEnd();
+  userInputManger_.onFrameEnd();
 
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
@@ -140,7 +140,7 @@ void AppInstance::onQuit() {
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
 
-  networkManager->stop();
+  networkManager_->stop();
 }
 
 SDL_AppResult AppInstance::initSDL() {
@@ -153,7 +153,7 @@ SDL_AppResult AppInstance::initSDL() {
 
   if (!SDL_CreateWindowAndRenderer("examples/renderer/points",
                                    WINDOW_WIDTH, WINDOW_HEIGHT,
-                                   SDL_WINDOW_RESIZABLE, &window, &renderer)) {
+                                   SDL_WINDOW_RESIZABLE, &window_, &renderer_)) {
     SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
     return SDL_APP_FAILURE;
   }
@@ -202,18 +202,19 @@ void AppInstance::initImGui() {
   // ---------------------------------
   // Setup Platform/Renderer backends
   // ---------------------------------
-  ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
-  ImGui_ImplSDLRenderer3_Init(renderer);
+  ImGui_ImplSDL3_InitForSDLRenderer(window_, renderer_);
+  ImGui_ImplSDLRenderer3_Init(renderer_);
 }
 
 void AppInstance::initOptions(int argc, char* argv[]) {
   try {
+    // Example of usage:
+    // GameEngine.exe --url wss://marleeeeeey.duckdns.org
+    // GameEngine.exe --url ws://localhost:8083
+    // GameEngine.exe --url wss://echo.websocket.org
+
     cxxopts::Options options(argv[0]);
-    options.add_options()("u,url", "Url", cxxopts::value<std::string>()
-                                              // -------------------------------------------------------------------------
-                                              // ->default_value("wss://echo.websocket.org"));
-                                              ->default_value("wss://marleeeeeey.duckdns.org"));
-    // -------------------------------------------------------------------------------------------------------------------
+    options.add_options()("u,url", "Url", cxxopts::value<std::string>()->default_value("wss://marleeeeeey.duckdns.org"));
     auto result = options.parse(argc, argv);
     appOptions_.url = result["url"].as<std::string>();
   } catch (const std::exception& e) {

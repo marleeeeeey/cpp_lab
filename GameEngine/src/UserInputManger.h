@@ -5,7 +5,7 @@
 
 // Reads SDL events and converts them into UserInputData.
 class UserInputManger {
-  UserInputData userInputData;
+  UserInputData userInputData_;
 
  public:
   void applyEvent(SDL_Event* event);

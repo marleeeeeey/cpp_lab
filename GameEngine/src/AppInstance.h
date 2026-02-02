@@ -28,21 +28,21 @@ class AppInstance {
   // Technical Data
   // -------------------
 
-  SDL_Window* window = nullptr;
-  SDL_Renderer* renderer = nullptr;
-  Uint64 last_time = 0;
-  double gameTimeSeconds = 0;
-  double sendAccumSeconds = 0.0;
+  SDL_Window* window_ = nullptr;
+  SDL_Renderer* renderer_ = nullptr;
+  Uint64 lastTime_ = 0;
+  double gameTimeSeconds_ = 0;
+  double sendAccumSeconds_ = 0.0;
 
   // -------------------
   // Game Domain Data
   // -------------------
 
-  GameWorld gameWorld;
-  SceneRenderer sceneRenderer;
-  UserInputManger userInputManger;
-  std::unique_ptr<INetworkManager> networkManager;
-  ChatDataForRendering chatDataForRendering;
+  GameWorld gameWorld_;
+  SceneRenderer sceneRenderer_;
+  UserInputManger userInputManger_;
+  std::unique_ptr<INetworkManager> networkManager_;
+  ChatDataForRendering chatDataForRendering_;
 
  public:
   // -------------------
