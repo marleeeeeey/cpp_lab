@@ -55,25 +55,33 @@ SDL_AppResult AppInstance::iterate() {
   while (processed < kMaxEventsPerFrame && networkManager->poll(ev)) {
     ++processed;
     switch (ev.type) {
-      case NetEvent::Type::Connected:
-        debugLog() << "Net: Connected" << std::endl;
+      case NetEvent::Type::Connected: {
+        std::ostringstream ss;
+        ss << "Connected to server " << appOptions_.url;
+        debugLog() << "Net: " << ss.str() << std::endl;
         chatDataForRendering.isConnected = true;
-        chatDataForRendering.addMessage("Connected to server");
+        chatDataForRendering.addMessage(ss.str());
         break;
-      case NetEvent::Type::Disconnected:
+      }
+      case NetEvent::Type::Disconnected: {
         debugLog() << "Net: Disconnected, reason=" << ev.payload << std::endl;
         chatDataForRendering.isConnected = false;
         chatDataForRendering.addMessage("Disconnected from server. Reason: " + ev.payload);
+        networkManager->start(appOptions_.url);  // try to reconnect
         break;
-      case NetEvent::Type::Error:
+      }
+      case NetEvent::Type::Error: {
         debugLog() << "Net: Error=" << ev.payload << std::endl;
         chatDataForRendering.isConnected = false;
         chatDataForRendering.addMessage("Error: " + ev.payload);
+        networkManager->start(appOptions_.url);  // try to reconnect
         break;
-      case NetEvent::Type::TextMessage:
+      }
+      case NetEvent::Type::TextMessage: {
         debugLog() << "Net: Text=" << ev.payload << std::endl;
         chatDataForRendering.addMessage(ev.payload);
         break;
+      }
     }
   }
 
