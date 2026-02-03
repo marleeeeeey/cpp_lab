@@ -1,17 +1,16 @@
 #include "AppInstance.h"
 
-#define DEBUG_LOG_DISABLE_DEBUG_LEVEL
-#include <DebugLog/DebugLog.h>
 #include <NetworkManager/NetworkManagerFactory.h>
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlrenderer3.h>
+#include <spdlog/spdlog.h>
 
+#include <cxxopts.hpp>
 #include <sstream>
 
 #include "ChatDataForRendering.h"
 #include "GlobalConstants.h"
-#include "cxxopts.hpp"
 
 SDL_AppResult AppInstance::init(int argc, char* argv[]) {
   initOptions(argc, argv);
@@ -57,24 +56,24 @@ SDL_AppResult AppInstance::iterate() {
     switch (ev.type) {
       case NetEvent::Type::Connected: {
         std::ostringstream ss;
-        debugLog() << "Net: Connected to server" << std::endl;
+        SPDLOG_DEBUG("Net: Connected to server at {}", ev.payload);
         chatDataForRendering_.isConnected = true;
         break;
       }
       case NetEvent::Type::Disconnected: {
-        debugLog() << "Net: Disconnected, reason=" << ev.payload << std::endl;
+        SPDLOG_DEBUG("Net: Disconnected, reason={}", ev.payload);
         chatDataForRendering_.isConnected = false;
         networkManager_->start(appOptions_.url);  // try to reconnect
         break;
       }
       case NetEvent::Type::Error: {
-        debugLog() << "Net: Error=" << ev.payload << std::endl;
+        SPDLOG_DEBUG("Net: Error={}", ev.payload);
         chatDataForRendering_.isConnected = false;
         networkManager_->start(appOptions_.url);  // try to reconnect
         break;
       }
       case NetEvent::Type::TextMessage: {
-        debugLog() << "Net: Text=" << ev.payload << std::endl;
+        SPDLOG_DEBUG("Net: Text={}", ev.payload);
         chatDataForRendering_.addMessage(ev.payload);
         break;
       }
@@ -203,6 +202,6 @@ void AppInstance::initOptions(int argc, char* argv[]) {
     auto result = options.parse(argc, argv);
     appOptions_.url = result["url"].as<std::string>();
   } catch (const std::exception& e) {
-    std::cerr << "Command line parse error: " << e.what() << std::endl;
+    SPDLOG_CRITICAL("Command line parse error: {}", e.what());
   }
 }

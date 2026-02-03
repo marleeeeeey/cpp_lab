@@ -10,13 +10,13 @@ add_executable(GameEngine
 target_link_libraries(GameEngine PRIVATE
         # User libraries
         NetworkManager
-        DebugLog
 
         # 3rd_party libraries
         imgui::imgui
         SDL3::SDL3
         glm::glm
         cxxopts
+        spdlog::spdlog
 )
 
 if (NOT EMSCRIPTEN) # Emscripten always use static libraries. Coping is not needed.

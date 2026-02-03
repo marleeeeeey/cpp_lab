@@ -24,7 +24,7 @@ target_include_directories(NetworkManager
 
 target_link_libraries(NetworkManager PRIVATE
         NetworkTransport
-        DebugLog
+        spdlog::spdlog
         concurrentqueue
         magic_enum::magic_enum
 )

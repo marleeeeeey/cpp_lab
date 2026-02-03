@@ -1,8 +1,8 @@
 #include <NetworkTransport/TransportFactory.h>
+#include <spdlog/spdlog.h>
 
 #include <chrono>
 #include <future>
-#include <iostream>
 
 std::shared_ptr<ITransport> globalTransport;
 
@@ -29,17 +29,17 @@ int main(int argc, char** argv) {
   // Initiate connection and message loop
   // ---------------------------------------
   globalTransport->onOpen = []() {
-    std::cout << "Connected to server" << std::endl;
+    SPDLOG_INFO("Connected to server");
   };
   globalTransport->onError = [](std::string_view errorMsg) {
-    std::cerr << "Failed to connect: " << errorMsg << std::endl;
+    SPDLOG_ERROR("Network error: {}", errorMsg);
   };
   globalTransport->onText = [weak](std::string_view msg) {
     if (auto transport = weak.lock()) {
-      std::cout << "Recv: " << msg << std::endl;
+      SPDLOG_INFO("Recv: {}", msg);
       std::string initialMsg = "Hello from server!";
       transport->sendText(initialMsg);
-      std::cout << "Sent: " << initialMsg << std::endl;
+      SPDLOG_INFO("Sent: {}", initialMsg);
     }
   };
   globalTransport->connect(url);
@@ -49,16 +49,16 @@ int main(int argc, char** argv) {
   // For this tiny example allow a transport object to live.
   // Because the browser still works with this socket.
 #else
-  std::cout << "Press any key to exit" << std::endl;
+  SPDLOG_INFO("Press any key to exit");
   std::getchar();
 
   // ---------------------------------------
   // Closing connection
   // ---------------------------------------
   globalTransport.reset();
-  std::cout << "Disconnected from server" << std::endl;
+  SPDLOG_INFO("Network transport destroyed");
   return 0;
 #endif
 
-  std::cout << "main() done" << std::endl;
+  SPDLOG_INFO("main() finished");
 }

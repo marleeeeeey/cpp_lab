@@ -33,7 +33,7 @@ target_include_directories(NetworkTransport
 
 target_link_libraries(NetworkTransport PRIVATE
         magic_enum::magic_enum
-        DebugLog
+        spdlog::spdlog
 )
 
 if (NOT EMSCRIPTEN)

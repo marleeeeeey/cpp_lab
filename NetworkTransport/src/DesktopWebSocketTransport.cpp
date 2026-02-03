@@ -1,9 +1,7 @@
 #include "DesktopWebSocketTransport.h"
 
-#define DEBUG_LOG_DISABLE_DEBUG_LEVEL
-#define DEBUG_LOG_USER_PREFIX "[DesktopWebSocketTransport]"
-#include <DebugLog/DebugLog.h>
 #include <ixwebsocket/IXNetSystem.h>
+#include <spdlog/spdlog.h>
 
 #include <utility>
 
@@ -30,25 +28,25 @@ DesktopWebSocketTransport::DesktopWebSocketTransport() {
 
     switch (msg->type) {
       case ix::WebSocketMessageType::Open: {
-        debugLog() << "Connection established" << std::endl;
+        SPDLOG_TRACE("ix::WebSocketMessageType::Open");
         if (onOpen) onOpen();
         break;
       }
       case ix::WebSocketMessageType::Message: {
-        debugLog() << "received message: " << msg->str << std::endl;
+        SPDLOG_TRACE("ix::WebSocketMessageType::Message - {}", msg->str);
         if (onText) onText(msg->str);
         break;
       }
       case ix::WebSocketMessageType::Close: {
-        debugLog() << "Connection closed. Code: " << msg->closeInfo.code
-                   << ", reason: " << msg->closeInfo.reason << std::endl;
+        SPDLOG_TRACE("ix::WebSocketMessageType::Close - Code={}, Reason={}",
+                     msg->closeInfo.code, msg->closeInfo.reason);
         const int code = msg->closeInfo.code;
         const std::string& reason = msg->closeInfo.reason;
         if (onClose) onClose(code, reason);
         break;
       }
       case ix::WebSocketMessageType::Error: {
-        debugLog() << "Connection error: " << msg->errorInfo.reason << std::endl;
+        SPDLOG_ERROR("ix::WebSocketMessageType::Error - {}", msg->errorInfo.reason);
         std::string err = msg->errorInfo.reason;
         if (err.empty()) err = "websocket error";
         if (onError) onError(err);
@@ -63,7 +61,7 @@ DesktopWebSocketTransport::DesktopWebSocketTransport() {
 DesktopWebSocketTransport::~DesktopWebSocketTransport() {
   close();
   releaseNet();
-  debugLog() << "Destroyed" << std::endl;
+  SPDLOG_TRACE("DesktopWebSocketTransport destroyed");
 }
 
 // Start or restart a working thread.
@@ -74,10 +72,10 @@ void DesktopWebSocketTransport::connect(std::string_view url) {
   ws_.setUrl(url_);
 
   if (!started_.exchange(true)) {
-    debugLog() << "Connecting to " << url_ << std::endl;
+    SPDLOG_TRACE("Starting connection to {}", url_);
     ws_.start();
   } else {
-    debugLog() << "Restarting connection" << std::endl;
+    SPDLOG_TRACE("Restarting connection to {}", url_);
     ws_.stop();
     ws_.start();
   }
@@ -87,7 +85,7 @@ void DesktopWebSocketTransport::connect(std::string_view url) {
 // a message from several threads.
 void DesktopWebSocketTransport::sendText(std::string_view text) {
   // ixwebsocket copies data internally; safe to pass a temporary std::string.
-  debugLog() << "sendText: " << text << std::endl;
+  SPDLOG_TRACE("sendText: {}", text);
   ws_.sendText(std::string(text));
 }
 
@@ -95,7 +93,7 @@ void DesktopWebSocketTransport::sendText(std::string_view text) {
 void DesktopWebSocketTransport::close() {
   const bool wasStarted = started_.exchange(false);
   if (wasStarted) {
-    debugLog() << "Closing connection" << std::endl;
+    SPDLOG_TRACE("Closing connection to {}", url_);
     ws_.stop();
   }
 }

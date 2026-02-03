@@ -1,8 +1,6 @@
 #include "BrowserWebSocketTransport.h"
 
-#define DEBUG_LOG_DISABLE_DEBUG_LEVEL
-#define DEBUG_LOG_USER_PREFIX "[BrowserWebSocketTransport]"
-#include <DebugLog/DebugLog.h>
+#include <spdlog/spdlog.h>
 
 #include <unordered_set>
 
@@ -114,28 +112,28 @@ EMSCRIPTEN_KEEPALIVE void ws_on_error(int selfPtr, const char* msg);
 }
 
 void ws_on_open(int selfPtr) {
-  debugLog() << "ws_on_open" << std::endl;
+  SPDLOG_DEBUG("ws_on_open");
   auto* socket = getSocketFromPtrIfAlive(selfPtr);
   if (!socket) return;
   if (socket->onOpen) socket->onOpen();
 }
 
 void ws_on_message(int selfPtr, const char* msg) {
-  debugLog() << "ws_on_message: " << msg << std::endl;
+  SPDLOG_DEBUG("ws_on_message: {}", msg);
   auto* socket = getSocketFromPtrIfAlive(selfPtr);
   if (!socket) return;
   if (socket->onText) socket->onText(msg ? msg : "");
 }
 
 void ws_on_close(int selfPtr, int code, const char* reason) {
-  debugLog() << "ws_on_close: " << code << ", reason: " << reason << std::endl;
+  SPDLOG_DEBUG("ws_on_close: code={}, reason={}", code, reason);
   auto* socket = getSocketFromPtrIfAlive(selfPtr);
   if (!socket) return;
   if (socket->onClose) socket->onClose(code, reason ? reason : "");
 }
 
 void ws_on_error(int selfPtr, const char* msg) {
-  debugLog() << "ws_on_error: " << msg << std::endl;
+  SPDLOG_ERROR("ws_on_error: {}", msg);
   auto* socket = getSocketFromPtrIfAlive(selfPtr);
   if (!socket) return;
   if (socket->onError) socket->onError(msg ? msg : "error");
@@ -147,7 +145,7 @@ void ws_on_error(int selfPtr, const char* msg) {
 
 BrowserWebSocketTransport::~BrowserWebSocketTransport() {
   detach();
-  debugLog() << "Destroyed" << std::endl;
+  SPDLOG_DEBUG("BrowserWebSocketTransport destroyed");
 }
 
 void BrowserWebSocketTransport::connect(std::string_view url) {
@@ -157,19 +155,19 @@ void BrowserWebSocketTransport::connect(std::string_view url) {
   aliveSet().insert((intptr_t)this);
 
   js_ws_connect((int)(intptr_t)this, url_.c_str());
-  debugLog() << "Connecting to " << url_ << std::endl;
+  SPDLOG_DEBUG("BrowserWebSocketTransport connected to {}", url_);
 }
 
 void BrowserWebSocketTransport::sendText(std::string_view text) {
   tmp_.assign(text.begin(), text.end());
   js_ws_send((int)(intptr_t)this, tmp_.c_str());
-  debugLog() << "sendText: " << text << std::endl;
+  SPDLOG_TRACE("BrowserWebSocketTransport sendText: {}", text);
 }
 
 // Ask to close. Callbacks are still allowed. Object is alive.
 void BrowserWebSocketTransport::close() {
   js_ws_close((int)(intptr_t)this);
-  debugLog() << "Closing connection" << std::endl;
+  SPDLOG_TRACE("BrowserWebSocketTransport closed");
 }
 
 // Remove callback and socket map entry (this pointer) in JS.
@@ -187,5 +185,5 @@ void BrowserWebSocketTransport::detach() noexcept {
   onError = nullptr;
 
   js_ws_detach((int)(intptr_t)this);
-  debugLog() << "Detached" << std::endl;
+  SPDLOG_DEBUG("BrowserWebSocketTransport detached");
 }

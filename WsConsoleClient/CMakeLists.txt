@@ -13,6 +13,7 @@ add_executable(WsConsoleClient
 
 target_link_libraries(WsConsoleClient PRIVATE
         NetworkTransport
+        spdlog::spdlog
 )
 
 

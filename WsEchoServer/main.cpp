@@ -122,9 +122,9 @@ int main(int argc, char** argv) {
                             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
                             perSocketData->ip = std::string(ws->getRemoteAddressAsText());
                             perSocketData->name = humanhash::shortHumanName(perSocketData->ip);
-                            state->incrementNumberOfClients();
+                            ws->subscribe(state->getBroadcastTopicName());
                             SPDLOG_INFO("ws.open. ip={}, name={}", perSocketData->ip, perSocketData->name);
-                            ws->subscribe(state->getBroadcastTopicName()); },
+                            state->incrementNumberOfClients(); },
                           .message = [app, state](auto* ws, std::string_view msg, uWS::OpCode op) {
                             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
                             std::string personWithMessage = perSocketData->name + ": " + std::string(msg);
