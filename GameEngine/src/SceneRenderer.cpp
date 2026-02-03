@@ -63,6 +63,9 @@ void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRend
   // Create window "Chat history and new message sent"
   // --------------------------------------------------
 
+  ImGui::SetNextWindowSize(ImVec2(350, 200), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowPos(ImVec2(15, 15), ImGuiCond_FirstUseEver);
+
   ImGui::Begin("Chat Window");
 
   // Connection status
