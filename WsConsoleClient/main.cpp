@@ -2,21 +2,29 @@
 #include <spdlog/spdlog.h>
 
 #include <chrono>
+#include <cxxopts.hpp>
 #include <future>
 
 std::shared_ptr<ITransport> globalTransport;
 
 int main(int argc, char** argv) {
-  // -----------------------------------------------------------
+  // -------------------
   // Parsing arguments
+  // -------------------
+
+  // Examples:
   // WsConsoleClient.exe --url ws://your.service.com:8080
   // WsConsoleClient.exe --url ws://127.0.0.1:9001
-  // -----------------------------------------------------------
-  std::string url = "wss://echo.websocket.org";
-  for (int i = 1; i < argc; ++i) {
-    if (std::string_view(argv[i]) == "--url" && i + 1 < argc) {
-      url = argv[i + 1];
-    }
+  // WsConsoleClient.exe --url wss://echo.websocket.org
+  std::string url;
+  try {
+    cxxopts::Options options(argv[0]);
+    options.add_options()("u,url", "Url", cxxopts::value<std::string>()->default_value("wss://echo.websocket.org"));
+    auto result = options.parse(argc, argv);
+    url = result["url"].as<std::string>();
+  } catch (const std::exception& e) {
+    SPDLOG_CRITICAL("Command line parse error: {}", e.what());
+    return 1;
   }
 
   // ---------------------------------------
