@@ -6,6 +6,8 @@
 #include <string>
 #include <string_view>
 
+#include "spdlog/spdlog.h"
+
 // User data per socket
 struct PerSocketData {
   std::string name;
@@ -72,42 +74,73 @@ inline std::string shortHumanName(std::string_view key) {
 
 }  // namespace humanhash
 
-std::string_view gBroadcastTopicName = "broadcast";
+class ServerState {
+  const std::string_view broadcastTopicName = "broadcast";
+  int numberOfClients = 0;
+  int maxNumberOfClients = 0;
+
+ public:
+  void incrementNumberOfClients() {
+    numberOfClients++;
+    if (numberOfClients > maxNumberOfClients) {
+      maxNumberOfClients = numberOfClients;
+    }
+    SPDLOG_INFO("Number of clients (++): {}. Max number of clients: {}", numberOfClients, maxNumberOfClients);
+  }
+
+  void decrementNumberOfClients() {
+    numberOfClients--;
+    SPDLOG_INFO("Number of clients (--): {}. Max number of clients: {}", numberOfClients, maxNumberOfClients);
+  }
+
+  const std::string_view& getBroadcastTopicName() const { return broadcastTopicName; }
+};
 
 int main(int argc, char** argv) {
-  std::cout << "" << std::endl;
-  std::cout << "------------------------" << std::endl;
-  std::cout << "WsEchoServer starting..." << std::endl;
-  std::cout << "------------------------" << std::endl;
-  std::cout << "" << std::endl;
+  // Example:
+  // [2026-02-03 03:43:25.044] [info] WsEchoServer starting...
+  spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+
+  SPDLOG_INFO("");
+  SPDLOG_INFO("------------------------");
+  SPDLOG_INFO("WsEchoServer starting...");
+  SPDLOG_INFO("------------------------");
+  SPDLOG_INFO("");
 
   int port = getPortFromCommandLine(argc, argv);
 
   auto app = std::make_shared<uWS::App>();
+
+  auto state = std::make_shared<ServerState>();
 
   // -------------------------------------------
   // Start listening and message loop on connect
   // -------------------------------------------
 
   app->ws<PerSocketData>("/*",
-                         {.open = [](auto* ws) {
+                         {.open = [state](auto* ws) {
                             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
                             perSocketData->ip = std::string(ws->getRemoteAddressAsText());
                             perSocketData->name = humanhash::shortHumanName(perSocketData->ip);
-                            std::cout << "ws.open. ip=" << perSocketData->ip
-                            << ". name=" << perSocketData->name << std::endl;
-                            ws->subscribe(gBroadcastTopicName); },
-                          .message = [app](auto* ws, std::string_view msg, uWS::OpCode op) {
+                            state->incrementNumberOfClients();
+                            SPDLOG_INFO("ws.open. ip={}, name={}", perSocketData->ip, perSocketData->name);
+                            ws->subscribe(state->getBroadcastTopicName()); },
+                          .message = [app, state](auto* ws, std::string_view msg, uWS::OpCode op) {
                             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-                            std::string answer = perSocketData->name + ": " + std::string(msg);
-                            app->publish(gBroadcastTopicName, answer, op, false); // broadcast
-                            std::cout << "ws.message: " << answer << std::endl; }});
+                            std::string personWithMessage = perSocketData->name + ": " + std::string(msg);
+                            app->publish(state->getBroadcastTopicName(), personWithMessage, op, false); // broadcast
+                            SPDLOG_INFO("ws.message. {}", personWithMessage); },
+                          .close = [state](auto* ws, int code, std::string_view msg) {
+                            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+                            SPDLOG_INFO("ws.close. ip={}, name={}, code={}, msg={}",
+                              perSocketData->ip, perSocketData->name, code, msg);
+                            state->decrementNumberOfClients(); }});
 
   app->listen(port, [port](auto* token) {
     if (token) {
-      std::cout << "Listening on port " << port << std::endl;
+      SPDLOG_INFO("Listening on port {}", port);
     } else {
-      std::cerr << "Failed to listen on port " << port << std::endl;
+      SPDLOG_ERROR("Failed to listen on port {}", port);
       std::exit(1);
     }
   });

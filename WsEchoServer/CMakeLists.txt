@@ -7,4 +7,5 @@ add_executable(WsEchoServer
 
 target_link_libraries(WsEchoServer PRIVATE
         uWebSockets::uWebSockets
+        spdlog::spdlog
 )

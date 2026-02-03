@@ -24,7 +24,7 @@ set(CPP_LAB_ROOT "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "cpp_lab root direct
 # ----------------------------
 
 if (NOT CPP_LAB_ENABLE_OBSOLETE_PROJECTS)
-    set(3RD_PARTY_SKIP "tracy;openal-soft;box2d;EnTT;implot;SDL3_image;spdlog;enet;nlohmann_json;asio" CACHE STRING "" FORCE)
+    set(3RD_PARTY_SKIP "tracy;openal-soft;box2d;EnTT;implot;SDL3_image;enet;nlohmann_json;asio" CACHE STRING "" FORCE)
 endif ()
 add_subdirectory(3rd_party)
 
