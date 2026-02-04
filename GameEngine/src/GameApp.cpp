@@ -1,4 +1,4 @@
-#include "AppInstance.h"
+#include "GameApp.h"
 
 #include <NetworkManager/NetworkManagerFactory.h>
 #include <imgui.h>
@@ -12,9 +12,9 @@
 #include "ChatDataForRendering.h"
 #include "GlobalConstants.h"
 
-SDL_AppResult AppInstance::init(int argc, char* argv[]) {
+SDL_AppResult GameApp::init(int argc, char* argv[]) {
   // Uncomment the next line for Debug
-  // spdlog::set_level(spdlog::level::trace);
+  spdlog::set_level(spdlog::level::trace);
 
   initOptions(argc, argv);
   auto initSdlResult = initSDL();  // initialize SDL and set renderer
@@ -29,7 +29,7 @@ SDL_AppResult AppInstance::init(int argc, char* argv[]) {
   return initSdlResult;
 }
 
-SDL_AppResult AppInstance::onEvent(SDL_Event* event) {
+SDL_AppResult GameApp::onEvent(SDL_Event* event) {
   ImGui_ImplSDL3_ProcessEvent(event);
   if (event->type == SDL_EVENT_QUIT) {
     return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
@@ -40,7 +40,7 @@ SDL_AppResult AppInstance::onEvent(SDL_Event* event) {
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
 
-SDL_AppResult AppInstance::iterate() {
+SDL_AppResult GameApp::iterate() {
   // -----------------------
   // Calculate Delta Time
   // -----------------------
@@ -122,7 +122,7 @@ SDL_AppResult AppInstance::iterate() {
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
 
-void AppInstance::onQuit() {
+void GameApp::onQuit() {
   ImGui_ImplSDLRenderer3_Shutdown();
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
@@ -130,7 +130,7 @@ void AppInstance::onQuit() {
   networkManager_->stop();
 }
 
-SDL_AppResult AppInstance::initSDL() {
+SDL_AppResult GameApp::initSDL() {
   SDL_SetAppMetadata("Example Renderer Points", "1.0", "com.example.renderer-points");
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -156,7 +156,7 @@ SDL_AppResult AppInstance::initSDL() {
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
 
-void AppInstance::initImGui() {
+void GameApp::initImGui() {
   float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
 
   // ------------------------
@@ -202,7 +202,7 @@ void AppInstance::initImGui() {
   }
 }
 
-void AppInstance::initOptions(int argc, char* argv[]) {
+void GameApp::initOptions(int argc, char* argv[]) {
   try {
     // Example of usage:
     // GameEngine.exe --url wss://marleeeeeey.duckdns.org

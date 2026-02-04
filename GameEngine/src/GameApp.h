@@ -21,9 +21,9 @@ class ITransport;
 // ----------------------------
 
 // It manages the SDL window and renderer, and the game world.
-// AppInstance is a bridge between GameWorld, SceneRenderer,
+// GameApp is a bridge between GameWorld, SceneRenderer,
 // UserInputManger and Network.
-class AppInstance {
+class GameApp {
   // -------------------
   // Technical Data
   // -------------------

@@ -4,7 +4,7 @@
 
 add_executable(GameEngine
         src/main.cpp
-        src/AppInstance.cpp
+        src/GameApp.cpp
         src/GameWorld.cpp
         src/SceneRenderer.cpp
         src/UserInputManger.cpp
