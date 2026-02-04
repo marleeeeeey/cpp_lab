@@ -70,10 +70,12 @@ function(itch_pack_emscripten_web)
             "${CMAKE_CURRENT_BINARY_DIR}/${ITCH_WASM_NAME}"
             "${ITCH_TEMP_DIR}/${ITCH_WASM_NAME}"
 
-            # copy data
+            # copy data (optional)
+            if (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/${ITCH_DATA_NAME}")
             COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "${CMAKE_CURRENT_BINARY_DIR}/${ITCH_DATA_NAME}"
             "${ITCH_TEMP_DIR}/${ITCH_DATA_NAME}"
+            endif ()
 
             # zip files
             COMMAND "${CMAKE_COMMAND}" -E echo "Creating ${_zip_path}"
