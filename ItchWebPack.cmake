@@ -72,8 +72,8 @@ function(itch_pack_emscripten_web)
 
             # copy data (optional: skip if missing)
             COMMAND "${CMAKE_COMMAND}"
-            -Dsrc="${CMAKE_CURRENT_BINARY_DIR}/${ITCH_DATA_NAME}"
-            -Ddst="${ITCH_TEMP_DIR}/${ITCH_DATA_NAME}"
+            -Dsrc:FILEPATH=${CMAKE_CURRENT_BINARY_DIR}/${ITCH_DATA_NAME}
+            -Ddst:FILEPATH=${ITCH_TEMP_DIR}/${ITCH_DATA_NAME}
             -P "${CPP_LAB_ROOT}/CopySingleIfExists.cmake"
 
             # zip files
