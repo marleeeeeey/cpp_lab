@@ -23,7 +23,7 @@ NetworkManager::NetworkManager(NetworkOptions inOptions) : networkOptions_(inOpt
 
 void NetworkManager::start(std::string_view url) {
   SPDLOG_TRACE("NetworkManager::start");
-  if (running_.exchange(true)) {
+  if (running_.exchange(true) && connected_.load() == true) {
     return;  // already started
   }
 
