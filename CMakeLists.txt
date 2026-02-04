@@ -18,6 +18,18 @@ set(CPP_LAB_ENABLE_OBSOLETE_PROJECTS OFF CACHE BOOL "Enable/Disable obsolete pro
 
 set(CPP_LAB_ROOT "${CMAKE_CURRENT_LIST_DIR}" CACHE INTERNAL "cpp_lab root directory")
 
+set(CPP_LAB_LOCAL_BUILD OFF CACHE BOOL "Enable/Disable specific compiler options for debug. Do not use for release build")
+
+# ----------------------
+# Preprocessor global
+# ----------------------
+
+if (CPP_LAB_LOCAL_BUILD)
+    message(WARNING "CPP_LAB_LOCAL_BUILD enabled")
+    add_compile_definitions(
+            SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE
+    )
+endif ()
 
 # ----------------------------
 # External

@@ -1,3 +1,7 @@
+# ----------------------
+# Sources
+# ----------------------
+
 add_executable(GameEngine
         src/main.cpp
         src/AppInstance.cpp
@@ -6,6 +10,11 @@ add_executable(GameEngine
         src/UserInputManger.cpp
         src/ChatDataForRendering.cpp
 )
+
+
+# ----------------------
+# Link
+# ----------------------
 
 target_link_libraries(GameEngine PRIVATE
         # User libraries
@@ -18,6 +27,11 @@ target_link_libraries(GameEngine PRIVATE
         cxxopts
         spdlog::spdlog
 )
+
+
+# -----------------------------------
+# Post build actions: copy binaries
+# -----------------------------------
 
 if (NOT EMSCRIPTEN) # Emscripten always use static libraries. Coping is not needed.
     if (WIN32)

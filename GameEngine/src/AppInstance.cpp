@@ -13,6 +13,9 @@
 #include "GlobalConstants.h"
 
 SDL_AppResult AppInstance::init(int argc, char* argv[]) {
+  // Uncomment the next line for Debug
+  // spdlog::set_level(spdlog::level::trace);
+
   initOptions(argc, argv);
   auto initSdlResult = initSDL();  // initialize SDL and set renderer
   initImGui();
