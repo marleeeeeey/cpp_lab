@@ -30,7 +30,7 @@ target_link_libraries(GameEngine PRIVATE
 
 
 # -----------------------------------
-# Post build actions: copy binaries
+# Post build actions: copy libraries
 # -----------------------------------
 
 if (NOT EMSCRIPTEN) # Emscripten always use static libraries. Coping is not needed.
@@ -38,10 +38,33 @@ if (NOT EMSCRIPTEN) # Emscripten always use static libraries. Coping is not need
         add_custom_command(TARGET GameEngine POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 $<TARGET_FILE:SDL3::SDL3>
-                $<TARGET_FILE_DIR:GameEngine>)
+                $<TARGET_FILE_DIR:GameEngine>
+        )
     else ()
         message(WARNING "Place here a code to copy SDL3 shared library for your system")
     endif ()
+endif ()
+
+
+
+# -----------------------------------
+# Post build actions: copy assets
+# -----------------------------------
+
+if (NOT EMSCRIPTEN)
+    add_custom_command(TARGET GameEngine POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CPP_LAB_ROOT}/assets
+            $<TARGET_FILE_DIR:GameEngine>/assets
+    )
+endif ()
+
+if (EMSCRIPTEN)
+    # For example:
+    # Fontpath: /assets/fonts/OpenSans-VariableFont_wdth,wght.ttf should exist in VFS in runtime
+    target_link_options(GameEngine PRIVATE
+            "SHELL:--preload-file ${CPP_LAB_ROOT}/assets@/assets"
+    )
 endif ()
 
 

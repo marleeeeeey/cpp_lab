@@ -191,6 +191,15 @@ void AppInstance::initImGui() {
   // ---------------------------------
   ImGui_ImplSDL3_InitForSDLRenderer(window_, renderer_);
   ImGui_ImplSDLRenderer3_Init(renderer_);
+
+  // ---------------------------------
+  // Load Fonts
+  // ---------------------------------
+
+  ImFont* font = io.Fonts->AddFontFromFileTTF("assets/fonts/OpenSans-VariableFont_wdth,wght.ttf");
+  if (font == nullptr) {
+    SPDLOG_CRITICAL("Failed to load font");
+  }
 }
 
 void AppInstance::initOptions(int argc, char* argv[]) {
