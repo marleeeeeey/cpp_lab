@@ -19,22 +19,13 @@ NetworkManager::NetworkManager(NetworkOptions inOptions) : networkOptions_(inOpt
         "Falling back to synchronous mode. "
         "Outgoing queue will be disabled.");
   }
-}
-
-void NetworkManager::start(std::string_view url) {
-  SPDLOG_TRACE("NetworkManager::start");
-  if (running_.exchange(true) && connected_.load() == true) {
-    return;  // already started
-  }
-
-  connected_.store(false);
 
   networkTransport_ = createTransport();
   SPDLOG_TRACE("Network transport created");
 
-  // ---------------------------------------
-  // Initiate connection and message loop
-  // ---------------------------------------
+  // -------------------------------------
+  // Setup WebSocket transport callbacks
+  // -------------------------------------
 
   networkTransport_->onOpen = [this]() {
     SPDLOG_TRACE("Connected to server");
@@ -57,13 +48,26 @@ void NetworkManager::start(std::string_view url) {
     inboundEventQueue_.enqueue(NetEvent{NetEvent::Type::Disconnected, std::string(reason)});
   };
 
-  // Start a thread to accept incoming messages
-  networkTransport_->connect(url);
+  // ----------------------------
+  // Setup outbound queue thread
+  // ----------------------------
 
   if (networkOptions_.useOutboundQueue) {
     // Start a sender thread. Otherwise, it will use transport layer functionality
     sendThread_ = std::thread([this]() { sendLoop_(); });
   }
+}
+
+void NetworkManager::start(std::string_view url) {
+  SPDLOG_TRACE("NetworkManager::start");
+  if (running_.exchange(true) && connected_.load() == true) {
+    return;  // already started
+  }
+
+  connected_.store(false);
+
+  // Start a thread to accept incoming messages
+  networkTransport_->connect(url);
 }
 
 void NetworkManager::stop() {
