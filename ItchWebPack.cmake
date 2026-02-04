@@ -16,7 +16,7 @@
 # -----------------------------------------------------------------
 function(itch_pack_emscripten_web)
     set(options)
-    set(oneValueArgs TARGET HTML_NAME JS_NAME WASM_NAME TEMP_DIR ZIP_NAME)
+    set(oneValueArgs TARGET HTML_NAME JS_NAME WASM_NAME DATA_NAME TEMP_DIR ZIP_NAME)
     set(multiValueArgs)
     cmake_parse_arguments(ITCH "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -42,6 +42,9 @@ function(itch_pack_emscripten_web)
     if (NOT ITCH_WASM_NAME)
         set(ITCH_WASM_NAME "${ITCH_TARGET}.wasm")
     endif ()
+    if (NOT ITCH_DATA_NAME)
+        set(ITCH_DATA_NAME "${ITCH_TARGET}.data")
+    endif ()
     if (NOT ITCH_TEMP_DIR)
         set(ITCH_TEMP_DIR "${CMAKE_CURRENT_BINARY_DIR}/temp_itch_web")
     endif ()
@@ -66,6 +69,11 @@ function(itch_pack_emscripten_web)
             COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "${CMAKE_CURRENT_BINARY_DIR}/${ITCH_WASM_NAME}"
             "${ITCH_TEMP_DIR}/${ITCH_WASM_NAME}"
+
+            # copy data
+            COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${CMAKE_CURRENT_BINARY_DIR}/${ITCH_DATA_NAME}"
+            "${ITCH_TEMP_DIR}/${ITCH_DATA_NAME}"
 
             # zip files
             COMMAND "${CMAKE_COMMAND}" -E echo "Creating ${_zip_path}"
