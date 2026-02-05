@@ -55,6 +55,7 @@ NetworkManager::NetworkManager(NetworkOptions inOptions) : networkOptions_(inOpt
   if (networkOptions_.useOutboundQueue) {
     // Start a sender thread. Otherwise, it will use transport layer functionality
     sendThread_ = std::thread([this]() { sendLoop_(); });
+    SPDLOG_TRACE("Outbound queue thread started");
   }
 }
 

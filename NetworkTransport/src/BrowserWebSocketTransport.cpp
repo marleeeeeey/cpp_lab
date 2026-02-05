@@ -15,6 +15,24 @@ EM_JS(void, js_ws_connect, (int selfPtr, const char* url), {
   const self = selfPtr;
 
   if (!Module.__wsMap) Module.__wsMap = new Map();
+  if (!Module.__wsGen) Module.__wsGen = new Map();
+
+  // Bump generation for this C++ object (reconnect safety).
+  const gen = (Module.__wsGen.get(self) || 0) + 1;
+  Module.__wsGen.set(self, gen);
+
+  // If there is an old socket for this object, detach and close it.
+  const old = Module.__wsMap.get(self);
+  if (old) {
+    try {
+      old.onopen = null;
+      old.onmessage = null;
+      old.onclose = null;
+      old.onerror = null;
+      old.close();
+    } catch (e) {}
+    Module.__wsMap.delete(self);
+  }
 
   const ws = new WebSocket(UTF8ToString(url));
   
