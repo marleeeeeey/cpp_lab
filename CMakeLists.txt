@@ -51,6 +51,7 @@ add_subdirectory(DebugLog)
 add_subdirectory(NetworkTransport)
 add_subdirectory(NetworkManager)
 add_subdirectory(WsConsoleClient)
+add_subdirectory(Profiler)
 
 # Disable projects with Asio, OpenSSL and uWebSockets for Emscripten
 if (NOT EMSCRIPTEN)

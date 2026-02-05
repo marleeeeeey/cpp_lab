@@ -19,6 +19,7 @@ add_executable(GameEngine
 target_link_libraries(GameEngine PRIVATE
         # User libraries
         NetworkManager
+        Profiler
 
         # 3rd_party libraries
         imgui::imgui
@@ -26,7 +27,6 @@ target_link_libraries(GameEngine PRIVATE
         glm::glm
         cxxopts
         spdlog::spdlog
-        Tracy::TracyClient
 )
 
 

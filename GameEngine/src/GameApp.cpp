@@ -1,6 +1,7 @@
 #include "GameApp.h"
 
 #include <NetworkManager/NetworkManagerFactory.h>
+#include <Profiler/Profiler.h>
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlrenderer3.h>
@@ -8,7 +9,6 @@
 
 #include <cxxopts.hpp>
 #include <sstream>
-#include <tracy/Tracy.hpp>
 
 #include "ChatDataForRendering.h"
 #include "GlobalConstants.h"
@@ -54,7 +54,7 @@ SDL_AppResult GameApp::iterate() {
 
   userInputManger_.onFrameEnd();
 
-  FrameMark;  // Mark end of frame for TRACY
+  PROFILER_FRAME_MARK;  // Mark end of frame for TRACY
 
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
@@ -72,15 +72,13 @@ void GameApp::onQuit() {
 // ------------------------------
 
 void GameApp::initTracyProfiler_() {
-#ifdef TRACY_ENABLE
-  SPDLOG_CRITICAL("TRACY_ENABLE is defined and enabled");
+#if PROFILER_ENABLED
+  SPDLOG_CRITICAL("PROFILER ENABLED");
 #else
-  SPDLOG_INFO(
-      "TRACY_ENABLE is undefined and disabled. "
-      "Add `-DTRACY_ENABLE:BOOL=ON` CMake option to enable Tracy profiler");
+  SPDLOG_CRITICAL("PROFILER DISABLED");
 #endif
 
-  tracy::SetThreadName("main");
+  PROFILER_SET_THREAD_NAME("main");
 
   // Uncomment the next line for Debug
   spdlog::set_level(spdlog::level::trace);
@@ -184,7 +182,7 @@ void GameApp::initImGui_() {
 // ------------------------------
 
 float GameApp::calculateDeltaTime_() {
-  ZoneScoped;
+  PROFILER_ZONE;
 
   const Uint64 now = SDL_GetTicks();
   /* seconds since last iteration */
@@ -195,7 +193,7 @@ float GameApp::calculateDeltaTime_() {
 
 // Poll network events (non-blocking)
 void GameApp::pollNetworkEvents_() {
-  ZoneScoped;
+  PROFILER_ZONE;
 
   NetEvent ev{};
   int processed = 0;
@@ -231,7 +229,7 @@ void GameApp::pollNetworkEvents_() {
 }
 
 GameDataForRendering GameApp::updateGameWorld_(const float elapsed) {
-  ZoneScoped;
+  PROFILER_ZONE;
 
   gameWorld_.iterate(elapsed, userInputManger_.getUserInputData());
   GameDataForRendering gameDataForRendering = gameWorld_.getGameDataForRendering();
@@ -239,33 +237,39 @@ GameDataForRendering GameApp::updateGameWorld_(const float elapsed) {
 }
 
 void GameApp::renderFrame_(GameDataForRendering gameDataForRendering) {
-  ZoneScoped;
+  {
+    PROFILER_ZONE_NAMED("RenderFrame");
 
-  // -----------------------
-  // Clear Screen
-  // -----------------------
-  /* as you can see from this, rendering draws over whatever was drawn before it. */
-  ImGuiIO& io = ImGui::GetIO();
-  SDL_SetRenderScale(renderer_, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
-  SDL_SetRenderDrawColor(renderer_, 0, 0, 0, SDL_ALPHA_OPAQUE); /* black, full alpha */
-  SDL_RenderClear(renderer_);                                   /* start with a blank canvas. */
+    // -----------------------
+    // Clear Screen
+    // -----------------------
+    /* as you can see from this, rendering draws over whatever was drawn before it. */
+    ImGuiIO& io = ImGui::GetIO();
+    SDL_SetRenderScale(renderer_, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
+    SDL_SetRenderDrawColor(renderer_, 0, 0, 0, SDL_ALPHA_OPAQUE); /* black, full alpha */
+    SDL_RenderClear(renderer_);                                   /* start with a blank canvas. */
 
-  // -----------------------
-  // Begin Frame
-  // -----------------------
-  ImGui_ImplSDLRenderer3_NewFrame();
-  ImGui_ImplSDL3_NewFrame();
-  ImGui::NewFrame();
+    // -----------------------
+    // Begin Frame
+    // -----------------------
+    ImGui_ImplSDLRenderer3_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
 
-  // -----------------------
-  // Render New Frame
-  // -----------------------
-  sceneRenderer_.renderGameObjects(gameDataForRendering);
-  // sceneRenderer.renderHelloWorldWindow();
-  sceneRenderer_.renderChatWindow(chatDataForRendering_, [this](const std::string& message) {
-    networkManager_->send(message);
-  });
-  ImGui::Render();
-  ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer_);  // render the GUI
-  SDL_RenderPresent(renderer_);                                            // show the rendered frame on screen
+    // -----------------------
+    // Render New Frame
+    // -----------------------
+    sceneRenderer_.renderGameObjects(gameDataForRendering);
+    // sceneRenderer.renderHelloWorldWindow();
+    sceneRenderer_.renderChatWindow(chatDataForRendering_, [this](const std::string& message) {
+      networkManager_->send(message);
+    });
+    ImGui::Render();
+    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer_);  // render the GUI
+  }
+
+  {
+    PROFILER_ZONE_NAMED("SDL_RenderPresent (vsync wait)");
+    SDL_RenderPresent(renderer_);  // show the rendered frame on screen
+  }
 }
