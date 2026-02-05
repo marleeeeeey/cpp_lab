@@ -24,17 +24,17 @@ class ITransport;
 // GameApp is a bridge between GameWorld, SceneRenderer,
 // UserInputManger and Network.
 class GameApp {
-  // -------------------
+  // ----------------
   // Technical Data
-  // -------------------
+  // ----------------
 
   SDL_Window* window_ = nullptr;
   SDL_Renderer* renderer_ = nullptr;
-  Uint64 lastTime_ = 0;
+  Uint64 beginFrameTime_ = 0;
 
-  // -------------------
+  // ------------------
   // Game Domain Data
-  // -------------------
+  // ------------------
 
   GameWorld gameWorld_;
   SceneRenderer sceneRenderer_;
@@ -43,9 +43,9 @@ class GameApp {
   ChatDataForRendering chatDataForRendering_;
 
  public:
-  // -------------------
-  // Public Interface
-  // -------------------
+  // -----------------------------------
+  // SDL Based Steps (public interface)
+  // -----------------------------------
 
   SDL_AppResult init(int argc, char* argv[]);
   SDL_AppResult onEvent(SDL_Event* event);
@@ -59,14 +59,23 @@ class GameApp {
 
   struct Options {
     std::string url;
-  };
-  void initOptions(int argc, char* argv[]);
-  Options appOptions_;
+  } appOptions_;
 
-  // ------------------------------
-  // Other Methods
-  // ------------------------------
+  // ------------
+  // Init Steps
+  // ------------
 
-  SDL_AppResult initSDL();
-  void initImGui();
+  void initTracyProfiler_();
+  void initOptions_(int argc, char* argv[]);
+  SDL_AppResult initSDL_();
+  void initImGui_();
+
+  // ---------------
+  // Iterate Steps
+  // ---------------
+
+  float calculateDeltaTime_();
+  void pollNetworkEvents_();
+  GameDataForRendering updateGameWorld_(float elapsed);
+  void renderFrame_(GameDataForRendering gameDataForRendering);
 };

@@ -36,7 +36,7 @@ endif ()
 # ----------------------------
 
 if (NOT CPP_LAB_ENABLE_OBSOLETE_PROJECTS)
-    set(3RD_PARTY_SKIP "tracy;openal-soft;box2d;EnTT;implot;SDL3_image;enet;nlohmann_json;asio;flatbuffers" CACHE STRING "" FORCE)
+    set(3RD_PARTY_SKIP "openal-soft;box2d;EnTT;implot;SDL3_image;enet;nlohmann_json;asio;flatbuffers" CACHE STRING "" FORCE)
 endif ()
 add_subdirectory(3rd_party)
 

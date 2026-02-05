@@ -26,6 +26,7 @@ target_link_libraries(GameEngine PRIVATE
         glm::glm
         cxxopts
         spdlog::spdlog
+        Tracy::TracyClient
 )
 
 

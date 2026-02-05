@@ -8,24 +8,27 @@
 
 #include <cxxopts.hpp>
 #include <sstream>
+#include <tracy/Tracy.hpp>
 
 #include "ChatDataForRendering.h"
 #include "GlobalConstants.h"
 
-SDL_AppResult GameApp::init(int argc, char* argv[]) {
-  // Uncomment the next line for Debug
-  spdlog::set_level(spdlog::level::trace);
+// ------------------------------
+// SDL Based Steps
+// ------------------------------
 
-  initOptions(argc, argv);
-  auto initSdlResult = initSDL();  // initialize SDL and set renderer
-  initImGui();
+SDL_AppResult GameApp::init(int argc, char* argv[]) {
+  initTracyProfiler_();
+  initOptions_(argc, argv);
+  auto initSdlResult = initSDL_();  // initialize SDL and set renderer
+  initImGui_();
   sceneRenderer_.setRenderer(renderer_);
   gameWorld_.init();
 
   networkManager_ = NetworkManagerFactory::createNetworkManager();
   networkManager_->start(appOptions_.url);
 
-  lastTime_ = SDL_GetTicks();
+  beginFrameTime_ = SDL_GetTicks();
   return initSdlResult;
 }
 
@@ -41,83 +44,17 @@ SDL_AppResult GameApp::onEvent(SDL_Event* event) {
 }
 
 SDL_AppResult GameApp::iterate() {
-  // -----------------------
-  // Calculate Delta Time
-  // -----------------------
-  const Uint64 now = SDL_GetTicks();
-  const float elapsed = ((float)(now - lastTime_)) / 1000.0f; /* seconds since last iteration */
-  lastTime_ = now;
+  const float elapsed = calculateDeltaTime_();
 
-  // ----------------------------------
-  // Poll network events (non-blocking)
-  // ----------------------------------
-  NetEvent ev{};
-  int processed = 0;
-  constexpr int kMaxEventsPerFrame = 256;
-  while (processed < kMaxEventsPerFrame && networkManager_->poll(ev)) {
-    ++processed;
-    switch (ev.type) {
-      case NetEvent::Type::Connected: {
-        std::ostringstream ss;
-        SPDLOG_DEBUG("Net: Connected to server at {}", ev.payload);
-        chatDataForRendering_.isConnected = true;
-        break;
-      }
-      case NetEvent::Type::Disconnected: {
-        SPDLOG_DEBUG("Net: Disconnected, reason={}", ev.payload);
-        chatDataForRendering_.isConnected = false;
-        networkManager_->start(appOptions_.url);  // try to reconnect
-        break;
-      }
-      case NetEvent::Type::Error: {
-        SPDLOG_DEBUG("Net: Error={}", ev.payload);
-        chatDataForRendering_.isConnected = false;
-        networkManager_->start(appOptions_.url);  // try to reconnect
-        break;
-      }
-      case NetEvent::Type::TextMessage: {
-        SPDLOG_DEBUG("Net: Text={}", ev.payload);
-        chatDataForRendering_.addMessage(ev.payload);
-        break;
-      }
-    }
-  }
+  pollNetworkEvents_();
 
-  // -----------------------
-  // Update game world
-  // -----------------------
-  gameWorld_.iterate(elapsed, userInputManger_.getUserInputData());
-  GameDataForRendering gameDataForRendering = gameWorld_.getGameDataForRendering();
+  GameDataForRendering gameDataForRendering = updateGameWorld_(elapsed);
 
-  // -----------------------
-  // Clear Screen
-  // -----------------------
-  /* as you can see from this, rendering draws over whatever was drawn before it. */
-  ImGuiIO& io = ImGui::GetIO();
-  SDL_SetRenderScale(renderer_, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
-  SDL_SetRenderDrawColor(renderer_, 0, 0, 0, SDL_ALPHA_OPAQUE); /* black, full alpha */
-  SDL_RenderClear(renderer_);                                   /* start with a blank canvas. */
-
-  // -----------------------
-  // Begin Frame
-  // -----------------------
-  ImGui_ImplSDLRenderer3_NewFrame();
-  ImGui_ImplSDL3_NewFrame();
-  ImGui::NewFrame();
-
-  // -----------------------
-  // Render New Frame
-  // -----------------------
-  sceneRenderer_.renderGameObjects(gameDataForRendering);
-  // sceneRenderer.renderHelloWorldWindow();
-  sceneRenderer_.renderChatWindow(chatDataForRendering_, [this](const std::string& message) {
-    networkManager_->send(message);
-  });
-  ImGui::Render();
-  ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer_);  // render the GUI
-  SDL_RenderPresent(renderer_);                                            // show the rendered frame on screen
+  renderFrame_(gameDataForRendering);
 
   userInputManger_.onFrameEnd();
+
+  FrameMark;  // Mark end of frame for TRACY
 
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
@@ -130,19 +67,59 @@ void GameApp::onQuit() {
   networkManager_->stop();
 }
 
-SDL_AppResult GameApp::initSDL() {
+// ------------------------------
+// Init Steps
+// ------------------------------
+
+void GameApp::initTracyProfiler_() {
+#ifdef TRACY_ENABLE
+  SPDLOG_CRITICAL("TRACY_ENABLE is defined and enabled");
+#else
+  SPDLOG_INFO(
+      "TRACY_ENABLE is undefined and disabled. "
+      "Add `-DTRACY_ENABLE:BOOL=ON` CMake option to enable Tracy profiler");
+#endif
+
+  tracy::SetThreadName("main");
+
+  // Uncomment the next line for Debug
+  spdlog::set_level(spdlog::level::trace);
+}
+
+void GameApp::initOptions_(int argc, char* argv[]) {
+  try {
+    // Example of usage:
+    // GameEngine.exe --url wss://marleeeeeey.duckdns.org
+    // GameEngine.exe --url ws://localhost:8083
+    // GameEngine.exe --url wss://echo.websocket.org
+
+    cxxopts::Options options(argv[0]);
+    options.add_options()("u,url", "Url", cxxopts::value<std::string>()->default_value("wss://marleeeeeey.duckdns.org"));
+    auto result = options.parse(argc, argv);
+    appOptions_.url = result["url"].as<std::string>();
+  } catch (const std::exception& e) {
+    SPDLOG_CRITICAL("Command line parse error: {}", e.what());
+  }
+}
+
+SDL_AppResult GameApp::initSDL_() {
   SDL_SetAppMetadata("Example Renderer Points", "1.0", "com.example.renderer-points");
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
-    SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
+    SPDLOG_ERROR("SDL_Init() failed: {}", SDL_GetError());
     return SDL_APP_FAILURE;
   }
 
   if (!SDL_CreateWindowAndRenderer("examples/renderer/points",
                                    WINDOW_WIDTH, WINDOW_HEIGHT,
                                    SDL_WINDOW_RESIZABLE, &window_, &renderer_)) {
-    SDL_Log("Couldn't create window/renderer: %s", SDL_GetError());
+    SPDLOG_ERROR("SDL_CreateWindowAndRenderer() failed: {}", SDL_GetError());
     return SDL_APP_FAILURE;
+  }
+
+  // VSync should be enabled to decrease CPU loading!
+  if (!SDL_SetRenderVSync(renderer_, 1)) {
+    SPDLOG_ERROR("SDL_SetRenderVSync() failed: {}", SDL_GetError());
   }
 
   // IMPORTANT:
@@ -156,7 +133,7 @@ SDL_AppResult GameApp::initSDL() {
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
 
-void GameApp::initImGui() {
+void GameApp::initImGui_() {
   float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
 
   // ------------------------
@@ -202,18 +179,93 @@ void GameApp::initImGui() {
   }
 }
 
-void GameApp::initOptions(int argc, char* argv[]) {
-  try {
-    // Example of usage:
-    // GameEngine.exe --url wss://marleeeeeey.duckdns.org
-    // GameEngine.exe --url ws://localhost:8083
-    // GameEngine.exe --url wss://echo.websocket.org
+// ------------------------------
+// Iterate Steps
+// ------------------------------
 
-    cxxopts::Options options(argv[0]);
-    options.add_options()("u,url", "Url", cxxopts::value<std::string>()->default_value("wss://marleeeeeey.duckdns.org"));
-    auto result = options.parse(argc, argv);
-    appOptions_.url = result["url"].as<std::string>();
-  } catch (const std::exception& e) {
-    SPDLOG_CRITICAL("Command line parse error: {}", e.what());
+float GameApp::calculateDeltaTime_() {
+  ZoneScoped;
+
+  const Uint64 now = SDL_GetTicks();
+  /* seconds since last iteration */
+  const float elapsed = ((float)(now - beginFrameTime_)) / 1000.0f;
+  beginFrameTime_ = now;
+  return elapsed;
+}
+
+// Poll network events (non-blocking)
+void GameApp::pollNetworkEvents_() {
+  ZoneScoped;
+
+  NetEvent ev{};
+  int processed = 0;
+  constexpr int kMaxEventsPerFrame = 256;
+  while (processed < kMaxEventsPerFrame && networkManager_->poll(ev)) {
+    ++processed;
+    switch (ev.type) {
+      case NetEvent::Type::Connected: {
+        std::ostringstream ss;
+        SPDLOG_DEBUG("Net: Connected to server at {}", ev.payload);
+        chatDataForRendering_.isConnected = true;
+        break;
+      }
+      case NetEvent::Type::Disconnected: {
+        SPDLOG_DEBUG("Net: Disconnected, reason={}", ev.payload);
+        chatDataForRendering_.isConnected = false;
+        networkManager_->start(appOptions_.url);  // try to reconnect
+        break;
+      }
+      case NetEvent::Type::Error: {
+        SPDLOG_DEBUG("Net: Error={}", ev.payload);
+        chatDataForRendering_.isConnected = false;
+        networkManager_->start(appOptions_.url);  // try to reconnect
+        break;
+      }
+      case NetEvent::Type::TextMessage: {
+        SPDLOG_DEBUG("Net: Text={}", ev.payload);
+        chatDataForRendering_.addMessage(ev.payload);
+        break;
+      }
+    }
   }
+}
+
+GameDataForRendering GameApp::updateGameWorld_(const float elapsed) {
+  ZoneScoped;
+
+  gameWorld_.iterate(elapsed, userInputManger_.getUserInputData());
+  GameDataForRendering gameDataForRendering = gameWorld_.getGameDataForRendering();
+  return gameDataForRendering;
+}
+
+void GameApp::renderFrame_(GameDataForRendering gameDataForRendering) {
+  ZoneScoped;
+
+  // -----------------------
+  // Clear Screen
+  // -----------------------
+  /* as you can see from this, rendering draws over whatever was drawn before it. */
+  ImGuiIO& io = ImGui::GetIO();
+  SDL_SetRenderScale(renderer_, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
+  SDL_SetRenderDrawColor(renderer_, 0, 0, 0, SDL_ALPHA_OPAQUE); /* black, full alpha */
+  SDL_RenderClear(renderer_);                                   /* start with a blank canvas. */
+
+  // -----------------------
+  // Begin Frame
+  // -----------------------
+  ImGui_ImplSDLRenderer3_NewFrame();
+  ImGui_ImplSDL3_NewFrame();
+  ImGui::NewFrame();
+
+  // -----------------------
+  // Render New Frame
+  // -----------------------
+  sceneRenderer_.renderGameObjects(gameDataForRendering);
+  // sceneRenderer.renderHelloWorldWindow();
+  sceneRenderer_.renderChatWindow(chatDataForRendering_, [this](const std::string& message) {
+    networkManager_->send(message);
+  });
+  ImGui::Render();
+  ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer_);  // render the GUI
+  SDL_RenderPresent(renderer_);                                            // show the rendered frame on screen
 }
