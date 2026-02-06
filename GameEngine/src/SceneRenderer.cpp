@@ -13,6 +13,11 @@ void SceneRenderer::setRenderer(SDL_Renderer* renderer) {
   this->renderer_ = renderer;
 }
 
+void SceneRenderer::windowSizeChanged(int width, int height) {
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
+}
+
 void SceneRenderer::renderGameObjects(const GameDataForRendering& gameDataForRendering) {
   SDL_SetRenderDrawColor(renderer_, 255, 255, 255, SDL_ALPHA_OPAQUE); /* white, full alpha */
 
@@ -22,57 +27,46 @@ void SceneRenderer::renderGameObjects(const GameDataForRendering& gameDataForRen
   }
 }
 
-void SceneRenderer::renderHelloWorldWindow() {
-  // -------------------------------------------------------------
-  // https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp
-  // Show a simple window that we create ourselves.
-  // We use a Begin/End pair to create a named window.
-  // -------------------------------------------------------------
-
-  static float f = 0.0f;
-  static int counter = 0;
-  static float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
+void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRendering,
+                                     const OnMessageSentCallback& onMessageSentCallback) {
+  // ------------------------
+  // Configure ImGui window
+  // ------------------------
 
   ImGuiIO& io = ImGui::GetIO();
 
-  // ------------------------------------------------------------
-  // Create a window called "Hello, world!" and append into it.
-  // ------------------------------------------------------------
-  ImGui::Begin("Hello, world!");
+  // This window always occupies the entire screen of the host window
+  ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(io.DisplaySize, ImGuiCond_Always);
 
-  ImGui::Text("This is some useful text.");  // Display some text (you can use a format strings too)
+  // Set up opacity to show the falling snow on the back
+  ImGui::SetNextWindowBgAlpha(0.25f);
 
-  ImGui::SliderFloat("float", &f, 0.0f, 1.0f);             // Edit 1 float using a slider from 0.0f to 1.0f
-  ImGui::ColorEdit3("clear color", (float*)&clear_color);  // Edit 3 floats representing a color
+  // Disable window interaction
+  const ImGuiWindowFlags flags =
+      ImGuiWindowFlags_NoMove |
+      ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoSavedSettings |
+      ImGuiWindowFlags_NoTitleBar;
 
-  // Buttons return true when clicked (most widgets return true when edited/activated)
-  if (ImGui::Button("Button")) {
-    counter++;
-  }
-  ImGui::SameLine();
-  ImGui::Text("counter = %d", counter);
+  // --------------
+  // Start window
+  // --------------
 
-  ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+  ImGui::Begin("Chat Window", nullptr, flags);
 
-  ImGui::End();
-}
-
-void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRendering,
-                                     const OnMessageSentCallback& onMessageSentCallback) {
-  // --------------------------------------------------
-  // Create window "Chat history and new message sent"
-  // --------------------------------------------------
-
-  ImGui::SetNextWindowSize(ImVec2(350, 200), ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowPos(ImVec2(15, 15), ImGuiCond_FirstUseEver);
-
-  ImGui::Begin("Chat Window");
-
+  // -------------------
   // Connection status
+  // -------------------
+
   ImGui::Text("Status: %s", chatDataForRendering.isConnected ? "Online" : "Offline");
   ImGui::Separator();
 
+  // ------------------
   // Message history
+  // ------------------
+
   ImGui::BeginChild("ScrollingRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), false, ImGuiWindowFlags_HorizontalScrollbar);
   for (const auto& msg : chatDataForRendering.getChatHistory()) {
     ImGui::TextWrapped("%s", msg.c_str());
@@ -81,7 +75,10 @@ void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRend
     ImGui::SetScrollHereY(1.0f);
   ImGui::EndChild();
 
-  // Input field and send button
+  // -------------
+  // Input field
+  // -------------
+
   static char inputBuf[256] = "";
   auto handleSend = [&]() {
     if (inputBuf[0] != '\0') {
@@ -93,11 +90,22 @@ void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRend
       ImGui::SetKeyboardFocusHere(-1);
     }
   };
+
+  const float sendW = 90.0f;                                                                // Width of the "Send" button
+  const float spacing = ImGui::GetStyle().ItemSpacing.x;                                    // Default spacing between elements
+  const float inputW = std::max(1.0f, ImGui::GetContentRegionAvail().x - sendW - spacing);  // Width of the input field
+  ImGui::SetNextItemWidth(inputW);
+
   if (ImGui::InputText("##Input", inputBuf, IM_ARRAYSIZE(inputBuf), ImGuiInputTextFlags_EnterReturnsTrue)) {
     handleSend();
   }
+
+  // --------------------------
+  // Send button on same line
+  // --------------------------
+
   ImGui::SameLine();
-  if (ImGui::Button("Send")) {
+  if (ImGui::Button("Send", ImVec2(sendW, ImGui::GetFrameHeight()))) {
     handleSend();
   }
 

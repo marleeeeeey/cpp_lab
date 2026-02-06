@@ -21,19 +21,34 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   initTracyProfiler_();
   initOptions_(argc, argv);
   auto initSdlResult = initSDL_();  // initialize SDL and set renderer
+  if (initSdlResult != SDL_APP_CONTINUE) {
+    return initSdlResult;
+  }
   initImGui_();
-  sceneRenderer_.setRenderer(renderer_);
+  initRenderer_();
+
   gameWorld_.init();
 
   networkManager_ = NetworkManagerFactory::createNetworkManager();
   networkManager_->start(appOptions_.url);
 
   beginFrameTime_ = SDL_GetTicks();
-  return initSdlResult;
+
+  return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult GameApp::onEvent(SDL_Event* event) {
   ImGui_ImplSDL3_ProcessEvent(event);
+
+  if (event->type == SDL_EVENT_WINDOW_RESIZED) {
+    int width = 0;
+    int height = 0;
+    SDL_GetWindowSize(window_, &width, &height);
+    if (onWindowSizeChanged_) {
+      onWindowSizeChanged_(width, height);
+    }
+  }
+
   if (event->type == SDL_EVENT_QUIT) {
     return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
   }
@@ -115,7 +130,7 @@ SDL_AppResult GameApp::initSDL_() {
     return SDL_APP_FAILURE;
   }
 
-  if (!SDL_CreateWindowAndRenderer("examples/renderer/points",
+  if (!SDL_CreateWindowAndRenderer("GameEngine",
                                    WINDOW_WIDTH, WINDOW_HEIGHT,
                                    SDL_WINDOW_RESIZABLE, &window_, &renderer_)) {
     SPDLOG_ERROR("SDL_CreateWindowAndRenderer() failed: {}", SDL_GetError());
@@ -182,6 +197,11 @@ void GameApp::initImGui_() {
   if (font == nullptr) {
     SPDLOG_CRITICAL("Failed to load font");
   }
+}
+
+void GameApp::initRenderer_() {
+  sceneRenderer_.setRenderer(renderer_);
+  onWindowSizeChanged_ = [this](int width, int height) { sceneRenderer_.windowSizeChanged(width, height); };
 }
 
 // ------------------------------
@@ -280,7 +300,6 @@ void GameApp::renderFrame_(GameDataForRendering gameDataForRendering) {
     // Render New Frame
     // -----------------------
     sceneRenderer_.renderGameObjects(gameDataForRendering);
-    // sceneRenderer.renderHelloWorldWindow();
     sceneRenderer_.renderChatWindow(chatDataForRendering_, [this](const std::string& message) {
       networkManager_->send(message);
     });

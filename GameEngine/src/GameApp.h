@@ -35,6 +35,7 @@ class GameApp {
   ReconnectPolicy reconnect_;
   bool reconnectPending_ = false;
   bool connecting_ = false;
+  std::function<void(int width, int height)> onWindowSizeChanged_;
 
   // ------------------
   // Game Domain Data
@@ -73,6 +74,7 @@ class GameApp {
   void initOptions_(int argc, char* argv[]);
   SDL_AppResult initSDL_();
   void initImGui_();
+  void initRenderer_();
 
   // ---------------
   // Iterate Steps
