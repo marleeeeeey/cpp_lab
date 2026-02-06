@@ -69,6 +69,17 @@ if (EMSCRIPTEN)
     )
 endif ()
 
+# ---------------------------
+# Set specific html template
+# ---------------------------
+
+if (EMSCRIPTEN)
+    # Use custom minimal HTML instead of Emscripten default page
+    target_link_options(GameEngine PRIVATE
+            "SHELL:--shell-file ${CPP_LAB_ROOT}/web/EmptyHtmlTemplateForEmscripten.html"
+    )
+endif ()
+
 
 # ----------------------------------
 # Archive for publication to itch.io
