@@ -48,6 +48,13 @@ SDL_AppResult GameApp::iterate() {
 
   pollNetworkEvents_();
 
+  // Try reconnect only when scheduled, and avoid spamming start().
+  if (reconnectPending_ && !connecting_ && reconnect_.due()) {
+    connecting_ = true;
+    SPDLOG_INFO("Net: reconnect attempt...");
+    networkManager_->start(appOptions_.url);
+  }
+
   GameDataForRendering gameDataForRendering = updateGameWorld_(elapsed);
 
   renderFrame_(gameDataForRendering);
@@ -205,18 +212,31 @@ void GameApp::pollNetworkEvents_() {
         std::ostringstream ss;
         SPDLOG_DEBUG("Net: Connected to server at {}", ev.payload);
         chatDataForRendering_.isConnected = true;
+
+        // Reset reconnect state
+        connecting_ = false;
+        reconnectPending_ = false;
+        reconnect_.onConnected();
         break;
       }
       case NetEvent::Type::Disconnected: {
         SPDLOG_DEBUG("Net: Disconnected, reason={}", ev.payload);
         chatDataForRendering_.isConnected = false;
-        networkManager_->start(appOptions_.url);  // try to reconnect
+
+        // Schedule reconnect
+        connecting_ = false;
+        reconnectPending_ = true;
+        reconnect_.schedule();
         break;
       }
       case NetEvent::Type::Error: {
         SPDLOG_DEBUG("Net: Error={}", ev.payload);
         chatDataForRendering_.isConnected = false;
-        networkManager_->start(appOptions_.url);  // try to reconnect
+
+        // Schedule reconnect
+        connecting_ = false;
+        reconnectPending_ = true;
+        reconnect_.schedule();
         break;
       }
       case NetEvent::Type::TextMessage: {

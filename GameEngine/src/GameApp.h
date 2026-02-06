@@ -7,6 +7,7 @@
 #include "ChatDataForRendering.h"
 #include "GameWorld.h"
 #include "NetworkManager/INetworkManager.h"
+#include "ReconnectPolicy.h"
 #include "SceneRenderer.h"
 #include "UserInputManger.h"
 
@@ -31,6 +32,9 @@ class GameApp {
   SDL_Window* window_ = nullptr;
   SDL_Renderer* renderer_ = nullptr;
   Uint64 beginFrameTime_ = 0;
+  ReconnectPolicy reconnect_;
+  bool reconnectPending_ = false;
+  bool connecting_ = false;
 
   // ------------------
   // Game Domain Data
