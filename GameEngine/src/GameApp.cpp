@@ -88,7 +88,7 @@ void GameApp::initTracyProfiler_() {
   PROFILER_SET_THREAD_NAME("main");
 
   // Uncomment the next line for Debug
-  spdlog::set_level(spdlog::level::trace);
+  // spdlog::set_level(spdlog::level::trace);
 }
 
 void GameApp::initOptions_(int argc, char* argv[]) {

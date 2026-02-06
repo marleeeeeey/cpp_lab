@@ -3,6 +3,7 @@ project(WsEchoServer)
 
 add_executable(WsEchoServer
         main.cpp
+        GetClientIpText.cpp
 )
 
 target_link_libraries(WsEchoServer PRIVATE

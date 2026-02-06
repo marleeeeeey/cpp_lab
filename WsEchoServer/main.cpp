@@ -1,17 +1,17 @@
 #include <App.h>
+#include <spdlog/spdlog.h>
 
 #include <array>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <string_view>
 
-#include "spdlog/spdlog.h"
+#include "GetClientIpText.h"
 
 // User data per socket
 struct PerSocketData {
   std::string name;
-  std::string ip;
+  std::string clientIp;
 };
 
 namespace {
@@ -27,9 +27,9 @@ int getPortFromCommandLine(int argc, char** argv) {
   return port;
 }
 
-// clang-format off
 std::string_view wsCloseCodeToText(int code) {
   // Source: https://github.com/Luka967/websocket-close-codes
+  // clang-format off
   switch (code) {
     case 1000: return "Normal closure";
     case 1001: return "Going away";
@@ -52,9 +52,18 @@ std::string_view wsCloseCodeToText(int code) {
     case 3008: return "Timeout";
     default:   return "WebSocket closed";
   }
+  // clang-format on
 }
 
-// clang-format on
+std::string convertToKnownIp(const std::string_view ip) {
+  // clang-format off
+  if (ip == "127.0.0.1") return "localhost";
+  if (ip == "0000:0000:0000:0000:0000:ffff:7f00:0001") return "localhost";
+  if (ip == "0000:0000:0000:0000:0000:0000:0000:0001") return "loopback";
+  return std::string(ip);
+  // clang-format on
+}
+
 }  // namespace
 
 namespace humanhash {
@@ -147,23 +156,63 @@ int main(int argc, char** argv) {
   // -------------------------------------------
 
   app->ws<PerSocketData>("/*",
-                         {.open = [state](auto* ws) {
+                         {//
+                          //
+                          // ---------
+                          // Upgrade
+                          // ---------
+
+                          .upgrade = [](uWS::HttpResponse<false>* response, uWS::HttpRequest* request, struct us_socket_context_t* context) {
+                            response->onAborted([]() { SPDLOG_WARN("upgrade aborted by client"); });
+                            auto socketIpText = response->getRemoteAddressAsText();
+                            const auto clientIpRaw = getClientIpText(request, socketIpText);
+
+                            // Calculate human readable name and known ip version
+                            auto clientIp = convertToKnownIp(clientIpRaw);
+                            auto humanName = humanhash::shortHumanName(clientIpRaw);
+                            SPDLOG_INFO("ws.upgrade. clientIp={}, setName={}, socketIp={}, clientIpRaw={}, ",
+                              clientIp, humanName, socketIpText, clientIpRaw);
+
+                            // Create and move PerSocketData to .open method
+                            PerSocketData perSocketData;
+                            perSocketData.clientIp = clientIp;
+                            perSocketData.name = humanName;
+                            response->upgrade<PerSocketData>(
+                                std::move(perSocketData),
+                                request->getHeader("sec-websocket-key"),         // required
+                                request->getHeader("sec-websocket-protocol"),    // optional
+                                request->getHeader("sec-websocket-extensions"),  // optional
+                                context); },
+
+                          // ---------
+                          // Open
+                          // ---------
+
+                          .open = [state](auto* ws) {
                             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-                            perSocketData->ip = std::string(ws->getRemoteAddressAsText());
-                            perSocketData->name = humanhash::shortHumanName(perSocketData->ip);
                             ws->subscribe(state->getBroadcastTopicName());
-                            SPDLOG_INFO("ws.open. ip={}, name={}", perSocketData->ip, perSocketData->name);
+                            SPDLOG_INFO("ws.open");
                             state->incrementNumberOfClients(); },
+
+                          // ---------
+                          // Message
+                          // ---------
+
                           .message = [app, state](auto* ws, std::string_view msg, uWS::OpCode op) {
                             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
                             std::string personWithMessage = perSocketData->name + ": " + std::string(msg);
                             app->publish(state->getBroadcastTopicName(), personWithMessage, op, false); // broadcast
                             SPDLOG_INFO("ws.message. {}", personWithMessage); },
+
+                          // ---------
+                          // Close
+                          // ---------
+
                           .close = [state](auto* ws, int code, std::string_view msg) {
                             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
                             msg = msg.empty() ? wsCloseCodeToText(code) : msg;
                             SPDLOG_INFO("ws.close. ip={}, name={}, code={}, msg={}",
-                              perSocketData->ip, perSocketData->name, code, msg);
+                              perSocketData->clientIp, perSocketData->name, code, msg);
                             state->decrementNumberOfClients(); }});
 
   app->listen(port, [port](auto* token) {
