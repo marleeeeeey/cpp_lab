@@ -73,10 +73,30 @@ endif ()
 # ----------------------------------
 # Archive for publication to itch.io
 # ----------------------------------
+
 if (EMSCRIPTEN)
     include("${CPP_LAB_ROOT}/ItchWebPack.cmake")
     itch_pack_emscripten_web(
             TARGET GameEngine
             ZIP_NAME "GameEngine_itch_web.zip"
     )
+endif ()
+
+
+# ------------------------------------------------------
+# Hide console window on Windows (double click on exe)
+# ------------------------------------------------------
+
+if (WIN32)
+    # If we are using lld-link via clang++ driver, pass MSVC linker flags via -Xlinker
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        target_link_options(GameEngine PRIVATE
+                "SHELL:-Xlinker /SUBSYSTEM:WINDOWS"
+                "SHELL:-Xlinker /ENTRY:mainCRTStartup"
+        )
+    elseif (MINGW)
+        target_link_options(GameEngine PRIVATE -mwindows)
+    else ()
+        set_target_properties(GameEngine PROPERTIES WIN32_EXECUTABLE TRUE)
+    endif ()
 endif ()
