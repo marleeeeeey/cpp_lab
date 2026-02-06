@@ -32,7 +32,9 @@ std::string firstXForwardedFor(std::string_view xff) {
 
 bool isTrustedProxy(std::string_view socketIpText) {
   // Trust localhost only
-  return socketIpText == "127.0.0.1" || socketIpText == "::1";
+  return socketIpText == "127.0.0.1" ||
+         socketIpText == "::1" ||
+         socketIpText == "0000:0000:0000:0000:0000:ffff:7f00:0001";
 }
 
 std::string getHeader(uWS::HttpRequest* req, std::string_view name) {
