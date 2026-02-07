@@ -4,26 +4,37 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "GlobalConstants.h"
-
 static constexpr int MIN_PIXELS_PER_SECOND = 30; /* move at least this many pixels per second. */
 static constexpr int MAX_PIXELS_PER_SECOND = 60; /* move this many pixels per second at most. */
 
-void GameWorld::init() {
-  static constexpr int NUM_POINTS = 500;
-  gameDataForRendering_.points.resize(NUM_POINTS);
-  pointsSpeed_.resize(NUM_POINTS);
+void GameWorld::updateObjectsCount_(int width, int height) {
+  int numObjects = 0;
 
-  /* set up the data for a bunch of gameDataForRendering.points. */
-  for (int i = 0; i < NUM_POINTS; i++) {
-    glm::vec2& point = gameDataForRendering_.points[i];
-
-    point = glm::vec2(
-        SDL_randf() * ((float)WINDOW_WIDTH),
-        SDL_randf() * ((float)WINDOW_HEIGHT));
-
-    pointsSpeed_[i] = MIN_PIXELS_PER_SECOND + (SDL_randf() * (MAX_PIXELS_PER_SECOND - MIN_PIXELS_PER_SECOND));
+  if (auto sqrt = std::sqrt(width * height); sqrt != 0) {
+    numObjects = width * height / sqrt;
   }
+
+  gameDataForRendering_.points.resize(numObjects);
+  pointsSpeed_.resize(numObjects);
+
+  for (int i = 0; i < numObjects; i++) {
+    glm::vec2& point = gameDataForRendering_.points[i];
+    auto& pointSpeed = pointsSpeed_[i];
+
+    if (point == glm::vec2{}) {
+      point = glm::vec2(SDL_randf() * windowWidth_, SDL_randf() * windowWidth_);
+    }
+
+    if (pointSpeed == float{}) {
+      pointSpeed = MIN_PIXELS_PER_SECOND + (SDL_randf() * (MAX_PIXELS_PER_SECOND - MIN_PIXELS_PER_SECOND));
+    }
+  }
+}
+
+void GameWorld::init(int width, int height) {
+  windowWidth_ = width;
+  windowHeight_ = height;
+  updateObjectsCount_(width, height);
 }
 
 void GameWorld::iterate(double elapsed, const UserInputData& userInputData) {
@@ -48,11 +59,11 @@ void GameWorld::iterate(double elapsed, const UserInputData& userInputData) {
     point += pointsSpeed_[i] * (float)elapsed * globalDirection_;
 
     // Generate new points if they go off the screen.
-    if ((point.x >= WINDOW_WIDTH) || (point.y >= WINDOW_HEIGHT)) {
+    if ((point.x >= windowWidth_) || (point.y >= windowHeight_)) {
       if (SDL_rand(2)) {  // Generate a new point on top of the screen
-        point = glm::vec2(SDL_randf() * ((float)WINDOW_WIDTH), 0.0f);
+        point = glm::vec2(SDL_randf() * ((float)windowWidth_), 0.0f);
       } else {  // Generate a new point on the left of the screen
-        point = glm::vec2(0.0f, SDL_randf() * ((float)WINDOW_HEIGHT));
+        point = glm::vec2(0.0f, SDL_randf() * ((float)windowHeight_));
       }
 
       pointsSpeed_[i] = MIN_PIXELS_PER_SECOND + (SDL_randf() * (MAX_PIXELS_PER_SECOND - MIN_PIXELS_PER_SECOND) * acceleration_);
@@ -62,4 +73,10 @@ void GameWorld::iterate(double elapsed, const UserInputData& userInputData) {
 
 const GameDataForRendering& GameWorld::getGameDataForRendering() const {
   return gameDataForRendering_;
+}
+
+void GameWorld::onWindowSizeChanged(int width, int height) {
+  windowWidth_ = width;
+  windowHeight_ = height;
+  updateObjectsCount_(width, height);
 }

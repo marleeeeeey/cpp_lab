@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 
+#include <entt/signal/sigh.hpp>
 #include <memory>
 
 #include "ChatDataForRendering.h"
@@ -35,7 +36,15 @@ class GameApp {
   ReconnectPolicy reconnect_;
   bool reconnectPending_ = false;
   bool connecting_ = false;
-  std::function<void(int width, int height)> onWindowSizeChanged_;
+  int windowWidth_ = 800;
+  int windowHeight_ = 600;
+
+  // ----------------------------------------------
+  // Subscription data for window size changes
+  // ----------------------------------------------
+
+  entt::sigh<void(int width, int height)> onWindowSizeChangedSignal_;
+  auto onWindowSizeChangedSink() { return entt::sink{onWindowSizeChangedSignal_}; }
 
   // ------------------
   // Game Domain Data
@@ -75,6 +84,7 @@ class GameApp {
   SDL_AppResult initSDL_();
   void initImGui_();
   void initRenderer_();
+  void initGameWorld_();
 
   // ---------------
   // Iterate Steps

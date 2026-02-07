@@ -13,7 +13,7 @@ void SceneRenderer::setRenderer(SDL_Renderer* renderer) {
   this->renderer_ = renderer;
 }
 
-void SceneRenderer::windowSizeChanged(int width, int height) {
+void SceneRenderer::onWindowSizeChanged(int width, int height) {
   ImGuiIO& io = ImGui::GetIO();
   io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
 }

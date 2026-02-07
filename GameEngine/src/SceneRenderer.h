@@ -22,7 +22,7 @@ class SceneRenderer {
  public:
   void setRenderer(SDL_Renderer* renderer);
 
-  void windowSizeChanged(int width, int height);
+  void onWindowSizeChanged(int width, int height);
 
   void renderGameObjects(const GameDataForRendering& gameDataForRendering);
   using OnMessageSentCallback = std::function<void(const std::string&)>;

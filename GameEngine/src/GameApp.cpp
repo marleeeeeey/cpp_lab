@@ -11,7 +11,6 @@
 #include <sstream>
 
 #include "ChatDataForRendering.h"
-#include "GlobalConstants.h"
 
 // ------------------------------
 // SDL Based Steps
@@ -27,7 +26,7 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   initImGui_();
   initRenderer_();
 
-  gameWorld_.init();
+  initGameWorld_();
 
   networkManager_ = NetworkManagerFactory::createNetworkManager();
   networkManager_->start(appOptions_.url);
@@ -41,12 +40,8 @@ SDL_AppResult GameApp::onEvent(SDL_Event* event) {
   ImGui_ImplSDL3_ProcessEvent(event);
 
   if (event->type == SDL_EVENT_WINDOW_RESIZED) {
-    int width = 0;
-    int height = 0;
-    SDL_GetWindowSize(window_, &width, &height);
-    if (onWindowSizeChanged_) {
-      onWindowSizeChanged_(width, height);
-    }
+    SDL_GetWindowSize(window_, &windowWidth_, &windowHeight_);
+    onWindowSizeChangedSignal_.publish(windowWidth_, windowHeight_);
   }
 
   if (event->type == SDL_EVENT_QUIT) {
@@ -82,6 +77,8 @@ SDL_AppResult GameApp::iterate() {
 }
 
 void GameApp::onQuit() {
+  onWindowSizeChangedSink().disconnect();
+
   ImGui_ImplSDLRenderer3_Shutdown();
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
@@ -130,8 +127,7 @@ SDL_AppResult GameApp::initSDL_() {
     return SDL_APP_FAILURE;
   }
 
-  if (!SDL_CreateWindowAndRenderer("GameEngine",
-                                   WINDOW_WIDTH, WINDOW_HEIGHT,
+  if (!SDL_CreateWindowAndRenderer("GameEngine", windowWidth_, windowHeight_,
                                    SDL_WINDOW_RESIZABLE, &window_, &renderer_)) {
     SPDLOG_ERROR("SDL_CreateWindowAndRenderer() failed: {}", SDL_GetError());
     return SDL_APP_FAILURE;
@@ -201,7 +197,12 @@ void GameApp::initImGui_() {
 
 void GameApp::initRenderer_() {
   sceneRenderer_.setRenderer(renderer_);
-  onWindowSizeChanged_ = [this](int width, int height) { sceneRenderer_.windowSizeChanged(width, height); };
+  onWindowSizeChangedSink().connect<&SceneRenderer::onWindowSizeChanged>(sceneRenderer_);
+}
+
+void GameApp::initGameWorld_() {
+  gameWorld_.init(windowWidth_, windowHeight_);
+  onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
 }
 
 // ------------------------------
