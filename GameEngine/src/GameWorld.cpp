@@ -22,7 +22,7 @@ void GameWorld::updateObjectsCount_(int width, int height) {
     auto& pointSpeed = pointsSpeed_[i];
 
     if (point == glm::vec2{}) {
-      point = glm::vec2(SDL_randf() * windowWidth_, SDL_randf() * windowWidth_);
+      point = glm::vec2(SDL_randf() * windowWidth_, SDL_randf() * windowHeight_);
     }
 
     if (pointSpeed == float{}) {
