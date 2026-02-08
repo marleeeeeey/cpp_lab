@@ -6,6 +6,8 @@ project(cpp_lab)
 # Options
 # ----------------------------
 
+add_executable(CppLabWeb ALIAS GameEngine) # "CppLabWeb" target is used for GitHub pages build
+
 if (EMSCRIPTEN)
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
