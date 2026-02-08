@@ -1,4 +1,4 @@
-name: Build GameEngine target for GitHub Pages publication
+name: Build "GameEngine" target and ZIP it for GitHub Pages
 on:
   workflow_call:
 
@@ -22,6 +22,8 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           repository: marleeeeeey/cpp_lab
+          # The argument "path" is required because it will be checked out from another repo.
+          # Relative paths "cpp_lab/build", "cpp_lab" use in other steps (see below).
           path: cpp_lab
           submodules: recursive
           ref: ${{ inputs.ref }}
@@ -38,13 +40,19 @@ jobs:
 
       - name: Build GameEngine and Archive Artifacts
         run: cmake --build cpp_lab/build --target GameEngine
+        # Log:
+        # [241/241] Linking CXX executable GameEngine/GameEngine.html
+        # Creating /home/runner/work/marleeeeeey.github.io/marleeeeeey.github.io/cpp_lab/build/GameEngine/GameEngine_itch_web.zip
 
-      - name: Upload web build artifact for outer workflow
+      - name: Upload Artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f #v6.0.0
         with:
           name: cpp_lab_web_build_artifact
           path: ./cpp_lab/build/GameEngine/GameEngine_itch_web.zip
-            # GameEngine.data
-            # GameEngine.js
-            # GameEngine.wasm
-          # index.html
+        # Result:
+        # cpp_lab_web_build_artifact.zip (invisible from the user point of view)
+        #   GameEngine_itch_web.zip
+        #     GameEngine.data
+        #     GameEngine.js
+        #     GameEngine.wasm
+        #     index.html
