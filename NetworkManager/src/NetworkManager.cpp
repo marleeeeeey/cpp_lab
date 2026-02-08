@@ -8,18 +8,7 @@
 #include "CanUseThreads.h"
 #include "NetworkTransport/TransportFactory.h"
 
-NetworkManager::NetworkManager(NetworkOptions inOptions) : networkOptions_(inOptions) {
-  // Block using threads if not supported by browser
-  bool oldUseThreads = networkOptions_.useOutboundQueue;
-  networkOptions_.useOutboundQueue = canUseThreads() && networkOptions_.useOutboundQueue;
-
-  if (oldUseThreads == true && networkOptions_.useOutboundQueue == false) {
-    SPDLOG_WARN(
-        "Using threads is not supported by browser. "
-        "Falling back to synchronous mode. "
-        "Outgoing queue will be disabled.");
-  }
-
+NetworkManager::NetworkManager() {
   networkTransport_ = createTransport();
   SPDLOG_TRACE("Network transport created");
 
@@ -31,7 +20,6 @@ NetworkManager::NetworkManager(NetworkOptions inOptions) : networkOptions_(inOpt
     SPDLOG_TRACE("Connected to server");
     connected_.store(true);
     inboundEventQueue_.enqueue(NetEvent{NetEvent::Type::Connected});
-    sendCondVar_.notify_one();  // in case messages are waiting
   };
   networkTransport_->onError = [this](std::string_view errorMsg) {
     connected_.store(false);
@@ -47,16 +35,6 @@ NetworkManager::NetworkManager(NetworkOptions inOptions) : networkOptions_(inOpt
     SPDLOG_TRACE("Connection closed. Code={}, Reason={}", code, reason);
     inboundEventQueue_.enqueue(NetEvent{NetEvent::Type::Disconnected, std::string(reason)});
   };
-
-  // ----------------------------
-  // Setup outbound queue thread
-  // ----------------------------
-
-  if (networkOptions_.useOutboundQueue) {
-    // Start a sender thread. Otherwise, it will use transport layer functionality
-    sendThread_ = std::thread([this]() { sendLoop_(); });
-    SPDLOG_TRACE("Outbound queue thread started");
-  }
 }
 
 void NetworkManager::start(std::string_view url) {
@@ -77,14 +55,8 @@ void NetworkManager::stop() {
     return;
   }
 
-  sendCondVar_.notify_all();
-
-  if (sendThread_.joinable()) {
-    sendThread_.join();
-  }
-
   if (networkTransport_) {
-    networkTransport_->close();
+    networkTransport_->close();  // blocking
   }
   networkTransport_.reset();
 }
@@ -99,47 +71,40 @@ void NetworkManager::send(std::string msg) {
     SPDLOG_ERROR("Network transport isn't initialized");
   }
 
-  if (!networkOptions_.useOutboundQueue) {
-    // Without a queue there is no guaranty that "send before connect" will be successful.
-    // Set networkOptions_.useOutgoingQueue to true to enable this guaranty.
-    networkTransport_->sendText(msg);
-  } else {
-    outboundEventQueue_.enqueue(NetEvent{NetEvent::Type::TextMessage, msg});
-    sendCondVar_.notify_one();
-  }
+  outboundEventQueue_.enqueue(NetEvent{NetEvent::Type::TextMessage, msg});
 }
 
-// -----------------------
-// Sender thread and queue
-// -----------------------
+void NetworkManager::drainOutboundQueue() {
+  if (!networkTransport_) {
+    SPDLOG_ERROR("Network transport isn't initialized");
+    return;
+  }
 
-void NetworkManager::sendLoop_() {
-  while (running_) {
-    // Sleep 10ms to reduce CPU usage. Wake up on "notify" (e.g., new outgoing message)
-    std::unique_lock sendLock(sendMutex_);
-    sendCondVar_.wait_for(sendLock, std::chrono::milliseconds(10));
-    sendLock.unlock();
+  // Set queue processing limit
+  constexpr int kMaxMessagesPerDrain = 512;
 
-    if (!networkTransport_) {
-      continue;
-    }
-    if (!connected_.load()) {
-      continue;  // don't send a message until the transport is actually connected
+  int processed = 0;
+  while (processed < kMaxMessagesPerDrain) {
+    NetEvent ev;
+    if (!outboundEventQueue_.try_dequeue(ev)) {
+      break;
     }
 
-    NetEvent event;
-    int drained = 0;
-    constexpr int kMaxSendsPerTick = 1024;
-    while (drained < kMaxSendsPerTick && outboundEventQueue_.try_dequeue(event)) {
-      ++drained;
-      if (event.type != NetEvent::Type::TextMessage) {
-        SPDLOG_WARN("Unexpected event type in outbound queue: {}", magic_enum::enum_name(event.type));
-      } else {
-        networkTransport_->sendText(event.payload);
-      }
+    if (ev.type != NetEvent::Type::TextMessage) {
+      SPDLOG_WARN("Unexpected event type: {}. Drop this message", magic_enum::enum_name(ev.type));
+      outboundEventQueue_.enqueue(std::move(ev));
+      break;
     }
-    if (drained > 0) {
-      SPDLOG_TRACE("NetworkManager::sendLoop_() sent {} messages", drained);
+
+    // Try to send a message
+    const auto res = networkTransport_->sendText(ev.payload);
+    if (res != ITransport::SendResult::Success) {
+      SPDLOG_WARN("Failed to send message. Type: {}, Payload: {}. Message back to the queue",
+                  magic_enum::enum_name(ev.type), ev.payload);
+      outboundEventQueue_.enqueue(std::move(ev));
+      break;
     }
+
+    ++processed;
   }
 }

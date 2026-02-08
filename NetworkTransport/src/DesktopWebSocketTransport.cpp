@@ -83,10 +83,15 @@ void DesktopWebSocketTransport::connect(std::string_view url) {
 
 // Almost always is non-blocking. It may be blocking if you're trying to send
 // a message from several threads.
-void DesktopWebSocketTransport::sendText(std::string_view text) {
+ITransport::SendResult DesktopWebSocketTransport::sendText(std::string_view text) {
   // ixwebsocket copies data internally; safe to pass a temporary std::string.
   SPDLOG_TRACE("sendText: {}", text);
-  ws_.sendText(std::string(text));
+  ix::WebSocketSendInfo result = ws_.sendText(std::string(text));
+  if (result.success == false) {
+    SPDLOG_WARN("sendText failed");
+    return SendResult::Error;
+  }
+  return SendResult::Success;
 }
 
 // This is a blocking method. It waits when the working thread is done.

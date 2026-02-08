@@ -58,6 +58,8 @@ SDL_AppResult GameApp::iterate() {
 
   pollNetworkEvents_();
 
+  networkManager_->drainOutboundQueue();
+
   // Try reconnect only when scheduled, and avoid spamming start().
   if (reconnectPending_ && !connecting_ && reconnect_.due()) {
     connecting_ = true;

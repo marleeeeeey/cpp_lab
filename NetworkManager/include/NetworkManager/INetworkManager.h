@@ -19,13 +19,24 @@ struct NetEvent {
 // INetworkManager
 // ------------------------
 
-// INetworkManager adds poll method, inbound and (optionally) outbound queues
+// INetworkManager adds poll method, inbound and outbound queues
 // on top of the underlying transport layer.
 class INetworkManager {
  public:
   virtual ~INetworkManager() = default;
-  virtual void start(std::string_view url) = 0;  // Starts network thread (non-blocking)
-  virtual void stop() = 0;                       // Correctly terminates (blocking)
-  virtual bool poll(NetEvent& out) = 0;          // try-pop one-event (non-blocking)
-  virtual void send(std::string msg) = 0;        // Sends message (non-blocking)
+
+  // Starts network thread (non-blocking)
+  virtual void start(std::string_view url) = 0;
+
+  // Correctly terminates (blocking)
+  virtual void stop() = 0;
+
+  // try-pop one-event (non-blocking)
+  virtual bool poll(NetEvent& out) = 0;
+
+  // Add a message to the queue (non-blocking)
+  virtual void send(std::string msg) = 0;
+
+  // Drain outbound queue (blocking)
+  virtual void drainOutboundQueue() = 0;
 };

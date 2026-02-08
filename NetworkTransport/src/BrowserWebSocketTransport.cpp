@@ -2,6 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <magic_enum/magic_enum.hpp>
 #include <unordered_set>
 
 // ------------------------------------------------
@@ -61,9 +62,20 @@ EM_JS(void, js_ws_connect, (int selfPtr, const char* url), {
   Module.__wsMap.set(self, ws);
 });
 
-EM_JS(void, js_ws_send, (int selfPtr, const char* text), {
-  const ws = Module.__wsMap && Module.__wsMap.get(selfPtr);
-  if (ws && ws.readyState === WebSocket.OPEN) ws.send(UTF8ToString(text));
+// js_ws_send returns:
+// 0 (SUCCESS) - message added to browser queue.
+// 1 (ERROR) - socket is not ready.
+// 2 (ERROR) - socket is not opened.
+EM_JS(int, js_ws_send, (int selfPtr, const char* text), {
+  try {
+    const ws = Module.__wsMap && Module.__wsMap.get(selfPtr);
+    if (!ws) return 1;
+    if (ws.readyState !== WebSocket.OPEN) return 2;
+    ws.send(UTF8ToString(text));
+    return 0; // queued to browser
+  } catch (e) {
+    return 3;
+  }
 });
 
 // close should not destroy the underlying socket.
@@ -176,10 +188,15 @@ void BrowserWebSocketTransport::connect(std::string_view url) {
   SPDLOG_DEBUG("BrowserWebSocketTransport connected to {}", url_);
 }
 
-void BrowserWebSocketTransport::sendText(std::string_view text) {
+ITransport::SendResult BrowserWebSocketTransport::sendText(std::string_view text) {
   tmp_.assign(text.begin(), text.end());
-  js_ws_send((int)(intptr_t)this, tmp_.c_str());
+  auto result = (ITransport::SendResult)js_ws_send((int)(intptr_t)this, tmp_.c_str());
   SPDLOG_TRACE("BrowserWebSocketTransport sendText: {}", text);
+  if (result != ITransport::SendResult::Success) {
+    SPDLOG_WARN("BrowserWebSocketTransport sendText failed with error: {}", magic_enum::enum_name(result));
+    return ITransport::SendResult::Error;
+  }
+  return ITransport::SendResult::Success;
 }
 
 // Ask to close. Callbacks are still allowed. Object is alive.

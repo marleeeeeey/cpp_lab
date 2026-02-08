@@ -19,32 +19,20 @@ class ITransport;
 
 // NetworkManager adds inbound and (optionally) outbound queues on top of the underlying transport layer.
 class NetworkManager : public INetworkManager {
-  // -----------------------------
-  // Class options and constructor
-  // -----------------------------
-
  public:
-  struct NetworkOptions {
-    // useOutboundQueue:
-    // Probably this queue already implemented in the transport layer and may be disabled.
-    // If "false", there is no guaranty that "send before connect" will be successful.
-    bool useOutboundQueue = true;
-  };
-
-  NetworkManager(NetworkOptions inOptions);
+  NetworkManager();
 
  private:
-  NetworkOptions networkOptions_;
-
   // -----------------------------
   // NetworkManager interface
   // -----------------------------
 
  public:
-  void start(std::string_view url);  // Starts network thread (non-blocking)
-  void stop();                       // Correctly terminates (blocking)
-  bool poll(NetEvent& out);          // try-pop one-event (non-blocking)
-  void send(std::string msg);        // Sends message (non-blocking)
+  void start(std::string_view url) override;
+  void stop() override;
+  bool poll(NetEvent& out) override;
+  void send(std::string msg) override;
+  void drainOutboundQueue() override;
 
  private:
   // -------------------------------------------
@@ -57,12 +45,8 @@ class NetworkManager : public INetworkManager {
   moodycamel::ConcurrentQueue<NetEvent> inboundEventQueue_;
 
   // ----------------------------------
-  // Sender thread and queue (optional)
+  // Sender queue
   // ----------------------------------
 
   moodycamel::ConcurrentQueue<NetEvent> outboundEventQueue_;
-  std::thread sendThread_;
-  std::mutex sendMutex_;
-  std::condition_variable sendCondVar_;
-  void sendLoop_();
 };

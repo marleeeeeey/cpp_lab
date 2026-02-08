@@ -13,7 +13,7 @@ class DesktopWebSocketTransport final : public ITransport {
   ~DesktopWebSocketTransport() override;
 
   void connect(std::string_view url) override;
-  void sendText(std::string_view text) override;
+  ITransport::SendResult sendText(std::string_view text) override;
   void close() override;
 
  private:

@@ -11,7 +11,7 @@ class BrowserWebSocketTransport final : public ITransport {
   ~BrowserWebSocketTransport() override;
 
   void connect(std::string_view url) override;
-  void sendText(std::string_view text) override;
+  SendResult sendText(std::string_view text) override;
   void close() override;
 
  private:
