@@ -56,7 +56,12 @@ SDL_AppResult GameApp::onEvent(SDL_Event* event) {
 SDL_AppResult GameApp::iterate() {
   const float elapsed = calculateDeltaTime_();
 
+  // ---------
+  // Network
+  // ---------
+
   pollNetworkEvents_();
+  drainOutboundEventQueue_();
 
   networkManager_->drainOutboundQueue();
 
@@ -67,6 +72,10 @@ SDL_AppResult GameApp::iterate() {
     networkManager_->start(appOptions_.url);
   }
 
+  // ------
+  // Other
+  // ------
+
   GameDataForRendering gameDataForRendering = updateGameWorld_(elapsed);
 
   renderFrame_(gameDataForRendering);
@@ -75,7 +84,7 @@ SDL_AppResult GameApp::iterate() {
 
   PROFILER_FRAME_MARK;  // Mark end of frame for TRACY
 
-  return SDL_APP_CONTINUE; /* carry on with the program! */
+  return SDL_APP_CONTINUE;
 }
 
 void GameApp::onQuit() {
@@ -269,6 +278,11 @@ void GameApp::pollNetworkEvents_() {
       }
     }
   }
+}
+
+void GameApp::drainOutboundEventQueue_() {
+  PROFILER_ZONE;
+  networkManager_->drainOutboundQueue();
 }
 
 GameDataForRendering GameApp::updateGameWorld_(const float elapsed) {

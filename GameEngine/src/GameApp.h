@@ -92,6 +92,7 @@ class GameApp {
 
   float calculateDeltaTime_();
   void pollNetworkEvents_();
+  void drainOutboundEventQueue_();
   GameDataForRendering updateGameWorld_(float elapsed);
   void renderFrame_(GameDataForRendering gameDataForRendering);
 };
