@@ -1,4 +1,4 @@
-name: Build CppLabWeb target for GitHub Pages publication
+name: Build GameEngine target for GitHub Pages publication
 on:
   workflow_call:
 
@@ -22,6 +22,7 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           repository: marleeeeeey/cpp_lab
+          path: cpp_lab
           submodules: recursive
           ref: ${{ inputs.ref }}
 
@@ -30,19 +31,19 @@ jobs:
 
       - name: Run CMake
         run: |
-          cmake -S . -B build \
+          cmake -S cpp_lab -B cpp_lab/build \
             -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
             -GNinja \
             -D3RD_PARTY_BUILD_EXAMPLES=OFF
 
-      - name: Build CppLabWeb and Archive Artifacts
-        run: cmake --build build --target CppLabWeb
+      - name: Build GameEngine and Archive Artifacts
+        run: cmake --build cpp_lab/build --target GameEngine
 
       - name: Upload web build artifact for outer workflow
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f #v6.0.0
         with:
           name: cpp_lab_web_build_artifact
-          path: ./build-emscripten/GameEngine/GameEngine_itch_web.zip
+          path: ./cpp_lab/build/GameEngine/GameEngine_itch_web.zip
             # GameEngine.data
             # GameEngine.js
             # GameEngine.wasm
