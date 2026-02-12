@@ -13,9 +13,15 @@ struct ITransport {
 
   virtual ~ITransport() = default;
 
+  // Connect or reconnect to specific url (non-blocking).
+  // Expected that connection thread (if needed) will be created here.
   virtual void connect(std::string_view url) = 0;
-  virtual SendResult sendText(std::string_view text) = 0;
+
+  // Gracefully close connection (blocking operation)
   virtual void close() = 0;
+
+  // Send text and return a success flag
+  virtual SendResult sendText(std::string_view text) = 0;
 
   OnOpen onOpen;
   OnText onText;
