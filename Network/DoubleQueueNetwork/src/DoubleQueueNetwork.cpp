@@ -1,4 +1,4 @@
-#include "NetworkManager.h"
+#include "DoubleQueueNetwork.h"
 
 #include <spdlog/spdlog.h>
 
@@ -6,7 +6,7 @@
 
 #include "NetworkTransport/TransportFactory.h"
 
-NetworkManager::NetworkManager() {
+DoubleQueueNetwork::DoubleQueueNetwork() {
   networkTransport_ = createTransport();
   SPDLOG_TRACE("Network transport created");
 
@@ -35,8 +35,8 @@ NetworkManager::NetworkManager() {
   };
 }
 
-void NetworkManager::start(std::string_view url) {
-  SPDLOG_TRACE("NetworkManager::start");
+void DoubleQueueNetwork::start(std::string_view url) {
+  SPDLOG_TRACE("DoubleQueueNetwork::start");
   if (running_.exchange(true) && connected_.load() == true) {
     return;  // already started
   }
@@ -47,8 +47,8 @@ void NetworkManager::start(std::string_view url) {
   networkTransport_->connect(url);
 }
 
-void NetworkManager::stop() {
-  SPDLOG_TRACE("NetworkManager::stop");
+void DoubleQueueNetwork::stop() {
+  SPDLOG_TRACE("DoubleQueueNetwork::stop");
   if (!running_.exchange(false)) {
     return;
   }
@@ -59,12 +59,12 @@ void NetworkManager::stop() {
   networkTransport_.reset();
 }
 
-bool NetworkManager::poll(NetEvent& out) {
+bool DoubleQueueNetwork::poll(NetEvent& out) {
   return inboundEventQueue_.try_dequeue(out);
 }
 
-void NetworkManager::send(std::string_view msg) {
-  SPDLOG_TRACE("NetworkManager::send. msg={}", msg);
+void DoubleQueueNetwork::send(std::string_view msg) {
+  SPDLOG_TRACE("DoubleQueueNetwork::send. msg={}", msg);
   if (!networkTransport_) {
     SPDLOG_ERROR("Network transport isn't initialized");
   }
@@ -72,7 +72,7 @@ void NetworkManager::send(std::string_view msg) {
   outboundEventQueue_.enqueue(NetEvent{NetEvent::Type::TextMessage, std::string(msg)});
 }
 
-void NetworkManager::drainOutboundQueue() {
+void DoubleQueueNetwork::drainOutboundQueue() {
   if (!networkTransport_) {
     SPDLOG_ERROR("Network transport isn't initialized");
     return;

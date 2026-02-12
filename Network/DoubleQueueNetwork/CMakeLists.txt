@@ -2,9 +2,9 @@
 # Sources
 # -----------------------------------------------------
 
-add_library(NetworkManager
-        src/NetworkManager.cpp
-        src/NetworkManagerFactory.cpp
+add_library(DoubleQueueNetwork
+        src/DoubleQueueNetwork.cpp
+        src/DoubleQueueNetworkFactory.cpp
         src/CanUseThreads.cpp
 )
 
@@ -12,7 +12,7 @@ add_library(NetworkManager
 # Include
 # -----------------------------------------------------
 
-target_include_directories(NetworkManager
+target_include_directories(DoubleQueueNetwork
         PUBLIC include
         PRIVATE src
 )
@@ -22,7 +22,7 @@ target_include_directories(NetworkManager
 # Link
 # -----------------------------------------------------
 
-target_link_libraries(NetworkManager PRIVATE
+target_link_libraries(DoubleQueueNetwork PRIVATE
         NetworkTransport
         spdlog::spdlog
         concurrentqueue

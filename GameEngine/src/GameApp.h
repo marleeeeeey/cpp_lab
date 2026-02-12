@@ -6,8 +6,8 @@
 #include <memory>
 
 #include "ChatDataForRendering.h"
+#include "DoubleQueueNetwork/IDoubleQueueNetwork.h"
 #include "GameWorld.h"
-#include "NetworkManager/INetworkManager.h"
 #include "ReconnectPolicy.h"
 #include "SceneRenderer.h"
 #include "UserInputManger.h"
@@ -99,6 +99,6 @@ class GameApp {
   void pollNetworkEvents_();
   void drainOutboundEventQueue_();
 
-  std::unique_ptr<INetworkManager> networkManager_;
+  std::unique_ptr<IDoubleQueueNetwork> networkManager_;
   ChatDataForRendering chatDataForRendering_;
 };

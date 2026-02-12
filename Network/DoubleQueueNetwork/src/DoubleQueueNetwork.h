@@ -1,6 +1,6 @@
 #pragma once
 
-#include <NetworkManager/INetworkManager.h>
+#include <DoubleQueueNetwork/IDoubleQueueNetwork.h>
 #include <concurrentqueue.h>
 
 #include <condition_variable>
@@ -14,17 +14,17 @@
 class ITransport;
 
 // ------------------------
-// NetworkManager
+// DoubleQueueNetwork
 // ------------------------
 
-// NetworkManager adds inbound and (optionally) outbound queues on top of the underlying transport layer.
-class NetworkManager : public INetworkManager {
+// DoubleQueueNetwork adds inbound and (optionally) outbound queues on top of the underlying transport layer.
+class DoubleQueueNetwork : public IDoubleQueueNetwork {
  public:
-  NetworkManager();
+  DoubleQueueNetwork();
 
  private:
   // -----------------------------
-  // NetworkManager interface
+  // DoubleQueueNetwork interface
   // -----------------------------
 
  public:

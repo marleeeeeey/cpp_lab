@@ -1,6 +1,6 @@
 #include "GameApp.h"
 
-#include <NetworkManager/NetworkManagerFactory.h>
+#include <DoubleQueueNetwork/DoubleQueueNetworkFactory.h>
 #include <Profiler/Profiler.h>
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
@@ -28,7 +28,7 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
 
   initGameWorld_();
 
-  networkManager_ = NetworkManagerFactory::createNetworkManager();
+  networkManager_ = DoubleQueueNetworkFactory::createDoubleQueueNetwork();
   networkManager_->start(appOptions_.url);
 
   beginFrameTime_ = SDL_GetTicks();

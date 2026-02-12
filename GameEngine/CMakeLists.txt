@@ -19,7 +19,7 @@ add_executable(GameEngine
 
 target_link_libraries(GameEngine PRIVATE
         # User libraries
-        NetworkManager
+        DoubleQueueNetwork
         Profiler
 
         # 3rd_party libraries

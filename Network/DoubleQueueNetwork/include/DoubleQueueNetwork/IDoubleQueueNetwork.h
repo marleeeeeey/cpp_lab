@@ -16,14 +16,14 @@ struct NetEvent {
 };
 
 // ------------------------
-// INetworkManager
+// IDoubleQueueNetwork
 // ------------------------
 
-// INetworkManager adds poll method, inbound and outbound queues
+// IDoubleQueueNetwork adds poll method, inbound and outbound queues
 // on top of the underlying transport layer.
-class INetworkManager {
+class IDoubleQueueNetwork {
  public:
-  virtual ~INetworkManager() = default;
+  virtual ~IDoubleQueueNetwork() = default;
 
   // Starts network thread (non-blocking)
   virtual void start(std::string_view url) = 0;
