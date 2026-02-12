@@ -35,7 +35,7 @@ class INetworkManager {
   virtual bool poll(NetEvent& out) = 0;
 
   // Add a message to the queue (non-blocking)
-  virtual void send(std::string msg) = 0;
+  virtual void send(std::string_view msg) = 0;
 
   // Drain outbound queue (blocking)
   virtual void drainOutboundQueue() = 0;

@@ -31,7 +31,7 @@ class NetworkManager : public INetworkManager {
   void start(std::string_view url) override;
   void stop() override;
   bool poll(NetEvent& out) override;
-  void send(std::string msg) override;
+  void send(std::string_view msg) override;
   void drainOutboundQueue() override;
 
  private:

@@ -3,9 +3,7 @@
 #include <spdlog/spdlog.h>
 
 #include <magic_enum/magic_enum.hpp>
-#include <mutex>
 
-#include "CanUseThreads.h"
 #include "NetworkTransport/TransportFactory.h"
 
 NetworkManager::NetworkManager() {
@@ -65,13 +63,13 @@ bool NetworkManager::poll(NetEvent& out) {
   return inboundEventQueue_.try_dequeue(out);
 }
 
-void NetworkManager::send(std::string msg) {
+void NetworkManager::send(std::string_view msg) {
   SPDLOG_TRACE("NetworkManager::send. msg={}", msg);
   if (!networkTransport_) {
     SPDLOG_ERROR("Network transport isn't initialized");
   }
 
-  outboundEventQueue_.enqueue(NetEvent{NetEvent::Type::TextMessage, msg});
+  outboundEventQueue_.enqueue(NetEvent{NetEvent::Type::TextMessage, std::string(msg)});
 }
 
 void NetworkManager::drainOutboundQueue() {
