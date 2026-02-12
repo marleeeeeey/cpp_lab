@@ -12,9 +12,9 @@
 
 #include "ChatDataForRendering.h"
 
-// ------------------------------
+// ------------------
 // SDL Based Steps
-// ------------------------------
+// ------------------
 
 SDL_AppResult GameApp::init(int argc, char* argv[]) {
   initTracyProfiler_();
@@ -63,18 +63,16 @@ SDL_AppResult GameApp::iterate() {
   pollNetworkEvents_();
   drainOutboundEventQueue_();
 
-  networkManager_->drainOutboundQueue();
-
   // Try reconnect only when scheduled, and avoid spamming start().
-  if (reconnectPending_ && !connecting_ && reconnect_.due()) {
+  if (reconnectPending_ && !connecting_ && reconnectPolicy_.due()) {
     connecting_ = true;
     SPDLOG_INFO("Net: reconnect attempt...");
     networkManager_->start(appOptions_.url);
   }
 
-  // ------
+  // --------
   // Other
-  // ------
+  // --------
 
   GameDataForRendering gameDataForRendering = updateGameWorld_(elapsed);
 
@@ -97,9 +95,9 @@ void GameApp::onQuit() {
   networkManager_->stop();
 }
 
-// ------------------------------
+// ------------
 // Init Steps
-// ------------------------------
+// ------------
 
 void GameApp::initTracyProfiler_() {
 #if PROFILER_ENABLED
@@ -216,9 +214,9 @@ void GameApp::initGameWorld_() {
   onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
 }
 
-// ------------------------------
-// Iterate Steps
-// ------------------------------
+// ---------------------
+// Basic Iterate Steps
+// ---------------------
 
 float GameApp::calculateDeltaTime_() {
   PROFILER_ZONE;
@@ -228,61 +226,6 @@ float GameApp::calculateDeltaTime_() {
   const float elapsed = ((float)(now - beginFrameTime_)) / 1000.0f;
   beginFrameTime_ = now;
   return elapsed;
-}
-
-// Poll network events (non-blocking)
-void GameApp::pollNetworkEvents_() {
-  PROFILER_ZONE;
-
-  NetEvent ev{};
-  int processed = 0;
-  constexpr int kMaxEventsPerFrame = 256;
-  while (processed < kMaxEventsPerFrame && networkManager_->poll(ev)) {
-    ++processed;
-    switch (ev.type) {
-      case NetEvent::Type::Connected: {
-        std::ostringstream ss;
-        SPDLOG_DEBUG("Net: Connected to server at {}", ev.payload);
-        chatDataForRendering_.isConnected = true;
-
-        // Reset reconnect state
-        connecting_ = false;
-        reconnectPending_ = false;
-        reconnect_.onConnected();
-        break;
-      }
-      case NetEvent::Type::Disconnected: {
-        SPDLOG_DEBUG("Net: Disconnected, reason={}", ev.payload);
-        chatDataForRendering_.isConnected = false;
-
-        // Schedule reconnect
-        connecting_ = false;
-        reconnectPending_ = true;
-        reconnect_.schedule();
-        break;
-      }
-      case NetEvent::Type::Error: {
-        SPDLOG_DEBUG("Net: Error={}", ev.payload);
-        chatDataForRendering_.isConnected = false;
-
-        // Schedule reconnect
-        connecting_ = false;
-        reconnectPending_ = true;
-        reconnect_.schedule();
-        break;
-      }
-      case NetEvent::Type::TextMessage: {
-        SPDLOG_DEBUG("Net: Text={}", ev.payload);
-        chatDataForRendering_.addMessage(ev.payload);
-        break;
-      }
-    }
-  }
-}
-
-void GameApp::drainOutboundEventQueue_() {
-  PROFILER_ZONE;
-  networkManager_->drainOutboundQueue();
 }
 
 GameDataForRendering GameApp::updateGameWorld_(const float elapsed) {
@@ -328,4 +271,63 @@ void GameApp::renderFrame_(GameDataForRendering gameDataForRendering) {
     PROFILER_ZONE_NAMED("SDL_RenderPresent (vsync wait)");
     SDL_RenderPresent(renderer_);  // show the rendered frame on screen
   }
+}
+
+// ---------
+// Network
+// ---------
+
+// Poll network events (non-blocking)
+void GameApp::pollNetworkEvents_() {
+  PROFILER_ZONE;
+
+  NetEvent ev{};
+  int processed = 0;
+  constexpr int kMaxEventsPerFrame = 256;
+  while (processed < kMaxEventsPerFrame && networkManager_->poll(ev)) {
+    ++processed;
+    switch (ev.type) {
+      case NetEvent::Type::Connected: {
+        std::ostringstream ss;
+        SPDLOG_DEBUG("Net: Connected to server at {}", ev.payload);
+        chatDataForRendering_.isConnected = true;
+
+        // Reset reconnect state
+        connecting_ = false;
+        reconnectPending_ = false;
+        reconnectPolicy_.onConnected();
+        break;
+      }
+      case NetEvent::Type::Disconnected: {
+        SPDLOG_DEBUG("Net: Disconnected, reason={}", ev.payload);
+        chatDataForRendering_.isConnected = false;
+
+        // Schedule reconnect
+        connecting_ = false;
+        reconnectPending_ = true;
+        reconnectPolicy_.schedule();
+        break;
+      }
+      case NetEvent::Type::Error: {
+        SPDLOG_DEBUG("Net: Error={}", ev.payload);
+        chatDataForRendering_.isConnected = false;
+
+        // Schedule reconnect
+        connecting_ = false;
+        reconnectPending_ = true;
+        reconnectPolicy_.schedule();
+        break;
+      }
+      case NetEvent::Type::TextMessage: {
+        SPDLOG_DEBUG("Net: Text={}", ev.payload);
+        chatDataForRendering_.addMessage(ev.payload);
+        break;
+      }
+    }
+  }
+}
+
+void GameApp::drainOutboundEventQueue_() {
+  PROFILER_ZONE;
+  networkManager_->drainOutboundQueue();
 }

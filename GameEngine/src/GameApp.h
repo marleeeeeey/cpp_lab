@@ -26,16 +26,13 @@ class ITransport;
 // GameApp is a bridge between GameWorld, SceneRenderer,
 // UserInputManger and Network.
 class GameApp {
-  // ----------------
-  // Technical Data
-  // ----------------
+  // ---------------------------
+  // Rendering and window data
+  // ---------------------------
 
   SDL_Window* window_ = nullptr;
   SDL_Renderer* renderer_ = nullptr;
   Uint64 beginFrameTime_ = 0;
-  ReconnectPolicy reconnect_;
-  bool reconnectPending_ = false;
-  bool connecting_ = false;
   int windowWidth_ = 800;
   int windowHeight_ = 600;
 
@@ -53,13 +50,11 @@ class GameApp {
   GameWorld gameWorld_;
   SceneRenderer sceneRenderer_;
   UserInputManger userInputManger_;
-  std::unique_ptr<INetworkManager> networkManager_;
-  ChatDataForRendering chatDataForRendering_;
 
  public:
-  // -----------------------------------
+  // ------------------------------------
   // SDL Based Steps (public interface)
-  // -----------------------------------
+  // ------------------------------------
 
   SDL_AppResult init(int argc, char* argv[]);
   SDL_AppResult onEvent(SDL_Event* event);
@@ -86,13 +81,24 @@ class GameApp {
   void initRenderer_();
   void initGameWorld_();
 
-  // ---------------
-  // Iterate Steps
-  // ---------------
+  // ----------------------
+  // Basic Iterate Steps
+  // ----------------------
 
   float calculateDeltaTime_();
-  void pollNetworkEvents_();
-  void drainOutboundEventQueue_();
   GameDataForRendering updateGameWorld_(float elapsed);
   void renderFrame_(GameDataForRendering gameDataForRendering);
+
+  // ---------
+  // Network
+  // ---------
+
+  ReconnectPolicy reconnectPolicy_;
+  bool reconnectPending_ = false;
+  bool connecting_ = false;
+  void pollNetworkEvents_();
+  void drainOutboundEventQueue_();
+
+  std::unique_ptr<INetworkManager> networkManager_;
+  ChatDataForRendering chatDataForRendering_;
 };
