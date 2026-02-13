@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <string_view>
 #include <vector>
 
 class INetworkDataHandler {
@@ -24,4 +25,13 @@ class INetworkDataHandler {
 
   // Parse message and call registered callback
   virtual void parseMessage(const std::vector<uint8_t>& message) = 0;
+
+  // -----------------------
+  // Non virtual overrides
+  // -----------------------
+
+  // Override specific for string_view as an argument
+  std::vector<uint8_t> prepareMessage(MessageType type, const std::string_view payload) {
+    return prepareMessage(type, std::vector<uint8_t>(payload.begin(), payload.end()));
+  }
 };

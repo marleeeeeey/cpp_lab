@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 
+#include "GameMessageTypes/GameMessageTypes.h"
 #include "GetClientIpText.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
 
@@ -203,10 +204,8 @@ int main(int argc, char** argv) {
 
                           .message = [app, state, &networkDataHandler](auto* ws, std::string_view msg, uWS::OpCode op) {
                             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
-                            // TODO: improve this mess
                             std::string personWithMessage = perSocketData->name + ": " + std::string(msg);
-                            std::vector<uint8_t> payload(personWithMessage.begin(), personWithMessage.end());
-                            std::vector<uint8_t> message = networkDataHandler->prepareMessage(3333, payload);
+                            std::vector<uint8_t> message = networkDataHandler->prepareMessage(GMT_TextMessage, personWithMessage);
                             std::string_view messageStringView(reinterpret_cast<const char*>(message.data()), message.size());
                             app->publish(state->getBroadcastTopicName(), messageStringView, op, false);  // broadcast
                             SPDLOG_INFO("ws.message. {}", personWithMessage); },

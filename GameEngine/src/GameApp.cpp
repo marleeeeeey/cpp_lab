@@ -9,6 +9,7 @@
 
 #include "AutoReconnectionNetwork/AutoReconnectionNetworkFactory.h"
 #include "ChatDataForRendering.h"
+#include "GameMessageTypes/GameMessageTypes.h"
 #include "Profiler/Profiler.h"
 #include "magic_enum/magic_enum.hpp"
 
@@ -32,7 +33,7 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   initGameWorld_();
 
   networkDataHandler_ = INetworkDataHandler::create();
-  networkDataHandler_->registerMessageType(3333,
+  networkDataHandler_->registerMessageType(GMT_TextMessage,
                                            [this](const auto type, const std::vector<uint8_t>& payload) {
                                              std::string decodedMessage(payload.begin(), payload.end());
                                              chatDataForRendering_.addMessage(decodedMessage);

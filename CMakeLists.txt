@@ -47,6 +47,7 @@ add_subdirectory(3rd_party)
 
 add_subdirectory(CodeSamples)
 add_subdirectory(GameEngine)
+add_subdirectory(GameMessageTypes)
 add_subdirectory(DebugLog)
 add_subdirectory(Network/NetworkTransport)
 add_subdirectory(Network/DoubleQueueNetwork)
