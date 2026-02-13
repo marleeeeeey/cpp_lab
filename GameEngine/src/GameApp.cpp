@@ -17,6 +17,9 @@
 // ------------------
 
 SDL_AppResult GameApp::init(int argc, char* argv[]) {
+  // Uncomment the next line for Debug
+  // spdlog::set_level(spdlog::level::trace);
+
   initTracyProfiler_();
   initOptions_(argc, argv);
   auto initSdlResult = initSDL_();  // initialize SDL and set renderer
@@ -99,9 +102,6 @@ void GameApp::initTracyProfiler_() {
 #endif
 
   PROFILER_SET_THREAD_NAME("main");
-
-  // Uncomment the next line for Debug
-  // spdlog::set_level(spdlog::level::trace);
 }
 
 void GameApp::initOptions_(int argc, char* argv[]) {

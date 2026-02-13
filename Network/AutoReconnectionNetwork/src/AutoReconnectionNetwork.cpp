@@ -26,7 +26,9 @@ void AutoReconnectionNetwork::stop() {
 
 void AutoReconnectionNetwork::iterate() {
   pollNetworkEvents_();
-  drainOutboundEventQueue_();
+  if (state_ == State::Connected) {
+    drainOutboundEventQueue_();
+  }
 
   // Try to reconnect only when scheduled and avoid spamming start()
   if (state_ == State::Disconnected && reconnectPolicy_.due()) {
