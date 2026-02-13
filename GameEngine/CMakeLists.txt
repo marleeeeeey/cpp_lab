@@ -9,7 +9,6 @@ add_executable(GameEngine
         src/SceneRenderer.cpp
         src/UserInputManger.cpp
         src/ChatDataForRendering.cpp
-        src/ReconnectPolicy.cpp
 )
 
 
@@ -19,7 +18,7 @@ add_executable(GameEngine
 
 target_link_libraries(GameEngine PRIVATE
         # User libraries
-        DoubleQueueNetwork
+        AutoReconnectionNetwork
         Profiler
 
         # 3rd_party libraries
@@ -29,6 +28,7 @@ target_link_libraries(GameEngine PRIVATE
         cxxopts
         spdlog::spdlog
         EnTT::EnTT
+        magic_enum::magic_enum
 )
 
 

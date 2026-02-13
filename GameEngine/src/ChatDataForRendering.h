@@ -5,7 +5,7 @@
 
 class ChatDataForRendering {
  public:
-  bool isConnected;
+  std::string connectionStatus;
 
   void addMessage(const std::string& message);
   const std::vector<std::string>& getChatHistory() const;

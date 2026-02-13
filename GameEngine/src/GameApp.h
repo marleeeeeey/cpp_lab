@@ -5,10 +5,9 @@
 #include <entt/signal/sigh.hpp>
 #include <memory>
 
+#include "AutoReconnectionNetwork/IAutoReconnectionNetwork.h"
 #include "ChatDataForRendering.h"
-#include "DoubleQueueNetwork/IDoubleQueueNetwork.h"
 #include "GameWorld.h"
-#include "ReconnectPolicy.h"
 #include "SceneRenderer.h"
 #include "UserInputManger.h"
 
@@ -35,6 +34,7 @@ class GameApp {
   Uint64 beginFrameTime_ = 0;
   int windowWidth_ = 800;
   int windowHeight_ = 600;
+  ChatDataForRendering chatDataForRendering_;
 
   // ----------------------------------------------
   // Subscription data for window size changes
@@ -93,12 +93,5 @@ class GameApp {
   // Network
   // ---------
 
-  ReconnectPolicy reconnectPolicy_;
-  bool reconnectPending_ = false;
-  bool connecting_ = false;
-  void pollNetworkEvents_();
-  void drainOutboundEventQueue_();
-
-  std::unique_ptr<IDoubleQueueNetwork> networkManager_;
-  ChatDataForRendering chatDataForRendering_;
+  std::unique_ptr<IAutoReconnectionNetwork> autoReconnectionNetwork_;
 };

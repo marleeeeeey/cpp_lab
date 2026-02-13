@@ -50,6 +50,7 @@ add_subdirectory(GameEngine)
 add_subdirectory(DebugLog)
 add_subdirectory(Network/NetworkTransport)
 add_subdirectory(Network/DoubleQueueNetwork)
+add_subdirectory(Network/AutoReconnectionNetwork)
 add_subdirectory(WsConsoleClient)
 add_subdirectory(Profiler)
 

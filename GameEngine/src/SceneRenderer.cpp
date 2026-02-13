@@ -60,7 +60,7 @@ void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRend
   // Connection status
   // -------------------
 
-  ImGui::Text("Status: %s", chatDataForRendering.isConnected ? "Online" : "Offline");
+  ImGui::Text("Status: %s", chatDataForRendering.connectionStatus.c_str());
   ImGui::Separator();
 
   // ------------------
