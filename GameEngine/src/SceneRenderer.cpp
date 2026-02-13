@@ -60,7 +60,7 @@ void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRend
   // Connection status
   // -------------------
 
-  ImGui::Text("Status: %s", chatDataForRendering.connectionStatus.c_str());
+  ImGui::Text("Your Status: %s | Number Of Users: %s", chatDataForRendering.connectionStatus.c_str(), chatDataForRendering.numberOfConnectedUsers.c_str());
   ImGui::Separator();
 
   // ------------------

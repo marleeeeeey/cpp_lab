@@ -114,7 +114,13 @@ inline std::string shortHumanName(std::string_view key) {
 
 }  // namespace humanhash
 
+// TODO: Do avoid the mess in the "ServerState" class
 class ServerState {
+ public:
+  std::shared_ptr<uWS::TemplatedApp<false>> app = std::make_shared<uWS::App>();
+  std::unique_ptr<INetworkDataHandler> networkDataHandler = INetworkDataHandler::create();
+
+ private:
   const std::string_view broadcastTopicName = "broadcast";
   int numberOfClients = 0;
   int maxNumberOfClients = 0;
@@ -126,14 +132,24 @@ class ServerState {
       maxNumberOfClients = numberOfClients;
     }
     SPDLOG_INFO("Number of clients (++): {}. Max number of clients: {}", numberOfClients, maxNumberOfClients);
+    broadcastNumberClients_();
   }
 
   void decrementNumberOfClients() {
     numberOfClients--;
     SPDLOG_INFO("Number of clients (--): {}. Max number of clients: {}", numberOfClients, maxNumberOfClients);
+    broadcastNumberClients_();
   }
 
   const std::string_view& getBroadcastTopicName() const { return broadcastTopicName; }
+
+ private:
+  void broadcastNumberClients_() {
+    // TODO improve it to send it as binary. Flatbuffers???
+    std::vector<uint8_t> message = networkDataHandler->prepareMessage(GMT_NumberOfClients, std::to_string(numberOfClients));
+    std::string_view messageStringView(reinterpret_cast<const char*>(message.data()), message.size());
+    app->publish(broadcastTopicName, messageStringView, uWS::OpCode::TEXT, false);
+  }
 };
 
 int main(int argc, char** argv) {
@@ -149,11 +165,8 @@ int main(int argc, char** argv) {
 
   int port = getPortFromCommandLine(argc, argv);
 
-  auto app = std::make_shared<uWS::App>();
-
   auto state = std::make_shared<ServerState>();
-
-  auto networkDataHandler = INetworkDataHandler::create();
+  auto app = state->app;
 
   // -------------------------------------------
   // Start listening and message loop on connect
@@ -193,7 +206,7 @@ int main(int argc, char** argv) {
                           // ---------
 
                           .open = [state](auto* ws) {
-                            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+                            PerSocketData* perSocketData = (PerSocketData*)ws->getUserData();
                             ws->subscribe(state->getBroadcastTopicName());
                             SPDLOG_INFO("ws.open");
                             state->incrementNumberOfClients(); },
@@ -202,12 +215,13 @@ int main(int argc, char** argv) {
                           // Message
                           // ---------
 
-                          .message = [app, state, &networkDataHandler](auto* ws, std::string_view msg, uWS::OpCode op) {
+                          .message = [state](auto* ws, std::string_view msg, uWS::OpCode op) {
                             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
                             std::string personWithMessage = perSocketData->name + ": " + std::string(msg);
-                            std::vector<uint8_t> message = networkDataHandler->prepareMessage(GMT_TextMessage, personWithMessage);
+                            std::vector<uint8_t> payload = std::vector<uint8_t>(personWithMessage.begin(), personWithMessage.end());
+                            std::vector<uint8_t> message = state->networkDataHandler->prepareMessage(GMT_TextMessage, payload);
                             std::string_view messageStringView(reinterpret_cast<const char*>(message.data()), message.size());
-                            app->publish(state->getBroadcastTopicName(), messageStringView, op, false);  // broadcast
+                            state->app->publish(state->getBroadcastTopicName(), messageStringView, op, false);  // broadcast
                             SPDLOG_INFO("ws.message. {}", personWithMessage); },
 
                           // ---------

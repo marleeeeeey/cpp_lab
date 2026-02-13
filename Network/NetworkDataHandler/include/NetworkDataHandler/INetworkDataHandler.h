@@ -11,6 +11,9 @@ class INetworkDataHandler {
   // Factory method to create an instance
   static std::unique_ptr<INetworkDataHandler> create();
 
+  // Virtual destructor
+  virtual ~INetworkDataHandler() = default;
+
   // Type signature
   using MessageType = uint16_t;
 

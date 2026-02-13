@@ -40,6 +40,13 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
                                              SPDLOG_INFO("Message type {} received: {}", type, decodedMessage);
                                            });
 
+  networkDataHandler_->registerMessageType(GMT_NumberOfClients,
+                                           [this](const auto type, const std::vector<uint8_t>& payload) {
+                                             std::string decodedMessage(payload.begin(), payload.end());
+                                             chatDataForRendering_.numberOfConnectedUsers = decodedMessage;
+                                             SPDLOG_INFO("Message type {} received: {}", type, decodedMessage);
+                                           });
+
   autoReconnectionNetwork_ = AutoReconnectionNetworkFactory::create();
   autoReconnectionNetwork_->init(
       appOptions_.url,
