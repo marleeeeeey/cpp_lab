@@ -7,6 +7,7 @@
 #include <string_view>
 
 #include "GetClientIpText.h"
+#include "NetworkDataHandler/INetworkDataHandler.h"
 
 // User data per socket
 struct PerSocketData {
@@ -151,6 +152,8 @@ int main(int argc, char** argv) {
 
   auto state = std::make_shared<ServerState>();
 
+  auto networkDataHandler = INetworkDataHandler::create();
+
   // -------------------------------------------
   // Start listening and message loop on connect
   // -------------------------------------------
@@ -198,10 +201,14 @@ int main(int argc, char** argv) {
                           // Message
                           // ---------
 
-                          .message = [app, state](auto* ws, std::string_view msg, uWS::OpCode op) {
+                          .message = [app, state, &networkDataHandler](auto* ws, std::string_view msg, uWS::OpCode op) {
                             PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+                            // TODO: improve this mess
                             std::string personWithMessage = perSocketData->name + ": " + std::string(msg);
-                            app->publish(state->getBroadcastTopicName(), personWithMessage, op, false); // broadcast
+                            std::vector<uint8_t> payload(personWithMessage.begin(), personWithMessage.end());
+                            std::vector<uint8_t> message = networkDataHandler->prepareMessage(3333, payload);
+                            std::string_view messageStringView(reinterpret_cast<const char*>(message.data()), message.size());
+                            app->publish(state->getBroadcastTopicName(), messageStringView, op, false);  // broadcast
                             SPDLOG_INFO("ws.message. {}", personWithMessage); },
 
                           // ---------

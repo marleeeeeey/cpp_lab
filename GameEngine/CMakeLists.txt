@@ -19,6 +19,7 @@ add_executable(GameEngine
 target_link_libraries(GameEngine PRIVATE
         # User libraries
         AutoReconnectionNetwork
+        NetworkDataHandler
         Profiler
 
         # 3rd_party libraries

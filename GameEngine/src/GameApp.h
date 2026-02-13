@@ -8,6 +8,7 @@
 #include "AutoReconnectionNetwork/IAutoReconnectionNetwork.h"
 #include "ChatDataForRendering.h"
 #include "GameWorld.h"
+#include "NetworkDataHandler/INetworkDataHandler.h"
 #include "SceneRenderer.h"
 #include "UserInputManger.h"
 
@@ -94,4 +95,5 @@ class GameApp {
   // ---------
 
   std::unique_ptr<IAutoReconnectionNetwork> autoReconnectionNetwork_;
+  std::unique_ptr<INetworkDataHandler> networkDataHandler_;
 };

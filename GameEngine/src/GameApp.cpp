@@ -31,11 +31,20 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
 
   initGameWorld_();
 
+  networkDataHandler_ = INetworkDataHandler::create();
+  networkDataHandler_->registerMessageType(3333,
+                                           [this](const auto type, const std::vector<uint8_t>& payload) {
+                                             std::string decodedMessage(payload.begin(), payload.end());
+                                             chatDataForRendering_.addMessage(decodedMessage);
+                                             SPDLOG_INFO("Message type {} received: {}", type, decodedMessage);
+                                           });
+
   autoReconnectionNetwork_ = AutoReconnectionNetworkFactory::create();
   autoReconnectionNetwork_->init(
       appOptions_.url,
       [this](std::string_view message) {
-        chatDataForRendering_.addMessage(std::string(message));
+        std::vector<uint8_t> payload(message.begin(), message.end());
+        networkDataHandler_->parseMessage(payload);
       },
       [this](IAutoReconnectionNetwork::State newState) {
         chatDataForRendering_.connectionStatus = magic_enum::enum_name(newState);
