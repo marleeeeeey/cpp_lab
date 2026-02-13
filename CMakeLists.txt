@@ -35,7 +35,7 @@ endif ()
 # External
 # ----------------------------
 
-if (NOT CPP_LAB_ENABLE_OBSOLETE_PROJECTS)
+if (NOT 3RD_PARTY_BUILD_EXAMPLES AND NOT CPP_LAB_ENABLE_OBSOLETE_PROJECTS)
     set(3RD_PARTY_SKIP "openal-soft;box2d;implot;SDL3_image;enet;nlohmann_json;asio;flatbuffers" CACHE STRING "" FORCE)
 endif ()
 add_subdirectory(3rd_party)
@@ -51,6 +51,7 @@ add_subdirectory(DebugLog)
 add_subdirectory(Network/NetworkTransport)
 add_subdirectory(Network/DoubleQueueNetwork)
 add_subdirectory(Network/AutoReconnectionNetwork)
+add_subdirectory(Network/NetworkDataHandler)
 add_subdirectory(WsConsoleClient)
 add_subdirectory(Profiler)
 
