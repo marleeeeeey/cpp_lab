@@ -33,8 +33,18 @@ DesktopWebSocketTransport::DesktopWebSocketTransport() {
         break;
       }
       case ix::WebSocketMessageType::Message: {
-        SPDLOG_TRACE("ix::WebSocketMessageType::Message - {}", msg->str);
-        if (onText) onText(msg->str);
+        SPDLOG_TRACE("ix::WebSocketMessageType::Message. IsBinary={}", msg->binary);
+        if (msg->binary) {
+          if (onBinary) {
+            std::vector<uint8_t> binaryData(msg->str.begin(), msg->str.end());
+            onBinary(binaryData.data(), binaryData.size());
+          }
+        } else {
+          if (onText) {
+            onText(msg->str);
+          }
+        }
+
         break;
       }
       case ix::WebSocketMessageType::Close: {
@@ -87,6 +97,17 @@ ITransport::SendResult DesktopWebSocketTransport::sendText(std::string_view text
   // ixwebsocket copies data internally; safe to pass a temporary std::string.
   SPDLOG_TRACE("sendText: {}", text);
   ix::WebSocketSendInfo result = ws_.sendText(std::string(text));
+  if (result.success == false) {
+    SPDLOG_WARN("sendText failed");
+    return SendResult::Error;
+  }
+  return SendResult::Success;
+}
+
+ITransport::SendResult DesktopWebSocketTransport::sendBinary(const std::vector<uint8_t>& data) {
+  // ixwebsocket copies data internally; safe to pass a temporary std::string.
+  SPDLOG_TRACE("sendText: size={}", data.size());
+  ix::WebSocketSendInfo result = ws_.sendBinary(data);
   if (result.success == false) {
     SPDLOG_WARN("sendText failed");
     return SendResult::Error;

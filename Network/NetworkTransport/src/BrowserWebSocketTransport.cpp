@@ -39,11 +39,27 @@ EM_JS(void, js_ws_connect, (int selfPtr, const char* url), {
   
   ws.onopen = () => Module._ws_on_open(self);
 
+  // ----------------------------------
+  // Receive string and binary format
+  // ----------------------------------
+
+  ws.binaryType = "arraybuffer";
+
   ws.onmessage = (e) => {
-    const s = (typeof e.data === 'string') ? e.data : ('' + e.data);
-    const p = stringToNewUTF8(s);
-    Module._ws_on_message(self, p);
-    _free(p);
+    if (typeof e.data === 'string') {
+      // string
+      const p = stringToNewUTF8(e.data);
+      Module._ws_on_message_text(self, p);
+      _free(p);
+    } else {
+      // binary
+      const bytes = new Uint8Array(e.data);
+      const size = bytes.length;
+      const ptr = _malloc(size);
+      HEAPU8.set(bytes, ptr);
+      Module._ws_on_message_binary(self, ptr, size);
+      _free(ptr);
+    }
   };
 
   ws.onclose = (e) => {
@@ -73,6 +89,21 @@ EM_JS(int, js_ws_send, (int selfPtr, const char* text), {
     if (ws.readyState !== WebSocket.OPEN) return 2;
     ws.send(UTF8ToString(text));
     return 0; // queued to browser
+  } catch (e) {
+    return 3;
+  }
+});
+
+// Send binary data
+EM_JS(int, js_ws_send_binary, (int selfPtr, uint8_t* data, int size), {
+  try {
+    const ws = Module.__wsMap && Module.__wsMap.get(selfPtr);
+    if (!ws) return 1;
+    if (ws.readyState !== WebSocket.OPEN) return 2;
+
+    const bytes = HEAPU8.slice(data, data + size);
+    ws.send(bytes);
+    return 0;
   } catch (e) {
     return 3;
   }
@@ -112,7 +143,6 @@ EM_JS(void, js_ws_detach, (int selfPtr), {
 // ---------------------------------
 
 namespace {
-
 // Repository of live objects to ignore late events for dead objects.
 std::unordered_set<intptr_t>& aliveSet() {
   static std::unordered_set<intptr_t> globalAliveSet;
@@ -137,6 +167,7 @@ BrowserWebSocketTransport* getSocketFromPtrIfAlive(int selfPtr) {
 extern "C" {
 EMSCRIPTEN_KEEPALIVE void ws_on_open(int selfPtr);
 EMSCRIPTEN_KEEPALIVE void ws_on_message(int selfPtr, const char* msg);
+EMSCRIPTEN_KEEPALIVE void ws_on_message_binary(int selfPtr, uint8_t* data, int size);
 EMSCRIPTEN_KEEPALIVE void ws_on_close(int selfPtr, int code, const char* reason);
 EMSCRIPTEN_KEEPALIVE void ws_on_error(int selfPtr, const char* msg);
 }
@@ -153,6 +184,16 @@ void ws_on_message(int selfPtr, const char* msg) {
   auto* socket = getSocketFromPtrIfAlive(selfPtr);
   if (!socket) return;
   if (socket->onText) socket->onText(msg ? msg : "");
+}
+
+void ws_on_message_binary(int selfPtr, uint8_t* data, int size) {
+  SPDLOG_DEBUG("ws_on_message_binary: size={}", size);
+  auto* socket = getSocketFromPtrIfAlive(selfPtr);
+  if (!socket) return;
+
+  if (socket->onBinary) {
+    socket->onBinary(data, size);
+  }
 }
 
 void ws_on_close(int selfPtr, int code, const char* reason) {
@@ -194,6 +235,16 @@ ITransport::SendResult BrowserWebSocketTransport::sendText(std::string_view text
   SPDLOG_TRACE("BrowserWebSocketTransport sendText: {}", text);
   if (result != ITransport::SendResult::Success) {
     SPDLOG_WARN("BrowserWebSocketTransport sendText failed with error: {}", magic_enum::enum_name(result));
+    return ITransport::SendResult::Error;
+  }
+  return ITransport::SendResult::Success;
+}
+
+ITransport::SendResult BrowserWebSocketTransport::sendBinary(const std::vector<uint8_t>& data) {
+  auto result = (ITransport::SendResult)js_ws_send_binary((int)(intptr_t)this, (uint8_t*)data.data(), data.size());
+  SPDLOG_TRACE("BrowserWebSocketTransport sendBinary: size={}", data.size());
+  if (result != ITransport::SendResult::Success) {
+    SPDLOG_WARN("BrowserWebSocketTransport sendBinary failed with error: {}", magic_enum::enum_name(result));
     return ITransport::SendResult::Error;
   }
   return ITransport::SendResult::Success;

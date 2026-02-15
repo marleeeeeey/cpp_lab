@@ -3,7 +3,7 @@
 # -----------------------------------------------------
 
 add_library(NetworkTransport
-        src/TransportFactory.cpp
+        src/ITransport.cpp
 )
 
 if (EMSCRIPTEN)
@@ -45,5 +45,5 @@ endif ()
 if (EMSCRIPTEN)
     target_link_options(NetworkTransport PUBLIC
             "SHELL:-sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=\\$stringToNewUTF8"
-            "SHELL:-sEXPORTED_FUNCTIONS=['_main','_free','_malloc','_ws_on_open','_ws_on_message','_ws_on_close','_ws_on_error']")
+            "SHELL:-sEXPORTED_FUNCTIONS=['_main','_free','_malloc','_ws_on_open','_ws_on_message','_ws_on_message_binary','_ws_on_close','_ws_on_error']")
 endif ()

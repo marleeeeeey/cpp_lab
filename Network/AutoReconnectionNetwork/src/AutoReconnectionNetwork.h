@@ -10,17 +10,20 @@ class AutoReconnectionNetwork : public IAutoReconnectionNetwork {
  public:
   ~AutoReconnectionNetwork() override;
   void init(std::string_view url,
-            OnMessageReceived onMessageReceivedCallback,
+            OnTextMessageReceived onMessageReceivedCallback,
+            OnBinaryMessageReceived onBinaryMessageReceivedCallback,
             StateChangedCallback stateChangedCallback) override;
   void start() override;
   void stop() override;
   void iterate() override;
   void send(std::string_view data) override;
+  void send(std::vector<uint8_t> data) override;
   State getState() const override;
 
  private:
   std::string url_;
-  OnMessageReceived onMessageReceivedCallback_;
+  OnTextMessageReceived onMessageReceivedCallback_;
+  OnBinaryMessageReceived onBinaryMessageReceivedCallback_;
   StateChangedCallback stateChangedCallback_;
   ReconnectPolicy reconnectPolicy_;
   State state_ = State::Disconnected;

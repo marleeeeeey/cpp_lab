@@ -32,6 +32,7 @@ class DoubleQueueNetwork : public IDoubleQueueNetwork {
   void stop() override;
   bool poll(NetEvent& out) override;
   void send(std::string_view msg) override;
+  void send(std::vector<uint8_t> payload) override;
   void drainOutboundQueue() override;
 
  private:

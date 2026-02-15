@@ -2,11 +2,15 @@
 
 #include <spdlog/spdlog.h>
 
-void NetworkDataHandler::registerMessageType(MessageType type, OnMessageCallback callback) {
+void NetworkDataHandler::registerCallbackForBinaryMessageWithType(MessageType type, OnBinaryMessageCallback callback) {
   messageCallbacks_[type] = callback;
 }
 
-std::vector<uint8_t> NetworkDataHandler::prepareMessage(MessageType type, const std::vector<uint8_t>& payload) {
+void NetworkDataHandler::registerCallbackForTextMessages(OnTextMessageCallback callback) {
+  textMessageCallback_ = callback;
+}
+
+std::vector<uint8_t> NetworkDataHandler::prepareBinaryMessage(MessageType type, const std::vector<uint8_t>& payload) {
   std::vector<uint8_t> message;
   uint16_t payloadSize = static_cast<uint16_t>(payload.size());
 
@@ -21,7 +25,7 @@ std::vector<uint8_t> NetworkDataHandler::prepareMessage(MessageType type, const 
   return message;
 }
 
-void NetworkDataHandler::parseMessage(const std::vector<uint8_t>& message) {
+void NetworkDataHandler::parseBinaryMessage(const std::vector<uint8_t>& message) {
   // Read type
   MessageType type;
   std::memcpy(&type, message.data(), sizeof(type));
@@ -40,5 +44,11 @@ void NetworkDataHandler::parseMessage(const std::vector<uint8_t>& message) {
     it->second(type, payload);
   } else {
     SPDLOG_WARN("No handler for message type: {}", type);
+  }
+}
+
+void NetworkDataHandler::parseTextMessage(std::string_view message) {
+  if (textMessageCallback_) {
+    textMessageCallback_(message);
   }
 }

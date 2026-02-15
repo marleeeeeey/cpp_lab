@@ -18,23 +18,21 @@ class INetworkDataHandler {
   using MessageType = uint16_t;
 
   // Callback signature
-  using OnMessageCallback = std::function<void(const MessageType type, const std::vector<uint8_t>& payload)>;
+  using OnBinaryMessageCallback = std::function<void(const MessageType type, const std::vector<uint8_t>& payload)>;
+  using OnTextMessageCallback = std::function<void(const std::string_view message)>;
 
-  // Register a callback for a specific message type
-  virtual void registerMessageType(MessageType type, OnMessageCallback callback) = 0;
+  // Register a callback for a binary with specific message type
+  virtual void registerCallbackForBinaryMessageWithType(MessageType type, OnBinaryMessageCallback callback) = 0;
+
+  // Register union callback for all text messages (obsolete method)
+  virtual void registerCallbackForTextMessages(OnTextMessageCallback callback) = 0;
 
   // Prepare a message for sending
-  virtual std::vector<uint8_t> prepareMessage(MessageType type, const std::vector<uint8_t>& payload) = 0;
+  virtual std::vector<uint8_t> prepareBinaryMessage(MessageType type, const std::vector<uint8_t>& payload) = 0;
 
   // Parse message and call registered callback
-  virtual void parseMessage(const std::vector<uint8_t>& message) = 0;
+  virtual void parseBinaryMessage(const std::vector<uint8_t>& message) = 0;
 
-  // -----------------------
-  // Non virtual overrides
-  // -----------------------
-
-  // Override specific for string_view as an argument
-  std::vector<uint8_t> prepareMessage(MessageType type, const std::string_view payload) {
-    return prepareMessage(type, std::vector<uint8_t>(payload.begin(), payload.end()));
-  }
+  // Parse text message. No MessageType required
+  virtual void parseTextMessage(std::string_view message) = 0;
 };

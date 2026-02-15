@@ -60,14 +60,16 @@ void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRend
   // Connection status
   // -------------------
 
-  ImGui::Text("Your Status: %s | Number Of Users: %s", chatDataForRendering.connectionStatus.c_str(), chatDataForRendering.numberOfConnectedUsers.c_str());
+  ImGui::Text("Your Status: %s | Number Of Users: %d",
+              chatDataForRendering.connectionStatus.c_str(), chatDataForRendering.numberOfConnectedUsers);
   ImGui::Separator();
 
   // ------------------
   // Message history
   // ------------------
 
-  ImGui::BeginChild("ScrollingRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), false, ImGuiWindowFlags_HorizontalScrollbar);
+  ImGui::BeginChild("ScrollingRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()),
+                    false, ImGuiWindowFlags_HorizontalScrollbar);
   for (const auto& msg : chatDataForRendering.getChatHistory()) {
     ImGui::TextWrapped("%s", msg.c_str());
   }

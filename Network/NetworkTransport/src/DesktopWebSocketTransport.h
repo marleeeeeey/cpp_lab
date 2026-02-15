@@ -5,7 +5,7 @@
 #include <mutex>
 #include <string>
 
-#include "NetworkTransport/Transport.h"
+#include "NetworkTransport/ITransport.h"
 
 class DesktopWebSocketTransport final : public ITransport {
  public:
@@ -13,7 +13,8 @@ class DesktopWebSocketTransport final : public ITransport {
   ~DesktopWebSocketTransport() override;
 
   void connect(std::string_view url) override;
-  ITransport::SendResult sendText(std::string_view text) override;
+  SendResult sendText(std::string_view text) override;
+  SendResult sendBinary(const std::vector<uint8_t>& data) override;
   void close() override;
 
  private:

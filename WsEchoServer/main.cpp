@@ -2,6 +2,7 @@
 #include <spdlog/spdlog.h>
 
 #include <array>
+#include <magic_enum/magic_enum.hpp>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -146,9 +147,19 @@ class ServerState {
  private:
   void broadcastNumberClients_() {
     // TODO improve it to send it as binary. Flatbuffers???
-    std::vector<uint8_t> message = networkDataHandler->prepareMessage(GMT_NumberOfClients, std::to_string(numberOfClients));
+
+    // convert int to std::vector<uint8_t>
+    std::vector<uint8_t> payload(sizeof(numberOfClients));
+    std::memcpy(payload.data(), &numberOfClients, sizeof(numberOfClients));
+
+    // add a message type to payload
+    std::vector<uint8_t> message = networkDataHandler->prepareBinaryMessage(GMT_NumberOfClients, payload);
+
+    // anyway std::string_view is needed even to send binary data
     std::string_view messageStringView(reinterpret_cast<const char*>(message.data()), message.size());
-    app->publish(broadcastTopicName, messageStringView, uWS::OpCode::TEXT, false);
+    app->publish(broadcastTopicName, messageStringView, uWS::OpCode::BINARY, false);
+
+    SPDLOG_CRITICAL("Broadcasting number of clients as uWS::OpCode::BINARY: {}", numberOfClients);
   }
 };
 
@@ -156,6 +167,9 @@ int main(int argc, char** argv) {
   // Example:
   // [2026-02-03 03:43:25.044] [info] WsEchoServer starting...
   spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+
+  // Uncomment the next line for Debug
+  spdlog::set_level(spdlog::level::trace);
 
   SPDLOG_INFO("");
   SPDLOG_INFO("------------------------");
@@ -209,20 +223,32 @@ int main(int argc, char** argv) {
                             PerSocketData* perSocketData = (PerSocketData*)ws->getUserData();
                             ws->subscribe(state->getBroadcastTopicName());
                             SPDLOG_INFO("ws.open");
-                            state->incrementNumberOfClients(); },
+                            state->incrementNumberOfClients();
+                            ws->send("Welcome to the server! "
+                              "Message will be duplicated in this version "
+                              "to send them via Text and via Binary for testing!",
+                              uWS::OpCode::TEXT); },
 
                           // ---------
                           // Message
                           // ---------
 
                           .message = [state](auto* ws, std::string_view msg, uWS::OpCode op) {
-                            PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
+                            PerSocketData* perSocketData = (PerSocketData*)ws->getUserData();
                             std::string personWithMessage = perSocketData->name + ": " + std::string(msg);
-                            std::vector<uint8_t> payload = std::vector<uint8_t>(personWithMessage.begin(), personWithMessage.end());
-                            std::vector<uint8_t> message = state->networkDataHandler->prepareMessage(GMT_TextMessage, payload);
-                            std::string_view messageStringView(reinterpret_cast<const char*>(message.data()), message.size());
-                            state->app->publish(state->getBroadcastTopicName(), messageStringView, op, false);  // broadcast
-                            SPDLOG_INFO("ws.message. {}", personWithMessage); },
+
+                            if (op == uWS::OpCode::TEXT) {
+                              state->app->publish(state->getBroadcastTopicName(), personWithMessage, op, false);
+                            }
+
+                            if (op == uWS::OpCode::BINARY) {
+                              auto payload = std::vector<uint8_t>(personWithMessage.begin(), personWithMessage.end());
+                              auto message = state->networkDataHandler->prepareBinaryMessage(GMT_TextMessage, payload);
+                              std::string_view messageStringView(reinterpret_cast<const char*>(message.data()), message.size());
+                              state->app->publish(state->getBroadcastTopicName(), messageStringView, op, false);  // broadcast
+                            }
+
+                            SPDLOG_INFO("ws.message. {}. op={}", personWithMessage, magic_enum::enum_name(op)); },
 
                           // ---------
                           // Close

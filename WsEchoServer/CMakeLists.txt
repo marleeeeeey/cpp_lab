@@ -14,4 +14,5 @@ target_link_libraries(WsEchoServer PRIVATE
         # 3rd_party libraries
         uWebSockets::uWebSockets
         spdlog::spdlog
+        magic_enum::magic_enum
 )

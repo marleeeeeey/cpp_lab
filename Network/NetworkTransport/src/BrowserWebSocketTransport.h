@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "NetworkTransport/Transport.h"
+#include "NetworkTransport/ITransport.h"
 
 class BrowserWebSocketTransport final : public ITransport {
  public:
@@ -12,6 +12,7 @@ class BrowserWebSocketTransport final : public ITransport {
 
   void connect(std::string_view url) override;
   SendResult sendText(std::string_view text) override;
+  SendResult sendBinary(const std::vector<uint8_t>& data) override;
   void close() override;
 
  private:

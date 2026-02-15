@@ -19,7 +19,7 @@
 
 SDL_AppResult GameApp::init(int argc, char* argv[]) {
   // Uncomment the next line for Debug
-  // spdlog::set_level(spdlog::level::trace);
+  spdlog::set_level(spdlog::level::trace);
 
   initTracyProfiler_();
   initOptions_(argc, argv);
@@ -33,26 +33,44 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   initGameWorld_();
 
   networkDataHandler_ = INetworkDataHandler::create();
-  networkDataHandler_->registerMessageType(GMT_TextMessage,
-                                           [this](const auto type, const std::vector<uint8_t>& payload) {
-                                             std::string decodedMessage(payload.begin(), payload.end());
-                                             chatDataForRendering_.addMessage(decodedMessage);
-                                             SPDLOG_INFO("Message type {} received: {}", type, decodedMessage);
-                                           });
 
-  networkDataHandler_->registerMessageType(GMT_NumberOfClients,
-                                           [this](const auto type, const std::vector<uint8_t>& payload) {
-                                             std::string decodedMessage(payload.begin(), payload.end());
-                                             chatDataForRendering_.numberOfConnectedUsers = decodedMessage;
-                                             SPDLOG_INFO("Message type {} received: {}", type, decodedMessage);
-                                           });
+  networkDataHandler_->registerCallbackForTextMessages(
+      [this](std::string_view textMessage) {
+        std::string decodedMessage(textMessage);
+        chatDataForRendering_.addMessage(decodedMessage);
+        SPDLOG_INFO("Text Message received: {}", decodedMessage);
+      });
+
+  networkDataHandler_->registerCallbackForBinaryMessageWithType(
+      GMT_TextMessage,
+      [this](const auto type, const std::vector<uint8_t>& payload) {
+        std::string decodedMessage(payload.begin(), payload.end());
+        chatDataForRendering_.addMessage(decodedMessage);
+        SPDLOG_INFO("Message type {} received: {}", type, decodedMessage);
+      });
+
+  networkDataHandler_->registerCallbackForBinaryMessageWithType(
+      GMT_NumberOfClients,
+      [this](const auto type, const std::vector<uint8_t>& payload) {
+        // unpack number of users
+        int receivedNumber = 0;
+        std::memcpy(&receivedNumber, payload.data(), sizeof(receivedNumber));
+
+        // set and log
+        chatDataForRendering_.numberOfConnectedUsers = receivedNumber;
+        SPDLOG_INFO("Message type {} received: {}", type, receivedNumber);
+      });
 
   autoReconnectionNetwork_ = AutoReconnectionNetworkFactory::create();
   autoReconnectionNetwork_->init(
       appOptions_.url,
-      [this](std::string_view message) {
-        std::vector<uint8_t> payload(message.begin(), message.end());
-        networkDataHandler_->parseMessage(payload);
+      [this](std::string_view textMessage) {
+        SPDLOG_WARN("Received text message: {}", textMessage);
+        networkDataHandler_->parseTextMessage(textMessage);
+      },
+      [this](std::vector<uint8_t> binaryMessage) {
+        SPDLOG_WARN("Received binary message");
+        networkDataHandler_->parseBinaryMessage(binaryMessage);
       },
       [this](IAutoReconnectionNetwork::State newState) {
         chatDataForRendering_.connectionStatus = magic_enum::enum_name(newState);
@@ -270,7 +288,9 @@ void GameApp::renderFrame_(GameDataForRendering gameDataForRendering) {
     // -----------------------
     sceneRenderer_.renderGameObjects(gameDataForRendering);
     sceneRenderer_.renderChatWindow(chatDataForRendering_, [this](const std::string& message) {
-      autoReconnectionNetwork_->send(message);
+      std::vector<uint8_t> payload(message.begin(), message.end());
+      autoReconnectionNetwork_->send(payload);
+      autoReconnectionNetwork_->send(message);  // TODO: second sending as a text. Remove it later.
     });
     ImGui::Render();
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer_);  // render the GUI

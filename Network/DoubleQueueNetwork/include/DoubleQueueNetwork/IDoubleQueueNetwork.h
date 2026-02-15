@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 // ------------------------
 // NetEvent
@@ -10,9 +11,11 @@ struct NetEvent {
   enum class Type { Connected,
                     Disconnected,
                     TextMessage,
+                    BinaryMessage,
                     Error };
   Type type;
-  std::string payload;
+  std::string textPayload;
+  std::vector<uint8_t> binaryPayload;
 };
 
 // ------------------------
@@ -36,6 +39,9 @@ class IDoubleQueueNetwork {
 
   // Add a message to the queue (non-blocking)
   virtual void send(std::string_view msg) = 0;
+
+  // Add a message to the queue (non-blocking)
+  virtual void send(std::vector<uint8_t> payload) = 0;
 
   // Drain outbound queue (blocking)
   virtual void drainOutboundQueue() = 0;

@@ -2,15 +2,22 @@
 
 #include <spdlog/spdlog.h>
 
+#include <magic_enum/magic_enum.hpp>
+
 #include "DoubleQueueNetwork/DoubleQueueNetworkFactory.h"
 
 AutoReconnectionNetwork::~AutoReconnectionNetwork() {
   AutoReconnectionNetwork::stop();
 }
 
-void AutoReconnectionNetwork::init(std::string_view url, OnMessageReceived onMessageReceivedCallback, StateChangedCallback stateChangedCallback) {
+void AutoReconnectionNetwork::init(
+    std::string_view url,
+    OnTextMessageReceived onMessageReceivedCallback,
+    OnBinaryMessageReceived onBinaryMessageReceivedCallback,
+    StateChangedCallback stateChangedCallback) {
   url_ = url;
   onMessageReceivedCallback_ = onMessageReceivedCallback;
+  onBinaryMessageReceivedCallback_ = onBinaryMessageReceivedCallback;
   stateChangedCallback_ = stateChangedCallback;
   networkManager_ = DoubleQueueNetworkFactory::createDoubleQueueNetwork();
 }
@@ -42,6 +49,10 @@ void AutoReconnectionNetwork::send(std::string_view data) {
   networkManager_->send(data);
 }
 
+void AutoReconnectionNetwork::send(std::vector<uint8_t> data) {
+  networkManager_->send(data);
+}
+
 AutoReconnectionNetwork::State AutoReconnectionNetwork::getState() const {
   return state_;
 }
@@ -58,29 +69,35 @@ void AutoReconnectionNetwork::pollNetworkEvents_() {
   constexpr int kMaxEventsPerFrame = 256;
   while (processed < kMaxEventsPerFrame && networkManager_->poll(ev)) {
     ++processed;
+    SPDLOG_TRACE("Net: Polling Event type={}", magic_enum::enum_name(ev.type));
     switch (ev.type) {
       case NetEvent::Type::Connected: {
         std::ostringstream ss;
-        SPDLOG_DEBUG("Net: Connected to server at {}", ev.payload);
+        SPDLOG_DEBUG("Net: Connected to server at {}", ev.textPayload);
         setStateAndNotify_(State::Connected);
         reconnectPolicy_.onConnected();
         break;
       }
       case NetEvent::Type::Disconnected: {
-        SPDLOG_DEBUG("Net: Disconnected, reason={}", ev.payload);
+        SPDLOG_DEBUG("Net: Disconnected, reason={}", ev.textPayload);
         setStateAndNotify_(State::Disconnected);
         reconnectPolicy_.schedule();
         break;
       }
       case NetEvent::Type::Error: {
-        SPDLOG_DEBUG("Net: Error={}", ev.payload);
+        SPDLOG_DEBUG("Net: Error={}", ev.textPayload);
         setStateAndNotify_(State::Disconnected);
         reconnectPolicy_.schedule();
         break;
       }
       case NetEvent::Type::TextMessage: {
-        SPDLOG_DEBUG("Net: Text={}", ev.payload);
-        onMessageReceivedCallback_(ev.payload);
+        SPDLOG_DEBUG("Net: Text={}", ev.textPayload);
+        onMessageReceivedCallback_(ev.textPayload);
+        break;
+      }
+      case NetEvent::Type::BinaryMessage: {
+        SPDLOG_DEBUG("Net: Binary size={}", ev.binaryPayload.size());
+        onBinaryMessageReceivedCallback_(ev.binaryPayload);
         break;
       }
     }
