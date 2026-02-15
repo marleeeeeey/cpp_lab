@@ -1,4 +1,4 @@
-#include <NetworkTransport/TransportFactory.h>
+#include <NetworkTransport/ITransport.h>
 #include <spdlog/spdlog.h>
 
 #include <chrono>
@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
   // ---------------------------------------
   // Get transport interface
   // ---------------------------------------
-  globalTransport = createTransport();
+  globalTransport = ITransport::create();
   std::weak_ptr<ITransport> weak = globalTransport;
 
   // ---------------------------------------
