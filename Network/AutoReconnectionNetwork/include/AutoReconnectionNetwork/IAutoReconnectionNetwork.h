@@ -1,6 +1,6 @@
 #pragma once
+#include <cstdint>
 #include <functional>
-#include <span>
 #include <string_view>
 
 class IAutoReconnectionNetwork {
