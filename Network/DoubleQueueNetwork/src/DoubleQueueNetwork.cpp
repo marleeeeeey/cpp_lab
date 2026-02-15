@@ -4,10 +4,10 @@
 
 #include <magic_enum/magic_enum.hpp>
 
-#include "NetworkTransport/ITransport.h"
+#include "NetworkTransport/INetworkTransport.h"
 
 DoubleQueueNetwork::DoubleQueueNetwork() {
-  networkTransport_ = ITransport::create();
+  networkTransport_ = INetworkTransport::create();
   SPDLOG_TRACE("Network transport created");
 
   // -------------------------------------
@@ -115,7 +115,7 @@ void DoubleQueueNetwork::drainOutboundQueue() {
     // Try to send a text message
     if (ev.type == NetEvent::Type::TextMessage) {
       auto res = networkTransport_->sendText(ev.textPayload);
-      if (res != ITransport::SendResult::Success) {
+      if (res != INetworkTransport::SendResult::Success) {
         SPDLOG_WARN("Failed to send message. Type: {}, Payload: {}. Message back to the queue",
                     magic_enum::enum_name(ev.type), ev.textPayload);
         outboundEventQueue_.enqueue(std::move(ev));
@@ -126,7 +126,7 @@ void DoubleQueueNetwork::drainOutboundQueue() {
     // Try to send a binary message
     if (ev.type == NetEvent::Type::BinaryMessage) {
       auto res = networkTransport_->sendBinary(ev.binaryPayload);
-      if (res != ITransport::SendResult::Success) {
+      if (res != INetworkTransport::SendResult::Success) {
         SPDLOG_WARN("Failed to send message. Type: {}, Payload size: {}. Message back to the queue",
                     magic_enum::enum_name(ev.type), ev.binaryPayload.size());
         outboundEventQueue_.enqueue(std::move(ev));

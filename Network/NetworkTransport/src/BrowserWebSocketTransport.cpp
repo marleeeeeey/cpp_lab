@@ -229,25 +229,25 @@ void BrowserWebSocketTransport::connect(std::string_view url) {
   SPDLOG_DEBUG("BrowserWebSocketTransport connected to {}", url_);
 }
 
-ITransport::SendResult BrowserWebSocketTransport::sendText(std::string_view text) {
+INetworkTransport::SendResult BrowserWebSocketTransport::sendText(std::string_view text) {
   tmp_.assign(text.begin(), text.end());
-  auto result = (ITransport::SendResult)js_ws_send((int)(intptr_t)this, tmp_.c_str());
+  auto result = (INetworkTransport::SendResult)js_ws_send((int)(intptr_t)this, tmp_.c_str());
   SPDLOG_TRACE("BrowserWebSocketTransport sendText: {}", text);
-  if (result != ITransport::SendResult::Success) {
+  if (result != INetworkTransport::SendResult::Success) {
     SPDLOG_WARN("BrowserWebSocketTransport sendText failed with error: {}", magic_enum::enum_name(result));
-    return ITransport::SendResult::Error;
+    return INetworkTransport::SendResult::Error;
   }
-  return ITransport::SendResult::Success;
+  return INetworkTransport::SendResult::Success;
 }
 
-ITransport::SendResult BrowserWebSocketTransport::sendBinary(const std::vector<uint8_t>& data) {
-  auto result = (ITransport::SendResult)js_ws_send_binary((int)(intptr_t)this, (uint8_t*)data.data(), data.size());
+INetworkTransport::SendResult BrowserWebSocketTransport::sendBinary(const std::vector<uint8_t>& data) {
+  auto result = (INetworkTransport::SendResult)js_ws_send_binary((int)(intptr_t)this, (uint8_t*)data.data(), data.size());
   SPDLOG_TRACE("BrowserWebSocketTransport sendBinary: size={}", data.size());
-  if (result != ITransport::SendResult::Success) {
+  if (result != INetworkTransport::SendResult::Success) {
     SPDLOG_WARN("BrowserWebSocketTransport sendBinary failed with error: {}", magic_enum::enum_name(result));
-    return ITransport::SendResult::Error;
+    return INetworkTransport::SendResult::Error;
   }
-  return ITransport::SendResult::Success;
+  return INetworkTransport::SendResult::Success;
 }
 
 // Ask to close. Callbacks are still allowed. Object is alive.

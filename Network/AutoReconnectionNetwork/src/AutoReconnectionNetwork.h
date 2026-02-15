@@ -31,5 +31,5 @@ class AutoReconnectionNetwork : public IAutoReconnectionNetwork {
   void setStateAndNotify_(State newState);
   void pollNetworkEvents_();
   void drainOutboundEventQueue_();
-  std::unique_ptr<IDoubleQueueNetwork> networkManager_;
+  std::unique_ptr<IDoubleQueueNetwork> doubleQueueNetwork_;
 };

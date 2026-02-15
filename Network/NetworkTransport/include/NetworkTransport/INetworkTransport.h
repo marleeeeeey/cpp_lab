@@ -3,14 +3,14 @@
 #include <memory>
 #include <string_view>
 
-class ITransport {
+class INetworkTransport {
  public:
   // ------------
   // Factory
   // ------------
 
-  static std::unique_ptr<ITransport> create();
-  virtual ~ITransport() = default;
+  static std::unique_ptr<INetworkTransport> create();
+  virtual ~INetworkTransport() = default;
 
   // ------------
   // Signatures

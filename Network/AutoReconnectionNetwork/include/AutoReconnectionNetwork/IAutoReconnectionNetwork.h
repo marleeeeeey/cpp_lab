@@ -1,10 +1,16 @@
 #pragma once
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <string_view>
 
+// Add reconnection logic to the underlying transport layer (to "DoubleQueueNetwork")
 class IAutoReconnectionNetwork {
  public:
+  // ---------------------
+  // Signatures and Types
+  // ---------------------
+
   using OnTextMessageReceived = std::function<void(std::string_view)>;
   using OnBinaryMessageReceived = std::function<void(std::vector<uint8_t>)>;  // TODO: use span here?
 
@@ -14,8 +20,18 @@ class IAutoReconnectionNetwork {
 
   using StateChangedCallback = std::function<void(State)>;
 
+  // ---------
+  // Factory
+  // ---------
+
+  static std::unique_ptr<IAutoReconnectionNetwork> create();
+
   // Gracefully stop connection on destruction
   virtual ~IAutoReconnectionNetwork() = default;
+
+  // -------------
+  // Interface
+  // -------------
 
   // Replacement for the constructor
   virtual void init(std::string_view url,

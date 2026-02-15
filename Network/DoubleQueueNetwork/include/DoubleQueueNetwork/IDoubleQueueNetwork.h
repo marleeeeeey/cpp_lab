@@ -1,33 +1,39 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
-
-// ------------------------
-// NetEvent
-// ------------------------
-
-struct NetEvent {
-  enum class Type { Connected,
-                    Disconnected,
-                    TextMessage,
-                    BinaryMessage,
-                    Error };
-  Type type;
-  std::string textPayload;
-  std::vector<uint8_t> binaryPayload;
-};
-
-// ------------------------
-// IDoubleQueueNetwork
-// ------------------------
 
 // IDoubleQueueNetwork adds poll method, inbound and outbound queues
 // on top of the underlying transport layer.
 class IDoubleQueueNetwork {
  public:
+  // ----------------
+  // Factory
+  // ----------------
+
+  static std::unique_ptr<IDoubleQueueNetwork> create();
   virtual ~IDoubleQueueNetwork() = default;
+
+  // ----------
+  // NetEvent
+  // ----------
+
+  struct NetEvent {
+    enum class Type { Connected,
+                      Disconnected,
+                      TextMessage,
+                      BinaryMessage,
+                      Error };
+    Type type;
+    std::string textPayload;
+    std::vector<uint8_t> binaryPayload;
+  };
+
+  // ----------------
+  // Interface
+  // ----------------
 
   // Starts network thread (non-blocking)
   virtual void start(std::string_view url) = 0;

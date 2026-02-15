@@ -4,7 +4,7 @@
 
 add_library(AutoReconnectionNetwork
         src/AutoReconnectionNetwork.cpp
-        src/AutoReconnectionNetworkFactory.cpp
+        src/IAutoReconnectionNetwork.cpp
         src/ReconnectPolicy.cpp
 )
 

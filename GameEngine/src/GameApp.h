@@ -16,7 +16,7 @@
 // Forward declarations
 // ------------------------------------
 
-class ITransport;
+class INetworkTransport;
 
 // -----------------------------
 // The main application object.

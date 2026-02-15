@@ -1,11 +1,11 @@
-#include <NetworkTransport/ITransport.h>
+#include <NetworkTransport/INetworkTransport.h>
 #include <spdlog/spdlog.h>
 
 #include <chrono>
 #include <cxxopts.hpp>
 #include <future>
 
-std::shared_ptr<ITransport> globalTransport;
+std::shared_ptr<INetworkTransport> globalTransport;
 
 int main(int argc, char** argv) {
   // -------------------
@@ -30,8 +30,8 @@ int main(int argc, char** argv) {
   // ---------------------------------------
   // Get transport interface
   // ---------------------------------------
-  globalTransport = ITransport::create();
-  std::weak_ptr<ITransport> weak = globalTransport;
+  globalTransport = INetworkTransport::create();
+  std::weak_ptr<INetworkTransport> weak = globalTransport;
 
   // ---------------------------------------
   // Initiate connection and message loop

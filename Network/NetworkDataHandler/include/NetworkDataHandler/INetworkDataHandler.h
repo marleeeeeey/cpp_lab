@@ -8,11 +8,16 @@
 
 class INetworkDataHandler {
  public:
-  // Factory method to create an instance
-  static std::unique_ptr<INetworkDataHandler> create();
+  // ------------
+  // Factory
+  // ------------
 
-  // Virtual destructor
+  static std::unique_ptr<INetworkDataHandler> create();
   virtual ~INetworkDataHandler() = default;
+
+  // -----------------------
+  // Signatures and Types
+  // -----------------------
 
   // Type signature
   using MessageType = uint16_t;
@@ -20,6 +25,10 @@ class INetworkDataHandler {
   // Callback signature
   using OnBinaryMessageCallback = std::function<void(const MessageType type, const std::vector<uint8_t>& payload)>;
   using OnTextMessageCallback = std::function<void(const std::string_view message)>;
+
+  // ------------
+  // Interface
+  // ------------
 
   // Register a callback for a binary with specific message type
   virtual void registerCallbackForBinaryMessageWithType(MessageType type, OnBinaryMessageCallback callback) = 0;

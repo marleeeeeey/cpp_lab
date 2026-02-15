@@ -3,8 +3,8 @@
 # -----------------------------------------------------
 
 add_library(DoubleQueueNetwork
+        src/IDoubleQueueNetwork.cpp
         src/DoubleQueueNetwork.cpp
-        src/DoubleQueueNetworkFactory.cpp
         src/CanUseThreads.cpp
 )
 
@@ -23,7 +23,10 @@ target_include_directories(DoubleQueueNetwork
 # -----------------------------------------------------
 
 target_link_libraries(DoubleQueueNetwork PRIVATE
+        # User libraries
         NetworkTransport
+
+        # 3rd_party libraries
         spdlog::spdlog
         concurrentqueue
         magic_enum::magic_enum

@@ -4,9 +4,9 @@
 
 #include <string>
 
-#include "NetworkTransport/ITransport.h"
+#include "NetworkTransport/INetworkTransport.h"
 
-class BrowserWebSocketTransport final : public ITransport {
+class BrowserWebSocketTransport final : public INetworkTransport {
  public:
   ~BrowserWebSocketTransport() override;
 

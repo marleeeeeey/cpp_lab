@@ -7,7 +7,6 @@
 
 #include <cxxopts.hpp>
 
-#include "AutoReconnectionNetwork/AutoReconnectionNetworkFactory.h"
 #include "ChatDataForRendering.h"
 #include "GameMessageTypes/GameMessageTypes.h"
 #include "Profiler/Profiler.h"
@@ -61,7 +60,7 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
         SPDLOG_INFO("Message type {} received: {}", type, receivedNumber);
       });
 
-  autoReconnectionNetwork_ = AutoReconnectionNetworkFactory::create();
+  autoReconnectionNetwork_ = IAutoReconnectionNetwork::create();
   autoReconnectionNetwork_->init(
       appOptions_.url,
       [this](std::string_view textMessage) {

@@ -11,7 +11,7 @@
 // Forward declarations
 // ---------------------
 
-class ITransport;
+class INetworkTransport;
 
 // ------------------------
 // DoubleQueueNetwork
@@ -42,7 +42,7 @@ class DoubleQueueNetwork : public IDoubleQueueNetwork {
 
   std::atomic_bool running_{false};
   std::atomic_bool connected_{false};
-  std::shared_ptr<ITransport> networkTransport_;
+  std::shared_ptr<INetworkTransport> networkTransport_;
   moodycamel::ConcurrentQueue<NetEvent> inboundEventQueue_;
 
   // ----------------------------------

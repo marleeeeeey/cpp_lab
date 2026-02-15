@@ -93,7 +93,7 @@ void DesktopWebSocketTransport::connect(std::string_view url) {
 
 // Almost always is non-blocking. It may be blocking if you're trying to send
 // a message from several threads.
-ITransport::SendResult DesktopWebSocketTransport::sendText(std::string_view text) {
+INetworkTransport::SendResult DesktopWebSocketTransport::sendText(std::string_view text) {
   // ixwebsocket copies data internally; safe to pass a temporary std::string.
   SPDLOG_TRACE("sendText: {}", text);
   ix::WebSocketSendInfo result = ws_.sendText(std::string(text));
@@ -104,7 +104,7 @@ ITransport::SendResult DesktopWebSocketTransport::sendText(std::string_view text
   return SendResult::Success;
 }
 
-ITransport::SendResult DesktopWebSocketTransport::sendBinary(const std::vector<uint8_t>& data) {
+INetworkTransport::SendResult DesktopWebSocketTransport::sendBinary(const std::vector<uint8_t>& data) {
   // ixwebsocket copies data internally; safe to pass a temporary std::string.
   SPDLOG_TRACE("sendText: size={}", data.size());
   ix::WebSocketSendInfo result = ws_.sendBinary(data);

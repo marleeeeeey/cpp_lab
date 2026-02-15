@@ -5,9 +5,9 @@
 #include <mutex>
 #include <string>
 
-#include "NetworkTransport/ITransport.h"
+#include "NetworkTransport/INetworkTransport.h"
 
-class DesktopWebSocketTransport final : public ITransport {
+class DesktopWebSocketTransport final : public INetworkTransport {
  public:
   DesktopWebSocketTransport();
   ~DesktopWebSocketTransport() override;

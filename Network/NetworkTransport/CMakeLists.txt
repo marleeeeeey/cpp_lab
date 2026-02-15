@@ -3,7 +3,7 @@
 # -----------------------------------------------------
 
 add_library(NetworkTransport
-        src/ITransport.cpp
+        src/INetworkTransport.cpp
 )
 
 if (EMSCRIPTEN)
