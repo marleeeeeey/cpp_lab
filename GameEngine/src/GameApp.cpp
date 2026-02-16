@@ -289,7 +289,6 @@ void GameApp::renderFrame_(GameDataForRendering gameDataForRendering) {
     sceneRenderer_.renderChatWindow(chatDataForRendering_, [this](const std::string& message) {
       std::vector<uint8_t> payload(message.begin(), message.end());
       autoReconnectionNetwork_->sendBinary(payload);
-      autoReconnectionNetwork_->sendText(message);  // TODO: second sending as a text. Remove it later.
     });
     ImGui::Render();
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer_);  // render the GUI

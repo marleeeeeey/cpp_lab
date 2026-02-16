@@ -81,11 +81,7 @@ int main(int argc, char** argv) {
          PerSocketData* perSocketData = (PerSocketData*)ws->getUserData();
          ws->subscribe(state->getBroadcastTopicName());
          SPDLOG_INFO("ws.open");
-         state->incrementNumberOfClients();
-         ws->send("Welcome to the server! "
-           "Message will be duplicated in this version "
-           "to send them via Text and via Binary for testing!",
-           uWS::OpCode::TEXT); },
+         state->incrementNumberOfClients(); },
 
        // ---------
        // Message
