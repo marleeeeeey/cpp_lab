@@ -3,6 +3,10 @@
 #include <memory>
 #include <string_view>
 
+// Interface for network transport layer.
+// Currently, it has implementations for WebSocket: desktop and browser.
+// Implementation depends on the build configuration (__EMSCRIPTEN__ flag).
+// Supports binary data and text messages.
 class INetworkTransport {
  public:
   // ------------

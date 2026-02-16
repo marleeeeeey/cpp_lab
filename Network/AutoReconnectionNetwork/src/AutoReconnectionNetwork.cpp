@@ -43,11 +43,11 @@ void AutoReconnectionNetwork::iterate() {
   }
 }
 
-void AutoReconnectionNetwork::send(std::string_view data) {
+void AutoReconnectionNetwork::sendText(std::string_view data) {
   doubleQueueNetwork_->send(data);
 }
 
-void AutoReconnectionNetwork::send(std::vector<uint8_t> data) {
+void AutoReconnectionNetwork::sendBinary(std::vector<uint8_t> data) {
   doubleQueueNetwork_->send(data);
 }
 

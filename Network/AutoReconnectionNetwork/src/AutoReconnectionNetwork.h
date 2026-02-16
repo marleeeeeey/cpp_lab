@@ -16,8 +16,8 @@ class AutoReconnectionNetwork : public IAutoReconnectionNetwork {
   void start() override;
   void stop() override;
   void iterate() override;
-  void send(std::string_view data) override;
-  void send(std::vector<uint8_t> data) override;
+  void sendText(std::string_view data) override;
+  void sendBinary(std::vector<uint8_t> data) override;
   State getState() const override;
 
  private:

@@ -6,6 +6,11 @@
 #include <string_view>
 #include <vector>
 
+// Interface for
+// 1. Adding MessageType to every binary message.
+// 2. Registering callbacks for specific message types.
+// Also support similar functionality for text messages but without Message Types.
+// For text messages only one callback can be registered.
 class INetworkDataHandler {
  public:
   // ------------

@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <string_view>
+#include <vector>
 
 // Add reconnection logic to the underlying transport layer (to "DoubleQueueNetwork")
 class IAutoReconnectionNetwork {
@@ -12,7 +13,7 @@ class IAutoReconnectionNetwork {
   // ---------------------
 
   using OnTextMessageReceived = std::function<void(std::string_view)>;
-  using OnBinaryMessageReceived = std::function<void(std::vector<uint8_t>)>;  // TODO: use span here?
+  using OnBinaryMessageReceived = std::function<void(std::vector<uint8_t>)>;
 
   enum class State { Disconnected,
                      Connecting,
@@ -49,10 +50,10 @@ class IAutoReconnectionNetwork {
   virtual void iterate() = 0;
 
   // Send data
-  virtual void send(std::string_view data) = 0;  // TODO: rename to sendText
+  virtual void sendText(std::string_view data) = 0;
 
   // Send data
-  virtual void send(std::vector<uint8_t> data) = 0;  // TODO: rename to sendBinary
+  virtual void sendBinary(std::vector<uint8_t> data) = 0;
 
   // Get current state
   virtual State getState() const = 0;
