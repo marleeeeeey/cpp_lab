@@ -1,0 +1,7 @@
+namespace SerializationProtocol;
+
+table Player {
+  name:string;
+}
+
+root_type Player;
