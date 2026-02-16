@@ -1,6 +1,7 @@
 #include "HumanHash.h"
 
 #include <array>
+#include <cstdint>
 
 namespace {
 
