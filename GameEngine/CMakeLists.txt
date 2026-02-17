@@ -21,6 +21,7 @@ target_link_libraries(GameEngine PRIVATE
         AutoReconnectionNetwork
         NetworkDataHandler
         GameMessageTypes
+        GameSharedObjects
         Profiler
 
         # 3rd_party libraries

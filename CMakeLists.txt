@@ -56,6 +56,7 @@ add_subdirectory(Network/NetworkDataHandler)
 add_subdirectory(WsConsoleClient)
 add_subdirectory(Profiler)
 add_subdirectory(SerializationProtocol)
+add_subdirectory(GameSharedObjects)
 
 # Disable projects with Asio, OpenSSL and uWebSockets for Emscripten
 if (NOT EMSCRIPTEN)

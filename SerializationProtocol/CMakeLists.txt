@@ -3,7 +3,7 @@
 # ----------
 
 add_library(SerializationProtocol
-        src/SerializationProtocol.cpp
+        src/Player.cpp
 )
 
 # --------------
@@ -12,10 +12,11 @@ add_library(SerializationProtocol
 
 include(${THIRD_PARTY_ROOT}/FlatbuffersHelper.cmake)
 
-# This creates a target 'PlayerFlatbuffer' that you can link to anywhere.
+# This creates a target 'FlatbufferSchemas' that you can link to anywhere.
 # Target allow you #include "Player_generated.h" to work with flatbuffers methods.
-add_flatbuffers_schema(PlayerFlatbuffer
+add_flatbuffers_schema(FlatbufferSchemas
         fbs/Player.fbs
+        fbs/Bullet.fbs
 )
 
 # ----------
@@ -34,7 +35,8 @@ target_include_directories(SerializationProtocol
 
 target_link_libraries(SerializationProtocol PRIVATE
         # User libraries
-        PlayerFlatbuffer
+        FlatbufferSchemas
+        GameSharedObjects
 
         # 3rd_party libraries
         spdlog::spdlog

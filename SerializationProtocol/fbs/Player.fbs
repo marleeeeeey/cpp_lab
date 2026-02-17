@@ -1,7 +1,8 @@
-namespace SerializationProtocol;
+namespace SerializationProtocolFlatbuffer;
 
 table Player {
   name:string;
+  messages_sent:short;
 }
 
 root_type Player;

@@ -1,0 +1,7 @@
+namespace SerializationProtocolFlatbuffer;
+
+table Bullet {
+  speed:short;
+}
+
+root_type Bullet;
