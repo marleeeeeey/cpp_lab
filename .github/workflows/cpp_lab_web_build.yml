@@ -47,7 +47,8 @@ jobs:
           cmake -S cpp_lab -B cpp_lab/build \
             -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
             -GNinja \
-            -D3RD_PARTY_BUILD_EXAMPLES=OFF
+            -D3RD_PARTY_BUILD_EXAMPLES=OFF \
+            -DFLATC_HOST_EXECUTABLE="${{ env.FLATC_HOST_EXECUTABLE }}"
 
       - name: Build GameEngine and Archive Artifacts
         run: cmake --build cpp_lab/build --target GameEngine
