@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 
-std::string TimeUtils::makeTimePrefixHHMMSS(const TimeStamp& timestamp) {
+std::string TimeUtils::timeToStringHHMMSSMS(const TimeStamp& timestamp) {
   using namespace std::chrono;
   const std::time_t tt = system_clock::to_time_t(timestamp);
 
@@ -17,7 +17,11 @@ std::string TimeUtils::makeTimePrefixHHMMSS(const TimeStamp& timestamp) {
   localtime_r(&tt, &tm);
 #endif
 
+  auto ms = duration_cast<milliseconds>(timestamp.time_since_epoch());
+  auto ms_part = ms % 1000;
+
   std::ostringstream oss;
-  oss << std::put_time(&tm, "%H:%M:%S");
+  oss << std::put_time(&tm, "%H:%M:%S") << "."
+      << std::setfill('0') << std::setw(3) << ms_part.count();
   return oss.str();
 }

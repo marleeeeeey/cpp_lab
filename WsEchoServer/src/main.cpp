@@ -102,15 +102,26 @@ int main(int argc, char** argv) {
          }
 
          if (op == uWS::OpCode::BINARY) {
-           ChatMessage echoMessage{
-               .sender = player,
-               .message = std::string(msg),
-               .timestamp = std::chrono::system_clock::now(),  // TODO: write this time stamp on client side
-           };
-           auto payload = SerializationProtocol::serializeChatMessage(echoMessage);
-           auto typedPayload = state->networkDataHandler->prepareBinaryMessage(GMT_ChatMessage, payload);
-           std::string_view messageStringView(reinterpret_cast<const char*>(typedPayload.data()), typedPayload.size());
-           state->app->publish(state->getBroadcastTopicName(), messageStringView, op, false);  // broadcast
+           std::vector<uint8_t> binaryMsg = std::vector<uint8_t>(msg.begin(), msg.end());  // TODO: remove unnecessary copy
+           state->networkDataHandler->parseBinaryMessage(
+               binaryMsg,
+               [&](const INetworkDataHandler::MessageType type, const std::vector<uint8_t>& payload) {
+                 // -------------------
+                 // Repack payload
+                 // -------------------
+
+                 ChatMessage chatMessage = SerializationProtocol::deserializeChatMessage(payload);
+                 chatMessage.sender = player;  // Update sender data. Keep timestamp data and msg the same.
+                 auto replyPayload = SerializationProtocol::serializeChatMessage(chatMessage);
+
+                 // -----------------------------
+                 // Add type to reply and send
+                 // -----------------------------
+
+                 auto typedPayload = state->networkDataHandler->addTypeForBinaryMessage(GMT_ChatMessage, replyPayload);
+                 std::string_view messageStringView(reinterpret_cast<const char*>(typedPayload.data()), typedPayload.size());
+                 state->app->publish(state->getBroadcastTopicName(), messageStringView, op, false);  // broadcast
+               });
          }
 
          SPDLOG_INFO("ws.message. {}: {}. op={}", perSocketData->player.name, msg, magic_enum::enum_name(op)); },

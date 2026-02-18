@@ -11,11 +11,13 @@ class NetworkDataHandler : public INetworkDataHandler {
 
   void registerCallbackForTextMessages(OnTextMessageCallback callback) override;
 
-  std::vector<uint8_t> prepareBinaryMessage(MessageType type, const std::vector<uint8_t>& payload) override;
+  std::vector<uint8_t> addTypeForBinaryMessage(MessageType type, const std::vector<uint8_t>& payload) override;
 
-  void parseBinaryMessage(const std::vector<uint8_t>& message) override;
+  void parseBinaryMessage(const std::vector<uint8_t>& message, OnBinaryMessageCallback callback) override;
 
-  void parseTextMessage(std::string_view message) override;
+  void notifyAboutBinaryMessage(const std::vector<uint8_t>& message) override;
+
+  void notifyAboutTextMessage(std::string_view message) override;
 
  private:
   std::unordered_map<MessageType, OnBinaryMessageCallback> messageCallbacks_;

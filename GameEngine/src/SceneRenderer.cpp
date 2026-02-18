@@ -73,7 +73,7 @@ void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRend
                     false, ImGuiWindowFlags_HorizontalScrollbar);
   for (const auto& chatMessage : chatDataForRendering.getChatHistory()) {
     ImGui::TextWrapped("[%s] %s [%d]: %s",
-                       TimeUtils::makeTimePrefixHHMMSS(chatMessage.timestamp).c_str(),
+                       TimeUtils::timeToStringHHMMSSMS(chatMessage.timestamp).c_str(),
                        chatMessage.sender.name.c_str(),
                        chatMessage.sender.messagesSent,
                        chatMessage.message.c_str());

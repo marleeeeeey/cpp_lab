@@ -241,11 +241,11 @@ void GameApp::initNetworkHandlers_() {
       appOptions_.url,
       [this](std::string_view textMessage) {
         SPDLOG_TRACE("Received text message: {}", textMessage);
-        networkDataHandler_->parseTextMessage(textMessage);
+        networkDataHandler_->notifyAboutTextMessage(textMessage);
       },
       [this](std::vector<uint8_t> binaryMessage) {
         SPDLOG_TRACE("Received binary message");
-        networkDataHandler_->parseBinaryMessage(binaryMessage);
+        networkDataHandler_->notifyAboutBinaryMessage(binaryMessage);
       },
       [this](IAutoReconnectionNetwork::State newState) {
         chatDataForRendering_.connectionStatus = magic_enum::enum_name(newState);
@@ -300,7 +300,16 @@ void GameApp::renderFrame_(GameDataForRendering gameDataForRendering) {
     // -----------------------
     sceneRenderer_.renderGameObjects(gameDataForRendering);
     sceneRenderer_.renderChatWindow(chatDataForRendering_, [this](const std::string& message) {
-      std::vector<uint8_t> payload(message.begin(), message.end());
+      ChatMessage chatMessage{
+          // .sender - use default value. We don't need to send sender info. It will be updated on server.
+          .message = message,
+          .timestamp = std::chrono::system_clock::now(),
+      };
+
+      // TODO: think how to improve interface and did both operations in one call and memory allocation
+      auto payload = SerializationProtocol::serializeChatMessage(chatMessage);
+      payload = networkDataHandler_->addTypeForBinaryMessage(GMT_ChatMessage, payload);
+
       autoReconnectionNetwork_->sendBinary(payload);
     });
     ImGui::Render();

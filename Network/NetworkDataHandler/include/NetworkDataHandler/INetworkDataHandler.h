@@ -42,11 +42,16 @@ class INetworkDataHandler {
   virtual void registerCallbackForTextMessages(OnTextMessageCallback callback) = 0;
 
   // Prepare a message for sending
-  virtual std::vector<uint8_t> prepareBinaryMessage(MessageType type, const std::vector<uint8_t>& payload) = 0;
+  virtual std::vector<uint8_t> addTypeForBinaryMessage(MessageType type, const std::vector<uint8_t>& payload) = 0;
+
+  // Parse message and call mentioned callback. May be used in-place.
+  // Callback registration is not needed.
+  virtual void parseBinaryMessage(const std::vector<uint8_t>& message, OnBinaryMessageCallback callback) = 0;
 
   // Parse message and call registered callback
-  virtual void parseBinaryMessage(const std::vector<uint8_t>& message) = 0;
+  virtual void notifyAboutBinaryMessage(const std::vector<uint8_t>& message) = 0;
 
-  // Parse text message. No MessageType required
-  virtual void parseTextMessage(std::string_view message) = 0;
+  // Parse a text message and call a registered callback.
+  // Only one callback is used for all text messages. No message type is needed.
+  virtual void notifyAboutTextMessage(std::string_view message) = 0;
 };

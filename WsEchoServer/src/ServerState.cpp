@@ -30,7 +30,7 @@ void ServerState::broadcastNumberClients_() {
   std::memcpy(payload.data(), &numberOfClients_, sizeof(numberOfClients_));
 
   // add a message type to the payload
-  std::vector<uint8_t> message = networkDataHandler->prepareBinaryMessage(GMT_NumberOfClients, payload);
+  std::vector<uint8_t> message = networkDataHandler->addTypeForBinaryMessage(GMT_NumberOfClients, payload);
 
   // anyway std::string_view is needed even to send binary data
   std::string_view messageStringView(reinterpret_cast<const char*>(message.data()), message.size());
