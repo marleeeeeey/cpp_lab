@@ -3,8 +3,7 @@
 # ----------
 
 add_library(SerializationProtocol
-        src/Player.cpp
-        src/ChatMessage.cpp
+        src/SerializationProtocol.cpp
 )
 
 # --------------

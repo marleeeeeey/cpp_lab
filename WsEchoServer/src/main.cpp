@@ -14,7 +14,7 @@
 #include "HumanHash.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
 #include "PerSocketData.h"
-#include "SerializationProtocol/ChatMessage.h"
+#include "SerializationProtocol/SerializationProtocol.h"
 #include "ServerState.h"
 #include "WsCloseCodeToText.h"
 

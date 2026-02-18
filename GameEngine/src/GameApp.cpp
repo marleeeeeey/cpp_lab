@@ -11,7 +11,7 @@
 #include "GameMessageTypes/GameMessageTypes.h"
 #include "GameSharedObjects/ChatMessage.h"
 #include "Profiler/Profiler.h"
-#include "SerializationProtocol/ChatMessage.h"
+#include "SerializationProtocol/SerializationProtocol.h"
 #include "magic_enum/magic_enum.hpp"
 
 // ------------------
