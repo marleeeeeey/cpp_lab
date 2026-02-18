@@ -5,6 +5,7 @@ namespace SerializationProtocolFlatbuffer;
 table ChatMessage {
   sender:Player;
   message:string;
+  timestamp:ulong; // Ms count since epoch begins
 }
 
 root_type ChatMessage;

@@ -9,6 +9,7 @@ add_executable(GameEngine
         src/SceneRenderer.cpp
         src/UserInputManger.cpp
         src/ChatDataForRendering.cpp
+        src/TimeUtils.cpp
 )
 
 

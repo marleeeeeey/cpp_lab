@@ -7,6 +7,7 @@
 
 #include "ChatDataForRendering.h"
 #include "GameDataForRendering.h"
+#include "TimeUtils.h"
 
 void SceneRenderer::setRenderer(SDL_Renderer* renderer) {
   assert(renderer);
@@ -71,7 +72,8 @@ void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRend
   ImGui::BeginChild("ScrollingRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()),
                     false, ImGuiWindowFlags_HorizontalScrollbar);
   for (const auto& chatMessage : chatDataForRendering.getChatHistory()) {
-    ImGui::TextWrapped("%s [%d]: %s",
+    ImGui::TextWrapped("[%s] %s [%d]: %s",
+                       TimeUtils::makeTimePrefixHHMMSS(chatMessage.timestamp).c_str(),
                        chatMessage.sender.name.c_str(),
                        chatMessage.sender.messagesSent,
                        chatMessage.message.c_str());

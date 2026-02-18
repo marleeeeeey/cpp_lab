@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
   spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
 
   // Uncomment the next line for Debug
-  spdlog::set_level(spdlog::level::trace);
+  // spdlog::set_level(spdlog::level::trace);
 
   SPDLOG_INFO("");
   SPDLOG_INFO("---------------------------");
@@ -104,7 +104,9 @@ int main(int argc, char** argv) {
          if (op == uWS::OpCode::BINARY) {
            ChatMessage echoMessage{
                .sender = player,
-               .message = std::string(msg)};
+               .message = std::string(msg),
+               .timestamp = std::chrono::system_clock::now(),  // TODO: write this time stamp on client side
+           };
            auto payload = SerializationProtocol::serializeChatMessage(echoMessage);
            auto typedPayload = state->networkDataHandler->prepareBinaryMessage(GMT_ChatMessage, payload);
            std::string_view messageStringView(reinterpret_cast<const char*>(typedPayload.data()), typedPayload.size());

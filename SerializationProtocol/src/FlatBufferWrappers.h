@@ -1,5 +1,7 @@
 #pragma once
 
+#include <spdlog/spdlog.h>
+
 #include "ChatMessage_generated.h"
 #include "GameSharedObjects/ChatMessage.h"
 #include "GameSharedObjects/Player.h"
@@ -31,7 +33,13 @@ Player deserialize(const SerializationProtocolFlatbuffer::Player* fbPlayer) {
 auto serialize(flatbuffers::FlatBufferBuilder& builder, const ChatMessage& chatMessage) {
   auto fbPlayer = serialize(builder, chatMessage.sender);
   auto message = builder.CreateString(chatMessage.message);
-  auto fbChatMessage = SerializationProtocolFlatbuffer::CreateChatMessage(builder, fbPlayer, message);
+  auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                       chatMessage.timestamp.time_since_epoch())
+                       .count();
+
+  auto fbChatMessage = SerializationProtocolFlatbuffer::CreateChatMessage(
+      builder, fbPlayer, message, timestamp);
+
   return fbChatMessage;
 }
 
@@ -39,6 +47,9 @@ ChatMessage deserialize(const SerializationProtocolFlatbuffer::ChatMessage* fbCh
   ChatMessage chatMessage;
   chatMessage.sender = deserialize(fbChatMessage->sender());
   chatMessage.message = fbChatMessage->message()->str();
+  chatMessage.timestamp = std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds>(
+      std::chrono::milliseconds(fbChatMessage->timestamp()));
+
   return chatMessage;
 }
 

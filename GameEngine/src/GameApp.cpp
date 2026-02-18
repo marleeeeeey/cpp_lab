@@ -20,7 +20,7 @@
 
 SDL_AppResult GameApp::init(int argc, char* argv[]) {
   // Uncomment the next line for Debug
-  spdlog::set_level(spdlog::level::trace);
+  // spdlog::set_level(spdlog::level::trace);
 
   initTracyProfiler_();
   initOptions_(argc, argv);
@@ -210,6 +210,7 @@ void GameApp::initNetworkHandlers_() {
                 .messagesSent = 0,
             },
             .message = std::string(textMessage),
+            .timestamp = {},
         };
         chatDataForRendering_.addMessage(chatMessage);
         SPDLOG_INFO("Text Message received: {}", chatMessage.message);
@@ -220,7 +221,7 @@ void GameApp::initNetworkHandlers_() {
       [this](const auto type, const std::vector<uint8_t>& payload) {
         auto newChatMessage = SerializationProtocol::deserializeChatMessage(payload);
         chatDataForRendering_.addMessage(newChatMessage);
-        SPDLOG_INFO("Message type {} received: {}", type, newChatMessage.message);
+        SPDLOG_TRACE("Message type {} received: {}", type, newChatMessage.message);
       });
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
@@ -232,18 +233,18 @@ void GameApp::initNetworkHandlers_() {
 
         // set and log
         chatDataForRendering_.numberOfConnectedUsers = receivedNumber;
-        SPDLOG_INFO("Message type {} received: {}", type, receivedNumber);
+        SPDLOG_TRACE("Message type {} received: {}", type, receivedNumber);
       });
 
   autoReconnectionNetwork_ = IAutoReconnectionNetwork::create();
   autoReconnectionNetwork_->init(
       appOptions_.url,
       [this](std::string_view textMessage) {
-        SPDLOG_WARN("Received text message: {}", textMessage);
+        SPDLOG_TRACE("Received text message: {}", textMessage);
         networkDataHandler_->parseTextMessage(textMessage);
       },
       [this](std::vector<uint8_t> binaryMessage) {
-        SPDLOG_WARN("Received binary message");
+        SPDLOG_TRACE("Received binary message");
         networkDataHandler_->parseBinaryMessage(binaryMessage);
       },
       [this](IAutoReconnectionNetwork::State newState) {
