@@ -27,10 +27,10 @@ std::string makeTimePrefixHHMMSS() {
 }
 }  // namespace
 
-void ChatDataForRendering::addMessage(const std::string& message) {
-  chatHistory_.push_back(makeTimePrefixHHMMSS() + message);
+void ChatDataForRendering::addMessage(const ChatMessage& message) {
+  chatHistory_.push_back(message);  // TODO return back makeTimePrefixHHMMSS
 }
 
-const std::vector<std::string>& ChatDataForRendering::getChatHistory() const {
+const std::vector<ChatMessage>& ChatDataForRendering::getChatHistory() const {
   return chatHistory_;
 }

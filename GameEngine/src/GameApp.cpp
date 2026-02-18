@@ -9,7 +9,9 @@
 
 #include "ChatDataForRendering.h"
 #include "GameMessageTypes/GameMessageTypes.h"
+#include "GameSharedObjects/ChatMessage.h"
 #include "Profiler/Profiler.h"
+#include "SerializationProtocol/ChatMessage.h"
 #include "magic_enum/magic_enum.hpp"
 
 // ------------------
@@ -31,50 +33,7 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
 
   initGameWorld_();
 
-  networkDataHandler_ = INetworkDataHandler::create();
-
-  networkDataHandler_->registerCallbackForTextMessages(
-      [this](std::string_view textMessage) {
-        std::string decodedMessage(textMessage);
-        chatDataForRendering_.addMessage(decodedMessage);
-        SPDLOG_INFO("Text Message received: {}", decodedMessage);
-      });
-
-  networkDataHandler_->registerCallbackForBinaryMessageWithType(
-      GMT_TextMessage,
-      [this](const auto type, const std::vector<uint8_t>& payload) {
-        std::string decodedMessage(payload.begin(), payload.end());
-        chatDataForRendering_.addMessage(decodedMessage);
-        SPDLOG_INFO("Message type {} received: {}", type, decodedMessage);
-      });
-
-  networkDataHandler_->registerCallbackForBinaryMessageWithType(
-      GMT_NumberOfClients,
-      [this](const auto type, const std::vector<uint8_t>& payload) {
-        // unpack number of users
-        int receivedNumber = 0;
-        std::memcpy(&receivedNumber, payload.data(), sizeof(receivedNumber));
-
-        // set and log
-        chatDataForRendering_.numberOfConnectedUsers = receivedNumber;
-        SPDLOG_INFO("Message type {} received: {}", type, receivedNumber);
-      });
-
-  autoReconnectionNetwork_ = IAutoReconnectionNetwork::create();
-  autoReconnectionNetwork_->init(
-      appOptions_.url,
-      [this](std::string_view textMessage) {
-        SPDLOG_WARN("Received text message: {}", textMessage);
-        networkDataHandler_->parseTextMessage(textMessage);
-      },
-      [this](std::vector<uint8_t> binaryMessage) {
-        SPDLOG_WARN("Received binary message");
-        networkDataHandler_->parseBinaryMessage(binaryMessage);
-      },
-      [this](IAutoReconnectionNetwork::State newState) {
-        chatDataForRendering_.connectionStatus = magic_enum::enum_name(newState);
-      });
-  autoReconnectionNetwork_->start();
+  initNetworkHandlers_();
 
   beginFrameTime_ = SDL_GetTicks();
 
@@ -238,6 +197,59 @@ void GameApp::initRenderer_() {
 void GameApp::initGameWorld_() {
   gameWorld_.init(windowWidth_, windowHeight_);
   onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
+}
+
+void GameApp::initNetworkHandlers_() {
+  networkDataHandler_ = INetworkDataHandler::create();
+
+  networkDataHandler_->registerCallbackForTextMessages(
+      [this](std::string_view textMessage) {
+        ChatMessage chatMessage{
+            .sender = Player{
+                .name = "Anonymous",
+                .messagesSent = 0,
+            },
+            .message = std::string(textMessage),
+        };
+        chatDataForRendering_.addMessage(chatMessage);
+        SPDLOG_INFO("Text Message received: {}", chatMessage.message);
+      });
+
+  networkDataHandler_->registerCallbackForBinaryMessageWithType(
+      GMT_ChatMessage,
+      [this](const auto type, const std::vector<uint8_t>& payload) {
+        auto newChatMessage = SerializationProtocol::deserializeChatMessage(payload);
+        chatDataForRendering_.addMessage(newChatMessage);
+        SPDLOG_INFO("Message type {} received: {}", type, newChatMessage.message);
+      });
+
+  networkDataHandler_->registerCallbackForBinaryMessageWithType(
+      GMT_NumberOfClients,
+      [this](const auto type, const std::vector<uint8_t>& payload) {
+        // unpack number of users
+        int receivedNumber = 0;
+        std::memcpy(&receivedNumber, payload.data(), sizeof(receivedNumber));
+
+        // set and log
+        chatDataForRendering_.numberOfConnectedUsers = receivedNumber;
+        SPDLOG_INFO("Message type {} received: {}", type, receivedNumber);
+      });
+
+  autoReconnectionNetwork_ = IAutoReconnectionNetwork::create();
+  autoReconnectionNetwork_->init(
+      appOptions_.url,
+      [this](std::string_view textMessage) {
+        SPDLOG_WARN("Received text message: {}", textMessage);
+        networkDataHandler_->parseTextMessage(textMessage);
+      },
+      [this](std::vector<uint8_t> binaryMessage) {
+        SPDLOG_WARN("Received binary message");
+        networkDataHandler_->parseBinaryMessage(binaryMessage);
+      },
+      [this](IAutoReconnectionNetwork::State newState) {
+        chatDataForRendering_.connectionStatus = magic_enum::enum_name(newState);
+      });
+  autoReconnectionNetwork_->start();
 }
 
 // ---------------------

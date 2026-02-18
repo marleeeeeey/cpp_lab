@@ -1,0 +1,10 @@
+include "Player.fbs";
+
+namespace SerializationProtocolFlatbuffer;
+
+table ChatMessage {
+  sender:Player;
+  message:string;
+}
+
+root_type ChatMessage;

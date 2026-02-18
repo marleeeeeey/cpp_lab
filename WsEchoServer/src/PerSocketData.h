@@ -1,7 +1,9 @@
 #pragma once
 
+#include "GameSharedObjects/Player.h"
+
 // User data per socket
 struct PerSocketData {
-  std::string name;
+  Player player;
   std::string clientIp;
 };

@@ -3,14 +3,16 @@
 #include <string>
 #include <vector>
 
+#include "GameSharedObjects/ChatMessage.h"
+
 class ChatDataForRendering {
  public:
   std::string connectionStatus;
   int numberOfConnectedUsers{0};
 
-  void addMessage(const std::string& message);
-  const std::vector<std::string>& getChatHistory() const;
+  void addMessage(const ChatMessage& message);
+  const std::vector<ChatMessage>& getChatHistory() const;
 
  private:
-  std::vector<std::string> chatHistory_;
+  std::vector<ChatMessage> chatHistory_;
 };

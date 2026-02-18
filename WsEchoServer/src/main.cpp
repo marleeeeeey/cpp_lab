@@ -9,10 +9,12 @@
 
 #include "CommandLineParser.h"
 #include "GameMessageTypes/GameMessageTypes.h"
+#include "GameSharedObjects/ChatMessage.h"
 #include "GetClientIpText.h"
 #include "HumanHash.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
 #include "PerSocketData.h"
+#include "SerializationProtocol/ChatMessage.h"
 #include "ServerState.h"
 #include "WsCloseCodeToText.h"
 
@@ -64,8 +66,8 @@ int main(int argc, char** argv) {
 
          // Create and move PerSocketData to .open method
          PerSocketData perSocketData;
+         perSocketData.player.name = humanName;
          perSocketData.clientIp = clientAddr;
-         perSocketData.name = humanName;
          response->upgrade<PerSocketData>(
            std::move(perSocketData),
            request->getHeader("sec-websocket-key"),         // required
@@ -89,20 +91,27 @@ int main(int argc, char** argv) {
 
        .message = [state](auto* ws, std::string_view msg, uWS::OpCode op) {
          PerSocketData* perSocketData = (PerSocketData*)ws->getUserData();
-         std::string personWithMessage = perSocketData->name + ": " + std::string(msg);
+         auto& player = perSocketData->player;
+
+         // Update message count
+         player.messagesSent++;
 
          if (op == uWS::OpCode::TEXT) {
+           std::string personWithMessage = player.name + ": " + std::string(msg);
            state->app->publish(state->getBroadcastTopicName(), personWithMessage, op, false);
          }
 
          if (op == uWS::OpCode::BINARY) {
-           auto payload = std::vector<uint8_t>(personWithMessage.begin(), personWithMessage.end());
-           auto message = state->networkDataHandler->prepareBinaryMessage(GMT_TextMessage, payload);
-           std::string_view messageStringView(reinterpret_cast<const char*>(message.data()), message.size());
+           ChatMessage echoMessage{
+               .sender = player,
+               .message = std::string(msg)};
+           auto payload = SerializationProtocol::serializeChatMessage(echoMessage);
+           auto typedPayload = state->networkDataHandler->prepareBinaryMessage(GMT_ChatMessage, payload);
+           std::string_view messageStringView(reinterpret_cast<const char*>(typedPayload.data()), typedPayload.size());
            state->app->publish(state->getBroadcastTopicName(), messageStringView, op, false);  // broadcast
          }
 
-         SPDLOG_INFO("ws.message. {}. op={}", personWithMessage, magic_enum::enum_name(op)); },
+         SPDLOG_INFO("ws.message. {}: {}. op={}", perSocketData->player.name, msg, magic_enum::enum_name(op)); },
 
        // ---------
        // Close
@@ -112,7 +121,7 @@ int main(int argc, char** argv) {
          PerSocketData *perSocketData = (PerSocketData *) ws->getUserData();
          msg = msg.empty() ? wsCloseCodeToText(code) : msg;
          SPDLOG_INFO("ws.close. ip={}, name={}, code={}, msg={}",
-           perSocketData->clientIp, perSocketData->name, code, msg);
+                     perSocketData->clientIp, perSocketData->player.name, code, msg);
          state->decrementNumberOfClients(); }});
 
   // -----------------

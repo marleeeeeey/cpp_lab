@@ -4,6 +4,7 @@
 
 add_library(SerializationProtocol
         src/Player.cpp
+        src/ChatMessage.cpp
 )
 
 # --------------
@@ -17,6 +18,7 @@ include(${THIRD_PARTY_ROOT}/FlatbuffersHelper.cmake)
 add_flatbuffers_schema(FlatbufferSchemas
         fbs/Player.fbs
         fbs/Bullet.fbs
+        fbs/ChatMessage.fbs
 )
 
 # ----------

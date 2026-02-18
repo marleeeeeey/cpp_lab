@@ -70,8 +70,11 @@ void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRend
 
   ImGui::BeginChild("ScrollingRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()),
                     false, ImGuiWindowFlags_HorizontalScrollbar);
-  for (const auto& msg : chatDataForRendering.getChatHistory()) {
-    ImGui::TextWrapped("%s", msg.c_str());
+  for (const auto& chatMessage : chatDataForRendering.getChatHistory()) {
+    ImGui::TextWrapped("%s [%d]: %s",
+                       chatMessage.sender.name.c_str(),
+                       chatMessage.sender.messagesSent,
+                       chatMessage.message.c_str());
   }
   if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
     ImGui::SetScrollHereY(1.0f);

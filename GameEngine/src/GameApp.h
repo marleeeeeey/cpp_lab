@@ -81,6 +81,7 @@ class GameApp {
   void initImGui_();
   void initRenderer_();
   void initGameWorld_();
+  void initNetworkHandlers_();
 
   // ----------------------
   // Basic Iterate Steps
