@@ -19,20 +19,30 @@
 // ------------------
 
 SDL_AppResult GameApp::init(int argc, char* argv[]) {
-  // Uncomment the next line for Debug
-  // spdlog::set_level(spdlog::level::trace);
+  // ---------------------------
+  // Init Auxiliary Components
+  // ---------------------------
 
-  initTracyProfiler_();
+  // spdlog::set_level(spdlog::level::trace);
   initOptions_(argc, argv);
+  initTracyProfiler_();
+
+  // ----------
+  // Init SDL
+  // ----------
+
   auto initSdlResult = initSDL_();  // initialize SDL and set renderer
   if (initSdlResult != SDL_APP_CONTINUE) {
     return initSdlResult;
   }
+
+  // ----------------------
+  // Init Main Systems
+  // ----------------------
+
   initImGui_();
   initRenderer_();
-
   initGameWorld_();
-
   initNetworkHandlers_();
 
   beginFrameTime_ = SDL_GetTicks();
