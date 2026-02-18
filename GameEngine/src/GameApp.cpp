@@ -210,7 +210,6 @@ void GameApp::initNetworkHandlers_() {
                 .messagesSent = 0,
             },
             .message = std::string(textMessage),
-            .timestamp = {},
         };
         chatDataForRendering_.addMessage(chatMessage);
         SPDLOG_INFO("Text Message received: {}", chatMessage.message);
@@ -220,6 +219,7 @@ void GameApp::initNetworkHandlers_() {
       GMT_ChatMessage,
       [this](const auto type, const std::vector<uint8_t>& payload) {
         auto newChatMessage = SerializationProtocol::deserializeChatMessage(payload);
+        newChatMessage.receivedTimestamp = std::chrono::system_clock::now();
         chatDataForRendering_.addMessage(newChatMessage);
         SPDLOG_TRACE("Message type {} received: {}", type, newChatMessage.message);
       });
@@ -303,7 +303,7 @@ void GameApp::renderFrame_(GameDataForRendering gameDataForRendering) {
       ChatMessage chatMessage{
           // .sender - use default value. We don't need to send sender info. It will be updated on server.
           .message = message,
-          .timestamp = std::chrono::system_clock::now(),
+          .sentTimestamp = std::chrono::system_clock::now(),
       };
 
       // TODO: think how to improve interface and did both operations in one call and memory allocation

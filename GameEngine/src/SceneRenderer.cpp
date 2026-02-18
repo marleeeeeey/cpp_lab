@@ -72,8 +72,13 @@ void SceneRenderer::renderChatWindow(const ChatDataForRendering& chatDataForRend
   ImGui::BeginChild("ScrollingRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()),
                     false, ImGuiWindowFlags_HorizontalScrollbar);
   for (const auto& chatMessage : chatDataForRendering.getChatHistory()) {
-    ImGui::TextWrapped("[%s] %s [%d]: %s",
-                       TimeUtils::timeToStringHHMMSSMS(chatMessage.timestamp).c_str(),
+    // Calculate delivery time
+    auto deliveryTime = chatMessage.receivedTimestamp - chatMessage.sentTimestamp;
+    auto deliveryTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(deliveryTime).count();
+
+    ImGui::TextWrapped("[%s] [+%lldms] %s [%d]: %s",
+                       TimeUtils::timeToStringHHMMSSMS(chatMessage.sentTimestamp).c_str(),
+                       deliveryTimeMs,
                        chatMessage.sender.name.c_str(),
                        chatMessage.sender.messagesSent,
                        chatMessage.message.c_str());

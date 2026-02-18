@@ -9,5 +9,6 @@ using TimeStamp = std::chrono::time_point<std::chrono::system_clock>;
 struct ChatMessage {
   Player sender;
   std::string message;
-  TimeStamp timestamp;
+  TimeStamp sentTimestamp;
+  TimeStamp receivedTimestamp;
 };

@@ -99,6 +99,7 @@ int main(int argc, char** argv) {
          if (op == uWS::OpCode::TEXT) {
            std::string personWithMessage = player.name + ": " + std::string(msg);
            state->app->publish(state->getBroadcastTopicName(), personWithMessage, op, false);
+           SPDLOG_INFO("ws.message. {}: {}. op={}", perSocketData->player.name, msg, magic_enum::enum_name(op));
          }
 
          if (op == uWS::OpCode::BINARY) {
@@ -121,10 +122,10 @@ int main(int argc, char** argv) {
                  auto typedPayload = state->networkDataHandler->addTypeForBinaryMessage(GMT_ChatMessage, replyPayload);
                  std::string_view messageStringView(reinterpret_cast<const char*>(typedPayload.data()), typedPayload.size());
                  state->app->publish(state->getBroadcastTopicName(), messageStringView, op, false);  // broadcast
-               });
-         }
 
-         SPDLOG_INFO("ws.message. {}: {}. op={}", perSocketData->player.name, msg, magic_enum::enum_name(op)); },
+                 SPDLOG_INFO("ws.message. {}: {}. op={}", perSocketData->player.name, chatMessage.message, magic_enum::enum_name(op));
+               });
+         } },
 
        // ---------
        // Close

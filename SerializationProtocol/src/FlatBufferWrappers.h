@@ -33,12 +33,15 @@ Player deserialize(const SerializationProtocolFlatbuffer::Player* fbPlayer) {
 auto serialize(flatbuffers::FlatBufferBuilder& builder, const ChatMessage& chatMessage) {
   auto fbPlayer = serialize(builder, chatMessage.sender);
   auto message = builder.CreateString(chatMessage.message);
-  auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                       chatMessage.timestamp.time_since_epoch())
-                       .count();
+  auto sentTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           chatMessage.sentTimestamp.time_since_epoch())
+                           .count();
+  auto receivedTimestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                               chatMessage.receivedTimestamp.time_since_epoch())
+                               .count();
 
   auto fbChatMessage = SerializationProtocolFlatbuffer::CreateChatMessage(
-      builder, fbPlayer, message, timestamp);
+      builder, fbPlayer, message, sentTimestamp, receivedTimestamp);
 
   return fbChatMessage;
 }
@@ -47,8 +50,10 @@ ChatMessage deserialize(const SerializationProtocolFlatbuffer::ChatMessage* fbCh
   ChatMessage chatMessage;
   chatMessage.sender = deserialize(fbChatMessage->sender());
   chatMessage.message = fbChatMessage->message()->str();
-  chatMessage.timestamp = std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds>(
-      std::chrono::milliseconds(fbChatMessage->timestamp()));
+  chatMessage.sentTimestamp = std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds>(
+      std::chrono::milliseconds(fbChatMessage->sent_timestamp()));
+  chatMessage.receivedTimestamp = std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds>(
+      std::chrono::milliseconds(fbChatMessage->received_timestamp()));
 
   return chatMessage;
 }
