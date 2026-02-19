@@ -3,22 +3,28 @@
 #include <SDL3/SDL.h>
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <memory>
+
+#include "IGameWorldRenderer.h"
 
 static constexpr int MIN_PIXELS_PER_SECOND = 30; /* move at least this many pixels per second. */
 static constexpr int MAX_PIXELS_PER_SECOND = 60; /* move this many pixels per second at most. */
 
 void GameWorld::updateObjectsCount_(int width, int height) {
+  auto renderer = gameWorldRenderer_.lock();
+  if (!renderer) return;
+
   int numObjects = 0;
 
   if (auto sqrt = std::sqrt(width * height); sqrt != 0) {
     numObjects = width * height / sqrt;
   }
 
-  gameDataForRendering_.points.resize(numObjects);
+  renderer->points.resize(numObjects);
   pointsSpeed_.resize(numObjects);
 
   for (int i = 0; i < numObjects; i++) {
-    glm::vec2& point = gameDataForRendering_.points[i];
+    glm::vec2& point = renderer->points[i];
     auto& pointSpeed = pointsSpeed_[i];
 
     if (point == glm::vec2{}) {
@@ -31,9 +37,10 @@ void GameWorld::updateObjectsCount_(int width, int height) {
   }
 }
 
-void GameWorld::init(int width, int height) {
+void GameWorld::init(int width, int height, std::weak_ptr<IGameWorldRenderer> gameWorldRenderer) {
   windowWidth_ = width;
   windowHeight_ = height;
+  gameWorldRenderer_ = gameWorldRenderer;
   updateObjectsCount_(width, height);
 }
 
@@ -53,9 +60,12 @@ void GameWorld::iterate(double elapsed, const UserInputData& userInputData) {
     globalDirection_ = glm::vec2(rotation * glm::vec4(globalDirection_, 0.0f, 0.0f));
   }
 
+  auto renderer = gameWorldRenderer_.lock();
+  if (!renderer) return;
+
   /* let's move all our gameDataForRendering.points a little for a new frame. */
-  for (int i = 0; i < gameDataForRendering_.points.size(); i++) {
-    glm::vec2& point = gameDataForRendering_.points[i];
+  for (int i = 0; i < renderer->points.size(); i++) {
+    glm::vec2& point = renderer->points[i];
     point += pointsSpeed_[i] * (float)elapsed * globalDirection_;
 
     // Generate new points if they go off the screen.
@@ -69,10 +79,6 @@ void GameWorld::iterate(double elapsed, const UserInputData& userInputData) {
       pointsSpeed_[i] = MIN_PIXELS_PER_SECOND + (SDL_randf() * (MAX_PIXELS_PER_SECOND - MIN_PIXELS_PER_SECOND) * acceleration_);
     }
   }
-}
-
-const GameDataForRendering& GameWorld::getGameDataForRendering() const {
-  return gameDataForRendering_;
 }
 
 void GameWorld::onWindowSizeChanged(int width, int height) {

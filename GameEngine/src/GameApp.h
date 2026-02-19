@@ -6,8 +6,9 @@
 #include <memory>
 
 #include "AutoReconnectionNetwork/IAutoReconnectionNetwork.h"
-#include "ChatDataForRendering.h"
+#include "Factory.h"
 #include "GameWorld.h"
+#include "IGameWorldRenderer.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
 #include "SceneRenderer.h"
 #include "UserInputManger.h"
@@ -31,11 +32,10 @@ class GameApp {
   // ---------------------------
 
   SDL_Window* window_ = nullptr;
-  SDL_Renderer* renderer_ = nullptr;
+  SDL_Renderer* sdlRenderer_ = nullptr;
   Uint64 beginFrameTime_ = 0;
   int windowWidth_ = 800;
   int windowHeight_ = 600;
-  ChatDataForRendering chatDataForRendering_;
 
   // ----------------------------------------------
   // Subscription data for window size changes
@@ -48,7 +48,10 @@ class GameApp {
   // Game Domain Data
   // ------------------
 
+  Factory factory_;
   GameWorld gameWorld_;
+  std::shared_ptr<IGameWorldRenderer> gameWorldRenderer_;
+  std::shared_ptr<IChatRenderer> chatRenderer_;
   SceneRenderer sceneRenderer_;
   UserInputManger userInputManger_;
 
@@ -81,6 +84,7 @@ class GameApp {
   void initImGui_();
   void initRenderer_();
   void initGameWorld_();
+  void initChat_();
   void initNetworkHandlers_();
 
   // ----------------------
@@ -88,8 +92,8 @@ class GameApp {
   // ----------------------
 
   float calculateDeltaTime_();
-  GameDataForRendering updateGameWorld_(float elapsed);
-  void renderFrame_(GameDataForRendering gameDataForRendering);
+  void updateGameWorld_(float elapsed);
+  void renderFrame_();
 
   // ---------
   // Network

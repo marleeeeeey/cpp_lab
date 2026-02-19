@@ -7,7 +7,7 @@
 
 #include <cxxopts.hpp>
 
-#include "ChatDataForRendering.h"
+#include "ChatRenderer.h"
 #include "GameMessageTypes/GameMessageTypes.h"
 #include "GameSharedObjects/ChatMessage.h"
 #include "Profiler/Profiler.h"
@@ -43,6 +43,7 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   initImGui_();
   initRenderer_();
   initGameWorld_();
+  initChat_();
   initNetworkHandlers_();
 
   beginFrameTime_ = SDL_GetTicks();
@@ -72,9 +73,9 @@ SDL_AppResult GameApp::iterate() {
 
   autoReconnectionNetwork_->iterate();
 
-  GameDataForRendering gameDataForRendering = updateGameWorld_(elapsed);
+  updateGameWorld_(elapsed);
 
-  renderFrame_(gameDataForRendering);
+  renderFrame_();
 
   userInputManger_.onFrameEnd();
 
@@ -132,13 +133,13 @@ SDL_AppResult GameApp::initSDL_() {
   }
 
   if (!SDL_CreateWindowAndRenderer("GameEngine", windowWidth_, windowHeight_,
-                                   SDL_WINDOW_RESIZABLE, &window_, &renderer_)) {
+                                   SDL_WINDOW_RESIZABLE, &window_, &sdlRenderer_)) {
     SPDLOG_ERROR("SDL_CreateWindowAndRenderer() failed: {}", SDL_GetError());
     return SDL_APP_FAILURE;
   }
 
   // VSync should be enabled to decrease CPU loading!
-  if (!SDL_SetRenderVSync(renderer_, 1)) {
+  if (!SDL_SetRenderVSync(sdlRenderer_, 1)) {
     SPDLOG_ERROR("SDL_SetRenderVSync() failed: {}", SDL_GetError());
   }
 
@@ -186,8 +187,8 @@ void GameApp::initImGui_() {
   // ---------------------------------
   // Setup Platform/Renderer backends
   // ---------------------------------
-  ImGui_ImplSDL3_InitForSDLRenderer(window_, renderer_);
-  ImGui_ImplSDLRenderer3_Init(renderer_);
+  ImGui_ImplSDL3_InitForSDLRenderer(window_, sdlRenderer_);
+  ImGui_ImplSDLRenderer3_Init(sdlRenderer_);
 
   // ---------------------------------
   // Load Fonts
@@ -200,13 +201,35 @@ void GameApp::initImGui_() {
 }
 
 void GameApp::initRenderer_() {
-  sceneRenderer_.setRenderer(renderer_);
+  sceneRenderer_.setSdlRenderer(sdlRenderer_);
   onWindowSizeChangedSink().connect<&SceneRenderer::onWindowSizeChanged>(sceneRenderer_);
 }
 
 void GameApp::initGameWorld_() {
-  gameWorld_.init(windowWidth_, windowHeight_);
+  gameWorldRenderer_ = factory_.createGameWorldRenderer(sdlRenderer_);
+  gameWorld_.init(windowWidth_, windowHeight_, gameWorldRenderer_);
+  sceneRenderer_.addRenderer(gameWorldRenderer_);
   onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
+}
+
+void GameApp::initChat_() {
+  chatRenderer_ = factory_.createChatRenderer(sdlRenderer_);
+
+  chatRenderer_->onMessageSentCallback = [this](const std::string& message) {
+    ChatMessage chatMessage{
+        // .sender - use default value. We don't need to send sender info. It will be updated on server.
+        .message = message,
+        .sentTimestamp = std::chrono::system_clock::now(),
+    };
+
+    // IMPROVE: do both operations in one call and one memory allocation
+    auto payload = SerializationProtocol::serializeChatMessage(chatMessage);
+    payload = networkDataHandler_->addTypeForBinaryMessage(GMT_ChatMessage, payload);
+
+    autoReconnectionNetwork_->sendBinary(payload);
+  };
+
+  sceneRenderer_.addRenderer(chatRenderer_);
 }
 
 void GameApp::initNetworkHandlers_() {
@@ -221,7 +244,9 @@ void GameApp::initNetworkHandlers_() {
             },
             .message = std::string(textMessage),
         };
-        chatDataForRendering_.addMessage(chatMessage);
+        if (chatRenderer_) {
+          chatRenderer_->addMessage(chatMessage);
+        }
         SPDLOG_INFO("Text Message received: {}", chatMessage.message);
       });
 
@@ -230,7 +255,9 @@ void GameApp::initNetworkHandlers_() {
       [this](const auto type, const std::vector<uint8_t>& payload) {
         auto newChatMessage = SerializationProtocol::deserializeChatMessage(payload);
         newChatMessage.receivedTimestamp = std::chrono::system_clock::now();
-        chatDataForRendering_.addMessage(newChatMessage);
+        if (chatRenderer_) {
+          chatRenderer_->addMessage(newChatMessage);
+        }
         SPDLOG_TRACE("Message type {} received: {}", type, newChatMessage.message);
       });
 
@@ -242,7 +269,9 @@ void GameApp::initNetworkHandlers_() {
         std::memcpy(&receivedNumber, payload.data(), sizeof(receivedNumber));
 
         // set and log
-        chatDataForRendering_.numberOfConnectedUsers = receivedNumber;
+        if (chatRenderer_) {
+          chatRenderer_->numberOfConnectedUsers = receivedNumber;
+        }
         SPDLOG_TRACE("Message type {} received: {}", type, receivedNumber);
       });
 
@@ -258,7 +287,9 @@ void GameApp::initNetworkHandlers_() {
         networkDataHandler_->notifyAboutBinaryMessage(binaryMessage);
       },
       [this](IAutoReconnectionNetwork::State newState) {
-        chatDataForRendering_.connectionStatus = magic_enum::enum_name(newState);
+        if (chatRenderer_) {
+          chatRenderer_->connectionStatus = magic_enum::enum_name(newState);
+        }
       });
   autoReconnectionNetwork_->start();
 }
@@ -277,26 +308,22 @@ float GameApp::calculateDeltaTime_() {
   return elapsed;
 }
 
-GameDataForRendering GameApp::updateGameWorld_(const float elapsed) {
+void GameApp::updateGameWorld_(const float elapsed) {
   PROFILER_ZONE;
-
   gameWorld_.iterate(elapsed, userInputManger_.getUserInputData());
-  GameDataForRendering gameDataForRendering = gameWorld_.getGameDataForRendering();
-  return gameDataForRendering;
 }
 
-void GameApp::renderFrame_(GameDataForRendering gameDataForRendering) {
+void GameApp::renderFrame_() {
   {
     PROFILER_ZONE_NAMED("RenderFrame");
 
-    // -----------------------
-    // Clear Screen
-    // -----------------------
-    /* as you can see from this, rendering draws over whatever was drawn before it. */
+    // --------------------------------
+    // Clear Screen (fill with black)
+    // --------------------------------
     ImGuiIO& io = ImGui::GetIO();
-    SDL_SetRenderScale(renderer_, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
-    SDL_SetRenderDrawColor(renderer_, 0, 0, 0, SDL_ALPHA_OPAQUE); /* black, full alpha */
-    SDL_RenderClear(renderer_);                                   /* start with a blank canvas. */
+    SDL_SetRenderScale(sdlRenderer_, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
+    SDL_SetRenderDrawColor(sdlRenderer_, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_RenderClear(sdlRenderer_);
 
     // -----------------------
     // Begin Frame
@@ -308,26 +335,13 @@ void GameApp::renderFrame_(GameDataForRendering gameDataForRendering) {
     // -----------------------
     // Render New Frame
     // -----------------------
-    sceneRenderer_.renderGameObjects(gameDataForRendering);
-    sceneRenderer_.renderChatWindow(chatDataForRendering_, [this](const std::string& message) {
-      ChatMessage chatMessage{
-          // .sender - use default value. We don't need to send sender info. It will be updated on server.
-          .message = message,
-          .sentTimestamp = std::chrono::system_clock::now(),
-      };
-
-      // TODO: think how to improve interface and did both operations in one call and memory allocation
-      auto payload = SerializationProtocol::serializeChatMessage(chatMessage);
-      payload = networkDataHandler_->addTypeForBinaryMessage(GMT_ChatMessage, payload);
-
-      autoReconnectionNetwork_->sendBinary(payload);
-    });
+    sceneRenderer_.render();
     ImGui::Render();
-    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), renderer_);  // render the GUI
+    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), sdlRenderer_);  // render the GUI
   }
 
   {
     PROFILER_ZONE_NAMED("SDL_RenderPresent (vsync wait)");
-    SDL_RenderPresent(renderer_);  // show the rendered frame on screen
+    SDL_RenderPresent(sdlRenderer_);  // show the rendered frame on screen
   }
 }

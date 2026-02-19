@@ -8,8 +8,10 @@ add_executable(GameEngine
         src/GameWorld.cpp
         src/SceneRenderer.cpp
         src/UserInputManger.cpp
-        src/ChatDataForRendering.cpp
+        src/ChatRenderer.cpp
         src/TimeUtils.cpp
+        src/GameWorldRenderer.cpp
+        src/Factory.cpp
 )
 
 
