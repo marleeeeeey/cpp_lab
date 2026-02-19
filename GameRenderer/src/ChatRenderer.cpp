@@ -1,6 +1,5 @@
 #include "ChatRenderer.h"
 
-#include <SDL3/SDL.h>
 #include <imgui.h>
 
 #include "TimeUtils.h"

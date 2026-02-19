@@ -1,11 +1,9 @@
 #pragma once
 
-#include <functional>
-#include <string>
 #include <vector>
 
+#include "GameRenderer/IChatRenderer.h"
 #include "GameSharedObjects/ChatMessage.h"
-#include "IChatRenderer.h"
 
 class ChatRenderer : public IChatRenderer {
  public:

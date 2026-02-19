@@ -6,12 +6,7 @@ add_executable(GameEngine
         src/main.cpp
         src/GameApp.cpp
         src/GameWorld.cpp
-        src/SceneRenderer.cpp
         src/UserInputManger.cpp
-        src/ChatRenderer.cpp
-        src/TimeUtils.cpp
-        src/GameWorldRenderer.cpp
-        src/Factory.cpp
 )
 
 
@@ -21,6 +16,7 @@ add_executable(GameEngine
 
 target_link_libraries(GameEngine PRIVATE
         # User libraries
+        GameRenderer
         AutoReconnectionNetwork
         NetworkDataHandler
         GameMessageTypes
@@ -71,7 +67,7 @@ endif ()
 
 if (EMSCRIPTEN)
     # For example:
-    # Fontpath: /assets/fonts/OpenSans-VariableFont_wdth,wght.ttf should exist in VFS in runtime
+    # Font path: /assets/fonts/OpenSans-VariableFont_wdth,wght.ttf should exist in VFS in runtime
     target_link_options(GameEngine PRIVATE
             "SHELL:--preload-file ${CPP_LAB_ROOT}/assets@/assets"
     )

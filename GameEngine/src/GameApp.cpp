@@ -7,7 +7,6 @@
 
 #include <cxxopts.hpp>
 
-#include "ChatRenderer.h"
 #include "GameMessageTypes/GameMessageTypes.h"
 #include "GameSharedObjects/ChatMessage.h"
 #include "Profiler/Profiler.h"
@@ -41,7 +40,7 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   // ----------------------
 
   initImGui_();
-  initRenderer_();
+  initRenderContainer_();
   initGameWorld_();
   initChat_();
   initNetworkHandlers_();
@@ -200,20 +199,20 @@ void GameApp::initImGui_() {
   }
 }
 
-void GameApp::initRenderer_() {
-  sceneRenderer_.setSdlRenderer(sdlRenderer_);
-  onWindowSizeChangedSink().connect<&SceneRenderer::onWindowSizeChanged>(sceneRenderer_);
+void GameApp::initRenderContainer_() {
+  renderContainer_ = IRenderContainer::create(sdlRenderer_);
+  onWindowSizeChangedSink().connect<&IRenderContainer::onWindowSizeChanged>(renderContainer_);
 }
 
 void GameApp::initGameWorld_() {
-  gameWorldRenderer_ = factory_.createGameWorldRenderer(sdlRenderer_);
+  gameWorldRenderer_ = IGameWorldRenderer::create(sdlRenderer_);
   gameWorld_.init(windowWidth_, windowHeight_, gameWorldRenderer_);
-  sceneRenderer_.addRenderer(gameWorldRenderer_);
+  renderContainer_->addRenderer(gameWorldRenderer_);
   onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
 }
 
 void GameApp::initChat_() {
-  chatRenderer_ = factory_.createChatRenderer(sdlRenderer_);
+  chatRenderer_ = IChatRenderer::create();
 
   chatRenderer_->onMessageSentCallback = [this](const std::string& message) {
     ChatMessage chatMessage{
@@ -229,7 +228,7 @@ void GameApp::initChat_() {
     autoReconnectionNetwork_->sendBinary(payload);
   };
 
-  sceneRenderer_.addRenderer(chatRenderer_);
+  renderContainer_->addRenderer(chatRenderer_);
 }
 
 void GameApp::initNetworkHandlers_() {
@@ -335,7 +334,7 @@ void GameApp::renderFrame_() {
     // -----------------------
     // Render New Frame
     // -----------------------
-    sceneRenderer_.render();
+    renderContainer_->render();
     ImGui::Render();
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), sdlRenderer_);  // render the GUI
   }

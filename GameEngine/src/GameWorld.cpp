@@ -5,7 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 
-#include "IGameWorldRenderer.h"
+#include "../../GameRenderer/include/GameRenderer/IGameWorldRenderer.h"
 
 static constexpr int MIN_PIXELS_PER_SECOND = 30; /* move at least this many pixels per second. */
 static constexpr int MAX_PIXELS_PER_SECOND = 60; /* move this many pixels per second at most. */

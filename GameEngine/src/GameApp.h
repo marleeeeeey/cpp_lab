@@ -6,11 +6,10 @@
 #include <memory>
 
 #include "AutoReconnectionNetwork/IAutoReconnectionNetwork.h"
-#include "Factory.h"
+#include "GameRenderer/IChatRenderer.h"
+#include "GameRenderer/IRenderContainer.h"
 #include "GameWorld.h"
-#include "IGameWorldRenderer.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
-#include "SceneRenderer.h"
 #include "UserInputManger.h"
 
 // ------------------------------------
@@ -27,6 +26,17 @@ class INetworkTransport;
 // GameApp is a bridge between GameWorld, SceneRenderer,
 // UserInputManger and Network.
 class GameApp {
+ public:
+  // ------------------------------------
+  // SDL Based Steps (public interface)
+  // ------------------------------------
+
+  SDL_AppResult init(int argc, char* argv[]);
+  SDL_AppResult onEvent(SDL_Event* event);
+  SDL_AppResult iterate();
+  void onQuit();
+
+ private:
   // ---------------------------
   // Rendering and window data
   // ---------------------------
@@ -36,6 +46,9 @@ class GameApp {
   Uint64 beginFrameTime_ = 0;
   int windowWidth_ = 800;
   int windowHeight_ = 600;
+  std::shared_ptr<IGameWorldRenderer> gameWorldRenderer_;
+  std::shared_ptr<IChatRenderer> chatRenderer_;
+  std::shared_ptr<IRenderContainer> renderContainer_;
 
   // ----------------------------------------------
   // Subscription data for window size changes
@@ -48,24 +61,9 @@ class GameApp {
   // Game Domain Data
   // ------------------
 
-  Factory factory_;
   GameWorld gameWorld_;
-  std::shared_ptr<IGameWorldRenderer> gameWorldRenderer_;
-  std::shared_ptr<IChatRenderer> chatRenderer_;
-  SceneRenderer sceneRenderer_;
   UserInputManger userInputManger_;
 
- public:
-  // ------------------------------------
-  // SDL Based Steps (public interface)
-  // ------------------------------------
-
-  SDL_AppResult init(int argc, char* argv[]);
-  SDL_AppResult onEvent(SDL_Event* event);
-  SDL_AppResult iterate();
-  void onQuit();
-
- private:
   // ---------------------
   // Application Options
   // ---------------------
@@ -82,7 +80,7 @@ class GameApp {
   void initOptions_(int argc, char* argv[]);
   SDL_AppResult initSDL_();
   void initImGui_();
-  void initRenderer_();
+  void initRenderContainer_();
   void initGameWorld_();
   void initChat_();
   void initNetworkHandlers_();
