@@ -7,9 +7,17 @@
 // Allows adding renderers. Redner apply in the order they were added.
 class IRenderContainer {
  public:
+  // -------------
+  // Factory
+  // -------------
   static std::unique_ptr<IRenderContainer> create(void* renderer);
   virtual ~IRenderContainer() = default;
-  virtual void addRenderer(std::weak_ptr<IRenderer> renderer) = 0;
+
+  // -------------
+  // Interface
+  // -------------
+
+  virtual void addComponent(std::weak_ptr<IRenderer> component) = 0;
   virtual void render() = 0;
   virtual void onWindowSizeChanged(int width, int height) = 0;
 };

@@ -12,12 +12,12 @@ RenderContainer::RenderContainer(SDL_Renderer* sdlRenderer) {
   sdlRenderer_ = sdlRenderer;
 }
 
-void RenderContainer::addRenderer(std::weak_ptr<IRenderer> renderer) {
-  renderers_.push_back(renderer);
+void RenderContainer::addComponent(std::weak_ptr<IRenderer> component) {
+  components_.push_back(component);
 }
 
 void RenderContainer::render() {
-  for (const auto& renderer : renderers_) {
+  for (const auto& renderer : components_) {
     if (auto r = renderer.lock()) {
       r->render();
     }

@@ -207,7 +207,7 @@ void GameApp::initRenderContainer_() {
 void GameApp::initGameWorld_() {
   gameWorldRenderer_ = IGameWorldRenderer::create(sdlRenderer_);
   gameWorld_.init(windowWidth_, windowHeight_, gameWorldRenderer_);
-  renderContainer_->addRenderer(gameWorldRenderer_);
+  renderContainer_->addComponent(gameWorldRenderer_);
   onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
 }
 
@@ -228,7 +228,7 @@ void GameApp::initChat_() {
     autoReconnectionNetwork_->sendBinary(payload);
   };
 
-  renderContainer_->addRenderer(chatRenderer_);
+  renderContainer_->addComponent(chatRenderer_);
 }
 
 void GameApp::initNetworkHandlers_() {
