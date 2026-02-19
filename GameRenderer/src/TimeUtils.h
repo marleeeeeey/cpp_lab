@@ -8,7 +8,7 @@ class TimeUtils {
   // ----------------
   // Signatures
   // ----------------
- using TimeStamp = std::chrono::time_point<std::chrono::system_clock>;
+  using TimeStamp = std::chrono::time_point<std::chrono::system_clock>;
 
   // ---------------
   // Interface
