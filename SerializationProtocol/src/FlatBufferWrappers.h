@@ -2,6 +2,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <glm/glm.hpp>
+
 #include "ChatMessage_generated.h"
 #include "GameSharedObjects/ChatMessage.h"
 #include "GameSharedObjects/Player.h"
@@ -10,12 +12,27 @@
 namespace FlatBufferWrappers {
 
 // -------------
+// glm::vec2
+// -------------
+
+auto serialize(flatbuffers::FlatBufferBuilder& builder, const glm::vec2& vec2) {
+  return SerializationProtocolFlatbuffer::Vec2{vec2.x, vec2.y};
+}
+
+glm::vec2 deserialize(const SerializationProtocolFlatbuffer::Vec2* fbVec2) {
+  glm::vec2 vec2 = {fbVec2->x(), fbVec2->y()};
+  return vec2;
+}
+
+// -------------
 // Player
 // -------------
 
 auto serialize(flatbuffers::FlatBufferBuilder& builder, const Player& player) {
-  auto name = builder.CreateString(player.name);
-  auto fbPlayer = SerializationProtocolFlatbuffer::CreatePlayer(builder, name, player.messagesSent);
+  auto fbName = builder.CreateString(player.name);
+  auto fbPosition = serialize(builder, player.position);
+  auto fbPlayer = SerializationProtocolFlatbuffer::CreatePlayer(
+      builder, fbName, player.messagesSent, &fbPosition);
   return fbPlayer;
 }
 
@@ -23,6 +40,7 @@ Player deserialize(const SerializationProtocolFlatbuffer::Player* fbPlayer) {
   Player player;
   player.name = fbPlayer->name()->str();
   player.messagesSent = fbPlayer->messages_sent();
+  player.position = deserialize(fbPlayer->position());
   return player;
 }
 

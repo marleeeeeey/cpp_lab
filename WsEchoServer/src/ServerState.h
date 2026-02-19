@@ -6,12 +6,15 @@
 #include <memory>
 #include <string_view>
 
+#include "BinaryMessageParser.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
 
 class ServerState {
  public:
-  std::shared_ptr<uWS::TemplatedApp<false>> app;
+  std::shared_ptr<uWS::App> app;
   std::unique_ptr<INetworkDataHandler> networkDataHandler;
+  std::unique_ptr<BinaryMessageParser> binaryMessageParser;
+  std::set<std::string> connectedClientNames;
 
   ServerState();
   void incrementNumberOfClients();

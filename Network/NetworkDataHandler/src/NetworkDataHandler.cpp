@@ -48,15 +48,17 @@ void NetworkDataHandler::parseBinaryMessage(const std::vector<uint8_t>& message,
 }
 
 void NetworkDataHandler::notifyAboutBinaryMessage(const std::vector<uint8_t>& message) {
-  parseBinaryMessage(message, [this](const MessageType type, const std::vector<uint8_t>& payload) {
-    // Search for handler
-    auto it = messageCallbacks_.find(type);
-    if (it != messageCallbacks_.end()) {
-      it->second(type, payload);
-    } else {
-      SPDLOG_WARN("No handler for message type: {}", type);
-    }
-  });
+  parseBinaryMessage(
+      message,
+      [this](const MessageType type, const std::vector<uint8_t>& payload) {
+        // Search for handler
+        auto it = messageCallbacks_.find(type);
+        if (it != messageCallbacks_.end()) {
+          it->second(type, payload);
+        } else {
+          SPDLOG_WARN("No handler for message type: {}", type);
+        }
+      });
 }
 
 void NetworkDataHandler::notifyAboutTextMessage(std::string_view message) {

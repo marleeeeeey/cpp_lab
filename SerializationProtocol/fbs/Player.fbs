@@ -1,8 +1,14 @@
 namespace SerializationProtocolFlatbuffer;
 
+struct Vec2 {
+  x:float;
+  y:float;
+}
+
 table Player {
   name:string;
   messages_sent:short;
+  position:Vec2;
 }
 
 root_type Player;

@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include "GameSharedObjects/Player.h"
 #include "IRenderer.h"
 
 // Interface for rendering the game world.
@@ -22,5 +23,7 @@ class IGameWorldRenderer : public IRenderer {
   // Interface
   // -------------
 
-  std::vector<glm::vec2> points;
+  std::vector<glm::vec2> snowflakes;
+  Player myPlayer;
+  std::unordered_map<std::string, Player> otherPlayers;
 };

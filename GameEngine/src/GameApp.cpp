@@ -207,6 +207,15 @@ void GameApp::initRenderContainer_() {
 void GameApp::initGameWorld_() {
   gameWorldRenderer_ = IGameWorldRenderer::create(sdlRenderer_);
   gameWorld_.init(windowWidth_, windowHeight_, gameWorldRenderer_);
+  gameWorld_.onPlayerPositionChanged = [this]() {
+    Player& player = gameWorldRenderer_->myPlayer;
+
+    // TODO: create simple interface for friquent action
+    auto payload = SerializationProtocol::serializePlayer(player);
+    payload = networkDataHandler_->addTypeForBinaryMessage(GMT_AnyPlayerDataUpdated, payload);
+    autoReconnectionNetwork_->sendBinary(payload);
+  };
+
   renderContainer_->addComponent(gameWorldRenderer_);
   onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
 }
@@ -221,10 +230,10 @@ void GameApp::initChat_() {
         .sentTimestamp = std::chrono::system_clock::now(),
     };
 
+    // TODO: create simple interface for friquent action
     // IMPROVE: do both operations in one call and one memory allocation
     auto payload = SerializationProtocol::serializeChatMessage(chatMessage);
     payload = networkDataHandler_->addTypeForBinaryMessage(GMT_ChatMessage, payload);
-
     autoReconnectionNetwork_->sendBinary(payload);
   };
 
@@ -272,6 +281,31 @@ void GameApp::initNetworkHandlers_() {
           chatRenderer_->numberOfConnectedUsers = receivedNumber;
         }
         SPDLOG_TRACE("Message type {} received: {}", type, receivedNumber);
+      });
+
+  networkDataHandler_->registerCallbackForBinaryMessageWithType(
+      GMT_AnyPlayerDataUpdated,
+      [this](const auto type, const std::vector<uint8_t>& payload) {
+        auto player = SerializationProtocol::deserializePlayer(payload);
+        if (gameWorldRenderer_) {
+          if (player.name == gameWorldRenderer_->myPlayer.name) {
+            return;  // don't update my own data
+          }
+          gameWorldRenderer_->otherPlayers[player.name] = player;
+        }
+        SPDLOG_DEBUG("Message type {} received", type);
+      });
+
+  networkDataHandler_->registerCallbackForBinaryMessageWithType(
+      GMT_AssignNameToThePlayer,
+      [this](const auto type, const std::vector<uint8_t>& payload) {
+        auto player = SerializationProtocol::deserializePlayer(payload);
+        if (gameWorldRenderer_) {
+          gameWorldRenderer_->myPlayer = player;
+        }
+        gameWorld_.setPlayerRandomPosition();
+
+        SPDLOG_INFO("Your name is {}. Welcome!", player.name);
       });
 
   autoReconnectionNetwork_ = IAutoReconnectionNetwork::create();

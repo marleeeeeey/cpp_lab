@@ -65,9 +65,9 @@ std::string getClientIpText(uWS::HttpRequest* req, std::string_view socketIpText
 
 std::string convertKnownIpToShortName(const std::string_view ip) {
   // clang-format off
-  if (ip == "127.0.0.1") return "localhost";
-  if (ip == "0000:0000:0000:0000:0000:ffff:7f00:0001") return "localhost";
-  if (ip == "0000:0000:0000:0000:0000:0000:0000:0001") return "loopback";
+  if (ip == "127.0.0.1") return "LOCALHOST";
+  if (ip == "0000:0000:0000:0000:0000:ffff:7f00:0001") return "LOCALHOST";
+  if (ip == "0000:0000:0000:0000:0000:0000:0000:0001") return "LOOPBACK";
   return std::string(ip);
   // clang-format on
 }

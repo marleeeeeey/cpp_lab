@@ -20,7 +20,7 @@ void ChatRenderer::render() {
   ImGui::SetNextWindowSize(io.DisplaySize, ImGuiCond_Always);
 
   // Set up opacity to show the falling snow on the back
-  ImGui::SetNextWindowBgAlpha(0.25f);
+  ImGui::SetNextWindowBgAlpha(0.05f);
 
   // Disable window interaction
   const ImGuiWindowFlags flags =

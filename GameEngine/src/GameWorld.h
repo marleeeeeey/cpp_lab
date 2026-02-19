@@ -13,12 +13,22 @@ class GameWorld {
   void init(int width, int height, std::weak_ptr<IGameWorldRenderer> gameWorldRenderer);
   void iterate(double elapsed, const UserInputData& userInputData);
   void onWindowSizeChanged(int width, int height);
+  void setPlayerRandomPosition() const;
+
+  using OnPlayerPositionChanged = std::function<void()>;
+  OnPlayerPositionChanged onPlayerPositionChanged;
 
  private:
-  void updateObjectsCount_(int width, int height);
+  void updateSnowflakesCount_(int width, int height);
+  void impactOnSnowflakes_(double elapsed, const UserInputData& userInputData);
+  void impactOnPlayer_(double elapsed, const UserInputData& userInputData);
+
+  // -------------------------
+  // Private state
+  // -------------------------
 
   std::weak_ptr<IGameWorldRenderer> gameWorldRenderer_;
-  std::vector<float> pointsSpeed_;
+  std::vector<float> snowflakesSpeed_;
   glm::vec2 globalDirection_ = glm::normalize(glm::vec2(1.0f, 1.0f));
   float acceleration_ = 1.0f;
   int windowWidth_{};

@@ -1,6 +1,16 @@
 #include "UserInputManger.h"
 
+#include <spdlog/spdlog.h>
+
 void UserInputManger::applyEvent(SDL_Event* event) {
+  if (event->type == SDL_EVENT_KEY_DOWN) {
+    SPDLOG_DEBUG("Key pressed: {}", event->key.key);
+  }
+
+  if (event->type == SDL_EVENT_KEY_UP) {
+    SPDLOG_DEBUG("Key released: {}", event->key.key);
+  }
+
   switch (event->type) {
     case SDL_EVENT_KEY_DOWN:
       if (event->key.repeat)

@@ -42,4 +42,5 @@ target_link_libraries(SerializationProtocol PRIVATE
         # 3rd_party libraries
         spdlog::spdlog
         magic_enum::magic_enum
+        glm::glm
 )
