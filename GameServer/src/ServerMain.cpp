@@ -23,7 +23,7 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
 
   SPDLOG_INFO("");
   SPDLOG_INFO("---------------------------");
-  SPDLOG_INFO("WsEchoServer starting...   ");
+  SPDLOG_INFO("GameServer starting...   ");
   SPDLOG_INFO("---------------------------");
   SPDLOG_INFO("");
 

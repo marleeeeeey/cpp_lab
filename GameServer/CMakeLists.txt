@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
-project(WsEchoServer)
+project(GameServer)
 
-add_executable(WsEchoServer
+add_executable(GameServer
         src/ServerMain.cpp
         src/GetClientIpText.cpp
         src/WsCloseCodeToText.cpp
@@ -11,7 +11,7 @@ add_executable(WsEchoServer
         src/BinaryMessageParser.cpp
 )
 
-target_link_libraries(WsEchoServer PRIVATE
+target_link_libraries(GameServer PRIVATE
         # User libraries
         NetworkDataHandler
         GameMessageTypes

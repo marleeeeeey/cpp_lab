@@ -5,7 +5,7 @@
 
 CommandLineParser::CommandLineParser(int argc, char** argv) {
   // Example of usage:
-  // WsEchoServer.exe --port 8083
+  // GameServer.exe --port 8083
   int port = 9001;  // default
   for (int i = 1; i < argc; ++i) {
     if (std::string_view(argv[i]) == "--port" && i + 1 < argc) {

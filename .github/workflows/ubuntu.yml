@@ -101,4 +101,4 @@ jobs:
           service_dir: /opt/ws_echo3
           service_args: --port 8083
 
-          build_artifact: build/WsEchoServer/WsEchoServer
+          build_artifact: build/GameServer/GameServer

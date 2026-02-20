@@ -66,6 +66,6 @@ if (NOT EMSCRIPTEN)
         add_subdirectory(obsolete/asio_projects)
     endif ()
 
-    add_subdirectory(WsEchoServer)
+    add_subdirectory(GameServer)
 
 endif ()
