@@ -2,14 +2,13 @@
 
 #include <SDL3/SDL.h>
 
-#include <entt/signal/sigh.hpp>
 #include <memory>
 
+#include "GameInputManager/IGameInputManager.h"
 #include "GameNetwork.h"
 #include "GameRenderer/IChatRenderer.h"
 #include "GameRenderer/IRenderContainer.h"
 #include "GameWorld.h"
-#include "UserInputManger.h"
 
 // ------------------------------------
 // Forward declarations
@@ -43,25 +42,16 @@ class GameApp {
   SDL_Window* window_ = nullptr;
   SDL_Renderer* sdlRenderer_ = nullptr;
   Uint64 beginFrameTime_ = 0;
-  int windowWidth_ = 800;
-  int windowHeight_ = 600;
   std::shared_ptr<IGameWorldRenderer> gameWorldRenderer_;
   std::shared_ptr<IChatRenderer> chatRenderer_;
   std::shared_ptr<IRenderContainer> renderContainer_;
-
-  // ----------------------------------------------
-  // Subscription data for window size changes
-  // ----------------------------------------------
-
-  entt::sigh<void(int width, int height)> onWindowSizeChangedSignal_;
-  auto onWindowSizeChangedSink() { return entt::sink{onWindowSizeChangedSignal_}; }
 
   // ------------------
   // Game Domain Data
   // ------------------
 
   std::shared_ptr<GameWorld> gameWorld_;
-  UserInputManger userInputManger_;
+  std::unique_ptr<IGameInputManager> gameInputManager_;
 
   // ---------------------
   // Application Options
@@ -79,7 +69,6 @@ class GameApp {
   void initOptions_(int argc, char* argv[]);
   SDL_AppResult initSDL_();
   void initImGui_();
-  void initRenderContainer_();
   void initGameWorld_();
   void initChat_();
 

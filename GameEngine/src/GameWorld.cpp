@@ -8,8 +8,8 @@
 
 #include "GameRenderer/IGameWorldRenderer.h"
 
-static constexpr int MIN_PIXELS_PER_SECOND = 30; /* move at least this many pixels per second. */
-static constexpr int MAX_PIXELS_PER_SECOND = 60; /* move this many pixels per second at most. */
+static constexpr int MIN_PIXELS_PER_SECOND = 30;  // move at least this many pixels per second
+static constexpr int MAX_PIXELS_PER_SECOND = 60;  // move this many pixels per second at most
 
 GameWorld::GameWorld(int width, int height, std::weak_ptr<IGameWorldRenderer> gameWorldRenderer) {
   windowWidth_ = width;
@@ -18,7 +18,7 @@ GameWorld::GameWorld(int width, int height, std::weak_ptr<IGameWorldRenderer> ga
   updateSnowflakesCount_(width, height);
 }
 
-void GameWorld::iterate(double elapsed, const UserInputData& userInputData) {
+void GameWorld::iterate(double elapsed, const GameInputData& userInputData) {
   impactOnSnowflakes_(elapsed, userInputData);
   impactOnPlayer_(elapsed, userInputData);
 }
@@ -63,9 +63,9 @@ void GameWorld::updateSnowflakesCount_(int width, int height) {
   }
 }
 
-void GameWorld::impactOnSnowflakes_(double elapsed, const UserInputData& userInputData) {
+void GameWorld::impactOnSnowflakes_(double elapsed, const GameInputData& userInputData) {
   if constexpr (false) {
-    // Pressed keys change acceleration or rotation direction.
+    // Pressed keys change an acceleration or rotation direction.
     float accelerationShift = elapsed * 5.f;
     float rotateAngleDeg = elapsed * 100.0f;
     if (userInputData.held.up) {
@@ -102,7 +102,7 @@ void GameWorld::impactOnSnowflakes_(double elapsed, const UserInputData& userInp
   }
 }
 
-void GameWorld::impactOnPlayer_(double elapsed, const UserInputData& userInputData) {
+void GameWorld::impactOnPlayer_(double elapsed, const GameInputData& userInputData) {
   auto renderer = gameWorldRenderer_.lock();
   if (!renderer) {
     SPDLOG_ERROR("GameWorldRenderer is not initialized");

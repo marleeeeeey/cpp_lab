@@ -9,7 +9,9 @@
 
 #include "GameSharedObjects/ChatMessage.h"
 #include "Profiler/Profiler.h"
-#include "magic_enum/magic_enum.hpp"
+
+constexpr int INITIAL_WINDOWS_WIDTH = 800;
+constexpr int INITIAL_WINDOWS_HEIGHT = 600;
 
 // ------------------
 // SDL Based Steps
@@ -24,21 +26,25 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   initOptions_(argc, argv);
   initTracyProfiler_();
 
-  // ----------
-  // Init SDL
-  // ----------
+  // -----------------------------------
+  // Init SDL, IMGui and InputManager
+  // -----------------------------------
+
+  // TODO: move SDL and IMGui creation to separate class and use smart pointers
 
   auto initSdlResult = initSDL_();  // initialize SDL and set renderer
   if (initSdlResult != SDL_APP_CONTINUE) {
     return initSdlResult;
   }
-
-  // ----------------------
-  // Init Main Systems
-  // ----------------------
-
   initImGui_();
-  initRenderContainer_();
+  renderContainer_ = IRenderContainer::create(sdlRenderer_);
+  gameInputManager_ = IGameInputManager::create(window_, INITIAL_WINDOWS_WIDTH, INITIAL_WINDOWS_HEIGHT);
+  gameInputManager_->onWindowSizeChangedSink().connect<&IRenderContainer::onWindowSizeChanged>(renderContainer_);
+
+  // ----------------------
+  // Init Domain Systems
+  // ----------------------
+
   initGameWorld_();
   initChat_();
 
@@ -46,8 +52,7 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   // Init Networking
   // -----------------------
 
-  gameNetwork_ = std::make_unique<GameNetwork>(
-      appOptions_.url, chatRenderer_, gameWorldRenderer_, gameWorld_);
+  gameNetwork_ = std::make_unique<GameNetwork>(appOptions_.url, chatRenderer_, gameWorldRenderer_, gameWorld_);
   gameNetwork_->start();
 
   beginFrameTime_ = SDL_GetTicks();
@@ -57,19 +62,7 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
 
 SDL_AppResult GameApp::onEvent(SDL_Event* event) {
   ImGui_ImplSDL3_ProcessEvent(event);
-
-  if (event->type == SDL_EVENT_WINDOW_RESIZED) {
-    SDL_GetWindowSize(window_, &windowWidth_, &windowHeight_);
-    onWindowSizeChangedSignal_.publish(windowWidth_, windowHeight_);
-  }
-
-  if (event->type == SDL_EVENT_QUIT) {
-    return SDL_APP_SUCCESS; /* end the program, reporting success to the OS. */
-  }
-
-  userInputManger_.applyEvent(event);
-
-  return SDL_APP_CONTINUE; /* carry on with the program! */
+  return gameInputManager_->applyEvent(event);
 }
 
 SDL_AppResult GameApp::iterate() {
@@ -81,7 +74,7 @@ SDL_AppResult GameApp::iterate() {
 
   renderFrame_();
 
-  userInputManger_.onFrameEnd();
+  gameInputManager_->onFrameEnd();
 
   PROFILER_FRAME_MARK;  // Mark end of frame for TRACY
 
@@ -89,7 +82,7 @@ SDL_AppResult GameApp::iterate() {
 }
 
 void GameApp::onQuit() {
-  onWindowSizeChangedSink().disconnect();
+  gameInputManager_->onAppQuit();
 
   ImGui_ImplSDLRenderer3_Shutdown();
   ImGui_ImplSDL3_Shutdown();
@@ -136,7 +129,7 @@ SDL_AppResult GameApp::initSDL_() {
     return SDL_APP_FAILURE;
   }
 
-  if (!SDL_CreateWindowAndRenderer("GameEngine", windowWidth_, windowHeight_,
+  if (!SDL_CreateWindowAndRenderer("GameEngine", INITIAL_WINDOWS_WIDTH, INITIAL_WINDOWS_HEIGHT,
                                    SDL_WINDOW_RESIZABLE, &window_, &sdlRenderer_)) {
     SPDLOG_ERROR("SDL_CreateWindowAndRenderer() failed: {}", SDL_GetError());
     return SDL_APP_FAILURE;
@@ -204,14 +197,9 @@ void GameApp::initImGui_() {
   }
 }
 
-void GameApp::initRenderContainer_() {
-  renderContainer_ = IRenderContainer::create(sdlRenderer_);
-  onWindowSizeChangedSink().connect<&IRenderContainer::onWindowSizeChanged>(renderContainer_);
-}
-
 void GameApp::initGameWorld_() {
   gameWorldRenderer_ = IGameWorldRenderer::create(sdlRenderer_);
-  gameWorld_ = std::make_shared<GameWorld>(windowWidth_, windowHeight_, gameWorldRenderer_);
+  gameWorld_ = std::make_shared<GameWorld>(INITIAL_WINDOWS_WIDTH, INITIAL_WINDOWS_HEIGHT, gameWorldRenderer_);
 
   gameWorld_->onPlayerPositionChanged = [this]() {
     Player& player = gameWorldRenderer_->myPlayer;
@@ -219,7 +207,7 @@ void GameApp::initGameWorld_() {
   };
 
   renderContainer_->addComponent(gameWorldRenderer_);
-  onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
+  gameInputManager_->onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
 }
 
 void GameApp::initChat_() {
@@ -254,7 +242,7 @@ float GameApp::calculateDeltaTime_() {
 
 void GameApp::updateGameWorld_(const float elapsed) {
   PROFILER_ZONE;
-  gameWorld_->iterate(elapsed, userInputManger_.getUserInputData());
+  gameWorld_->iterate(elapsed, gameInputManager_->getGameInputData());
 }
 
 void GameApp::renderFrame_() {

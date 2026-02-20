@@ -6,7 +6,6 @@ add_executable(GameEngine
         src/GameMain.cpp
         src/GameApp.cpp
         src/GameWorld.cpp
-        src/UserInputManger.cpp
         src/GameNetwork.cpp
 )
 
@@ -17,12 +16,15 @@ add_executable(GameEngine
 
 target_link_libraries(GameEngine PRIVATE
         # User libraries
+        GameInputManager
+        GameMessageTypes
         GameRenderer
+        GameSerialization
+        GameSharedObjects
+
         AutoReconnectionNetwork
         NetworkDataHandler
-        GameMessageTypes
-        GameSharedObjects
-        GameSerialization
+
         Profiler
 
         # 3rd_party libraries

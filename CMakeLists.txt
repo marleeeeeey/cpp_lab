@@ -44,6 +44,7 @@ add_subdirectory(3rd_party)
 # ----------------------------
 
 add_subdirectory(GameEngine)
+add_subdirectory(GameInputManager)
 add_subdirectory(GameMessageTypes)
 add_subdirectory(GameRenderer)
 add_subdirectory(GameSerialization)

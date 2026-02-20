@@ -1,8 +1,7 @@
 #pragma once
 
-// High-level representation of user input. Should be used in business logic
-// in class like GameWorld.
-struct UserInputData {
+// High-level representation of user input
+struct GameInputData {
   struct Buttons {
     bool up = false;
     bool down = false;
@@ -13,6 +12,6 @@ struct UserInputData {
   // State: is the key currently held down?
   Buttons held;
 
-  // Impulses: was the key pressed this frame?
+  // Impulses: was the key pressed in this frame?
   Buttons pressed;
 };
