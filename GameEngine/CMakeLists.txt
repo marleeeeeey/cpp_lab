@@ -21,7 +21,7 @@ target_link_libraries(GameEngine PRIVATE
         NetworkDataHandler
         GameMessageTypes
         GameSharedObjects
-        SerializationProtocol
+        GameSerialization
         Profiler
 
         # 3rd_party libraries

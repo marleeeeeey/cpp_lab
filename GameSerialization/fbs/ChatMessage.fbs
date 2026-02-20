@@ -1,6 +1,6 @@
 include "Player.fbs";
 
-namespace SerializationProtocolFlatbuffer;
+namespace GameSerializationFlatbuffer;
 
 table ChatMessage {
   sender:Player;

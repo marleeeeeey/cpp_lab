@@ -1,6 +1,6 @@
 #include <App.h>
 #include <GameMessageTypes/GameMessageTypes.h>
-#include <SerializationProtocol/SerializationProtocol.h>
+#include <GameSerialization/GameSerialization.h>
 #include <spdlog/spdlog.h>
 
 #include <array>
@@ -101,7 +101,7 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
     SPDLOG_DEBUG("ws.open");
     SPDLOG_INFO("{} connected from ip {}", player.name, ip);
 
-    auto payload = SerializationProtocol::serializePlayer(player);
+    auto payload = GameSerialization::serializePlayer(player);
     sendTypedBinaryToWebSocket(GMT_AssignNameToThePlayer, ws, payload);
 
     // TODO world state should be sent to this client. Need to save player positions on server

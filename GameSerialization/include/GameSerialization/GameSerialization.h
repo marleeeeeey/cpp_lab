@@ -10,7 +10,7 @@
 struct Player;
 struct ChatMessage;
 
-namespace SerializationProtocol {
+namespace GameSerialization {
 
 // ----------------
 // Player
@@ -26,4 +26,4 @@ Player deserializePlayer(const std::vector<uint8_t>& payload);
 std::vector<uint8_t> serializeChatMessage(const ChatMessage& chatMessage);
 ChatMessage deserializeChatMessage(const std::vector<uint8_t>& payload);
 
-};  // namespace SerializationProtocol
+};  // namespace GameSerialization

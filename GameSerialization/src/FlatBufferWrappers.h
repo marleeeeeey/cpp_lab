@@ -16,10 +16,10 @@ namespace FlatBufferWrappers {
 // -------------
 
 auto serialize(flatbuffers::FlatBufferBuilder& builder, const glm::vec2& vec2) {
-  return SerializationProtocolFlatbuffer::Vec2{vec2.x, vec2.y};
+  return GameSerializationFlatbuffer::Vec2{vec2.x, vec2.y};
 }
 
-glm::vec2 deserialize(const SerializationProtocolFlatbuffer::Vec2* fbVec2) {
+glm::vec2 deserialize(const GameSerializationFlatbuffer::Vec2* fbVec2) {
   glm::vec2 vec2 = {fbVec2->x(), fbVec2->y()};
   return vec2;
 }
@@ -31,12 +31,12 @@ glm::vec2 deserialize(const SerializationProtocolFlatbuffer::Vec2* fbVec2) {
 auto serialize(flatbuffers::FlatBufferBuilder& builder, const Player& player) {
   auto fbName = builder.CreateString(player.name);
   auto fbPosition = serialize(builder, player.position);
-  auto fbPlayer = SerializationProtocolFlatbuffer::CreatePlayer(
+  auto fbPlayer = GameSerializationFlatbuffer::CreatePlayer(
       builder, fbName, player.messagesSent, &fbPosition);
   return fbPlayer;
 }
 
-Player deserialize(const SerializationProtocolFlatbuffer::Player* fbPlayer) {
+Player deserialize(const GameSerializationFlatbuffer::Player* fbPlayer) {
   Player player;
   player.name = fbPlayer->name()->str();
   player.messagesSent = fbPlayer->messages_sent();
@@ -58,13 +58,13 @@ auto serialize(flatbuffers::FlatBufferBuilder& builder, const ChatMessage& chatM
                                chatMessage.receivedTimestamp.time_since_epoch())
                                .count();
 
-  auto fbChatMessage = SerializationProtocolFlatbuffer::CreateChatMessage(
+  auto fbChatMessage = GameSerializationFlatbuffer::CreateChatMessage(
       builder, fbPlayer, message, sentTimestamp, receivedTimestamp);
 
   return fbChatMessage;
 }
 
-ChatMessage deserialize(const SerializationProtocolFlatbuffer::ChatMessage* fbChatMessage) {
+ChatMessage deserialize(const GameSerializationFlatbuffer::ChatMessage* fbChatMessage) {
   ChatMessage chatMessage;
   chatMessage.sender = deserialize(fbChatMessage->sender());
   chatMessage.message = fbChatMessage->message()->str();

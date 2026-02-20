@@ -8,9 +8,9 @@
 #include <cxxopts.hpp>
 
 #include "GameMessageTypes/GameMessageTypes.h"
+#include "GameSerialization/GameSerialization.h"
 #include "GameSharedObjects/ChatMessage.h"
 #include "Profiler/Profiler.h"
-#include "SerializationProtocol/SerializationProtocol.h"
 #include "magic_enum/magic_enum.hpp"
 
 // ------------------
@@ -43,7 +43,8 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   initRenderContainer_();
   initGameWorld_();
   initChat_();
-  initNetworkHandlers_();
+  initNetworkDataHandlers_();
+  initAutoReconnectionNetwork_();
 
   beginFrameTime_ = SDL_GetTicks();
 
@@ -211,7 +212,7 @@ void GameApp::initGameWorld_() {
     Player& player = gameWorldRenderer_->myPlayer;
 
     // TODO: create simple interface for friquent action
-    auto payload = SerializationProtocol::serializePlayer(player);
+    auto payload = GameSerialization::serializePlayer(player);
     payload = networkDataHandler_->addTypeForBinaryMessage(GMT_AnyPlayerDataUpdated, payload);
     autoReconnectionNetwork_->sendBinary(payload);
   };
@@ -230,9 +231,9 @@ void GameApp::initChat_() {
         .sentTimestamp = std::chrono::system_clock::now(),
     };
 
-    // TODO: create simple interface for friquent action
+    // TODO: create simple interface for frequent action
     // IMPROVE: do both operations in one call and one memory allocation
-    auto payload = SerializationProtocol::serializeChatMessage(chatMessage);
+    auto payload = GameSerialization::serializeChatMessage(chatMessage);
     payload = networkDataHandler_->addTypeForBinaryMessage(GMT_ChatMessage, payload);
     autoReconnectionNetwork_->sendBinary(payload);
   };
@@ -240,7 +241,7 @@ void GameApp::initChat_() {
   renderContainer_->addComponent(chatRenderer_);
 }
 
-void GameApp::initNetworkHandlers_() {
+void GameApp::initNetworkDataHandlers_() {
   networkDataHandler_ = INetworkDataHandler::create();
 
   networkDataHandler_->registerCallbackForTextMessages(
@@ -261,7 +262,7 @@ void GameApp::initNetworkHandlers_() {
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_ChatMessage,
       [this](const auto type, const std::vector<uint8_t>& payload) {
-        auto newChatMessage = SerializationProtocol::deserializeChatMessage(payload);
+        auto newChatMessage = GameSerialization::deserializeChatMessage(payload);
         newChatMessage.receivedTimestamp = std::chrono::system_clock::now();
         if (chatRenderer_) {
           chatRenderer_->addMessage(newChatMessage);
@@ -286,7 +287,7 @@ void GameApp::initNetworkHandlers_() {
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_AnyPlayerDataUpdated,
       [this](const auto type, const std::vector<uint8_t>& payload) {
-        auto player = SerializationProtocol::deserializePlayer(payload);
+        auto player = GameSerialization::deserializePlayer(payload);
         if (gameWorldRenderer_) {
           if (player.name == gameWorldRenderer_->myPlayer.name) {
             return;  // don't update my own data
@@ -299,7 +300,7 @@ void GameApp::initNetworkHandlers_() {
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_AssignNameToThePlayer,
       [this](const auto type, const std::vector<uint8_t>& payload) {
-        auto player = SerializationProtocol::deserializePlayer(payload);
+        auto player = GameSerialization::deserializePlayer(payload);
         if (gameWorldRenderer_) {
           gameWorldRenderer_->myPlayer = player;
         }
@@ -307,7 +308,9 @@ void GameApp::initNetworkHandlers_() {
 
         SPDLOG_INFO("Your name is {}. Welcome!", player.name);
       });
+}
 
+void GameApp::initAutoReconnectionNetwork_() {
   autoReconnectionNetwork_ = IAutoReconnectionNetwork::create();
   autoReconnectionNetwork_->init(
       appOptions_.url,

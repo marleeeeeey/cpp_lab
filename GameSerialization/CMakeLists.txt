@@ -2,8 +2,8 @@
 # Sources
 # ----------
 
-add_library(SerializationProtocol
-        src/SerializationProtocol.cpp
+add_library(GameSerialization
+        src/GameSerialization.cpp
 )
 
 # --------------
@@ -24,7 +24,7 @@ add_flatbuffers_schema(FlatbufferSchemas
 # Include
 # ----------
 
-target_include_directories(SerializationProtocol
+target_include_directories(GameSerialization
         PUBLIC include
         PRIVATE src
 )
@@ -34,7 +34,7 @@ target_include_directories(SerializationProtocol
 # Link
 # -------
 
-target_link_libraries(SerializationProtocol PRIVATE
+target_link_libraries(GameSerialization PRIVATE
         # User libraries
         FlatbufferSchemas
         GameSharedObjects

@@ -16,7 +16,7 @@ target_link_libraries(WsEchoServer PRIVATE
         NetworkDataHandler
         GameMessageTypes
         GameSharedObjects
-        SerializationProtocol
+        GameSerialization
 
         # 3rd_party libraries
         uWebSockets::uWebSockets

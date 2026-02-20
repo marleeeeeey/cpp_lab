@@ -1,4 +1,4 @@
-namespace SerializationProtocolFlatbuffer;
+namespace GameSerializationFlatbuffer;
 
 table Bullet {
   speed:short;

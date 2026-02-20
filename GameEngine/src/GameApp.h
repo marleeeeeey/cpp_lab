@@ -83,7 +83,8 @@ class GameApp {
   void initRenderContainer_();
   void initGameWorld_();
   void initChat_();
-  void initNetworkHandlers_();
+  void initNetworkDataHandlers_();
+  void initAutoReconnectionNetwork_();
 
   // ----------------------
   // Basic Iterate Steps
