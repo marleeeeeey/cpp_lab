@@ -7,8 +7,6 @@
 
 #include <cxxopts.hpp>
 
-#include "GameMessageTypes/GameMessageTypes.h"
-#include "GameSerialization/GameSerialization.h"
 #include "GameSharedObjects/ChatMessage.h"
 #include "Profiler/Profiler.h"
 #include "magic_enum/magic_enum.hpp"
@@ -43,8 +41,14 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   initRenderContainer_();
   initGameWorld_();
   initChat_();
-  initNetworkDataHandlers_();
-  initAutoReconnectionNetwork_();
+
+  // -----------------------
+  // Init Networking
+  // -----------------------
+
+  gameNetwork_ = std::make_unique<GameNetwork>(
+      appOptions_.url, chatRenderer_, gameWorldRenderer_, gameWorld_);
+  gameNetwork_->start();
 
   beginFrameTime_ = SDL_GetTicks();
 
@@ -71,7 +75,7 @@ SDL_AppResult GameApp::onEvent(SDL_Event* event) {
 SDL_AppResult GameApp::iterate() {
   const float elapsed = calculateDeltaTime_();
 
-  autoReconnectionNetwork_->iterate();
+  gameNetwork_->iterate();
 
   updateGameWorld_(elapsed);
 
@@ -91,7 +95,7 @@ void GameApp::onQuit() {
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
 
-  autoReconnectionNetwork_->stop();
+  gameNetwork_->stop();
 }
 
 // ------------
@@ -207,14 +211,11 @@ void GameApp::initRenderContainer_() {
 
 void GameApp::initGameWorld_() {
   gameWorldRenderer_ = IGameWorldRenderer::create(sdlRenderer_);
-  gameWorld_.init(windowWidth_, windowHeight_, gameWorldRenderer_);
-  gameWorld_.onPlayerPositionChanged = [this]() {
-    Player& player = gameWorldRenderer_->myPlayer;
+  gameWorld_ = std::make_shared<GameWorld>(windowWidth_, windowHeight_, gameWorldRenderer_);
 
-    // TODO: create simple interface for friquent action
-    auto payload = GameSerialization::serializePlayer(player);
-    payload = networkDataHandler_->addTypeForBinaryMessage(GMT_AnyPlayerDataUpdated, payload);
-    autoReconnectionNetwork_->sendBinary(payload);
+  gameWorld_->onPlayerPositionChanged = [this]() {
+    Player& player = gameWorldRenderer_->myPlayer;
+    gameNetwork_->sendPlayer(player);
   };
 
   renderContainer_->addComponent(gameWorldRenderer_);
@@ -231,103 +232,10 @@ void GameApp::initChat_() {
         .sentTimestamp = std::chrono::system_clock::now(),
     };
 
-    // TODO: create simple interface for frequent action
-    // IMPROVE: do both operations in one call and one memory allocation
-    auto payload = GameSerialization::serializeChatMessage(chatMessage);
-    payload = networkDataHandler_->addTypeForBinaryMessage(GMT_ChatMessage, payload);
-    autoReconnectionNetwork_->sendBinary(payload);
+    gameNetwork_->sendChatMessage(chatMessage);
   };
 
   renderContainer_->addComponent(chatRenderer_);
-}
-
-void GameApp::initNetworkDataHandlers_() {
-  networkDataHandler_ = INetworkDataHandler::create();
-
-  networkDataHandler_->registerCallbackForTextMessages(
-      [this](std::string_view textMessage) {
-        ChatMessage chatMessage{
-            .sender = Player{
-                .name = "Anonymous",
-                .messagesSent = 0,
-            },
-            .message = std::string(textMessage),
-        };
-        if (chatRenderer_) {
-          chatRenderer_->addMessage(chatMessage);
-        }
-        SPDLOG_INFO("Text Message received: {}", chatMessage.message);
-      });
-
-  networkDataHandler_->registerCallbackForBinaryMessageWithType(
-      GMT_ChatMessage,
-      [this](const auto type, const std::vector<uint8_t>& payload) {
-        auto newChatMessage = GameSerialization::deserializeChatMessage(payload);
-        newChatMessage.receivedTimestamp = std::chrono::system_clock::now();
-        if (chatRenderer_) {
-          chatRenderer_->addMessage(newChatMessage);
-        }
-        SPDLOG_TRACE("Message type {} received: {}", type, newChatMessage.message);
-      });
-
-  networkDataHandler_->registerCallbackForBinaryMessageWithType(
-      GMT_NumberOfClients,
-      [this](const auto type, const std::vector<uint8_t>& payload) {
-        // unpack number of users
-        int receivedNumber = 0;
-        std::memcpy(&receivedNumber, payload.data(), sizeof(receivedNumber));
-
-        // set and log
-        if (chatRenderer_) {
-          chatRenderer_->numberOfConnectedUsers = receivedNumber;
-        }
-        SPDLOG_TRACE("Message type {} received: {}", type, receivedNumber);
-      });
-
-  networkDataHandler_->registerCallbackForBinaryMessageWithType(
-      GMT_AnyPlayerDataUpdated,
-      [this](const auto type, const std::vector<uint8_t>& payload) {
-        auto player = GameSerialization::deserializePlayer(payload);
-        if (gameWorldRenderer_) {
-          if (player.name == gameWorldRenderer_->myPlayer.name) {
-            return;  // don't update my own data
-          }
-          gameWorldRenderer_->otherPlayers[player.name] = player;
-        }
-        SPDLOG_DEBUG("Message type {} received", type);
-      });
-
-  networkDataHandler_->registerCallbackForBinaryMessageWithType(
-      GMT_AssignNameToThePlayer,
-      [this](const auto type, const std::vector<uint8_t>& payload) {
-        auto player = GameSerialization::deserializePlayer(payload);
-        if (gameWorldRenderer_) {
-          gameWorldRenderer_->myPlayer = player;
-        }
-        gameWorld_.setPlayerRandomPosition();
-
-        SPDLOG_INFO("Your name is {}. Welcome!", player.name);
-      });
-}
-
-void GameApp::initAutoReconnectionNetwork_() {
-  autoReconnectionNetwork_ = IAutoReconnectionNetwork::create();
-  autoReconnectionNetwork_->init(
-      appOptions_.url,
-      [this](std::string_view textMessage) {
-        SPDLOG_TRACE("Received text message: {}", textMessage);
-        networkDataHandler_->notifyAboutTextMessage(textMessage);
-      },
-      [this](std::vector<uint8_t> binaryMessage) {
-        SPDLOG_TRACE("Received binary message");
-        networkDataHandler_->notifyAboutBinaryMessage(binaryMessage);
-      },
-      [this](IAutoReconnectionNetwork::State newState) {
-        if (chatRenderer_) {
-          chatRenderer_->connectionStatus = magic_enum::enum_name(newState);
-        }
-      });
-  autoReconnectionNetwork_->start();
 }
 
 // ---------------------
@@ -346,7 +254,7 @@ float GameApp::calculateDeltaTime_() {
 
 void GameApp::updateGameWorld_(const float elapsed) {
   PROFILER_ZONE;
-  gameWorld_.iterate(elapsed, userInputManger_.getUserInputData());
+  gameWorld_->iterate(elapsed, userInputManger_.getUserInputData());
 }
 
 void GameApp::renderFrame_() {

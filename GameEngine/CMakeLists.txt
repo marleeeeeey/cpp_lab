@@ -3,10 +3,11 @@
 # ----------------------
 
 add_executable(GameEngine
-        src/main.cpp
+        src/GameMain.cpp
         src/GameApp.cpp
         src/GameWorld.cpp
         src/UserInputManger.cpp
+        src/GameNetwork.cpp
 )
 
 

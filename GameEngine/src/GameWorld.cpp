@@ -11,7 +11,7 @@
 static constexpr int MIN_PIXELS_PER_SECOND = 30; /* move at least this many pixels per second. */
 static constexpr int MAX_PIXELS_PER_SECOND = 60; /* move this many pixels per second at most. */
 
-void GameWorld::init(int width, int height, std::weak_ptr<IGameWorldRenderer> gameWorldRenderer) {
+GameWorld::GameWorld(int width, int height, std::weak_ptr<IGameWorldRenderer> gameWorldRenderer) {
   windowWidth_ = width;
   windowHeight_ = height;
   gameWorldRenderer_ = gameWorldRenderer;

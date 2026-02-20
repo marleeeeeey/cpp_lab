@@ -5,11 +5,10 @@
 #include <entt/signal/sigh.hpp>
 #include <memory>
 
-#include "AutoReconnectionNetwork/IAutoReconnectionNetwork.h"
+#include "GameNetwork.h"
 #include "GameRenderer/IChatRenderer.h"
 #include "GameRenderer/IRenderContainer.h"
 #include "GameWorld.h"
-#include "NetworkDataHandler/INetworkDataHandler.h"
 #include "UserInputManger.h"
 
 // ------------------------------------
@@ -61,7 +60,7 @@ class GameApp {
   // Game Domain Data
   // ------------------
 
-  GameWorld gameWorld_;
+  std::shared_ptr<GameWorld> gameWorld_;
   UserInputManger userInputManger_;
 
   // ---------------------
@@ -83,8 +82,6 @@ class GameApp {
   void initRenderContainer_();
   void initGameWorld_();
   void initChat_();
-  void initNetworkDataHandlers_();
-  void initAutoReconnectionNetwork_();
 
   // ----------------------
   // Basic Iterate Steps
@@ -98,6 +95,5 @@ class GameApp {
   // Network
   // ---------
 
-  std::unique_ptr<IAutoReconnectionNetwork> autoReconnectionNetwork_;
-  std::unique_ptr<INetworkDataHandler> networkDataHandler_;
+  std::shared_ptr<GameNetwork> gameNetwork_;
 };

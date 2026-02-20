@@ -10,7 +10,7 @@
 // Business logic for the game world.
 class GameWorld {
  public:
-  void init(int width, int height, std::weak_ptr<IGameWorldRenderer> gameWorldRenderer);
+  GameWorld(int width, int height, std::weak_ptr<IGameWorldRenderer> gameWorldRenderer);
   void iterate(double elapsed, const UserInputData& userInputData);
   void onWindowSizeChanged(int width, int height);
   void setPlayerRandomPosition() const;
