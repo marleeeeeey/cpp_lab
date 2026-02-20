@@ -80,7 +80,7 @@ endif ()
 if (EMSCRIPTEN)
     # Use custom minimal HTML instead of Emscripten default page
     target_link_options(GameEngine PRIVATE
-            "SHELL:--shell-file ${CPP_LAB_ROOT}/web/EmptyHtmlTemplateForEmscripten.html"
+            "SHELL:--shell-file ${CPP_LAB_ROOT}/HtmlTemplates/EmptyPageWithWASM.html"
     )
 endif ()
 

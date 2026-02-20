@@ -1,3 +1,0 @@
-add_subdirectory(network_connection_lib)
-add_subdirectory(chat_network_lib)
-add_subdirectory(chat_engine_a)
