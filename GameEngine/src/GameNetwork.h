@@ -6,6 +6,7 @@
 #include "GameRenderer/IGameWorldRenderer.h"
 #include "GameSharedObjects/ChatMessage.h"
 #include "GameSharedObjects/Player.h"
+#include "GameTimer.h"
 #include "GameWorld.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
 
@@ -15,7 +16,8 @@ class GameNetwork {
       const std::string& url,
       std::weak_ptr<IChatRenderer> chatRenderer,
       std::weak_ptr<IGameWorldRenderer> gameWorldRenderer,
-      std::weak_ptr<GameWorld> gameWorld);
+      std::weak_ptr<GameWorld> gameWorld,
+      std::weak_ptr<GameTimer> gameTimer);
 
   // ------------------------
   // Connection Interface
@@ -55,4 +57,5 @@ class GameNetwork {
   std::weak_ptr<IChatRenderer> chatRenderer_;
   std::weak_ptr<IGameWorldRenderer> gameWorldRenderer_;
   std::weak_ptr<GameWorld> gameWorld_;
+  std::weak_ptr<GameTimer> gameTimer_;
 };

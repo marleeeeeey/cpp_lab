@@ -11,11 +11,13 @@ GameNetwork::GameNetwork(
     const std::string& url,
     std::weak_ptr<IChatRenderer> chatRenderer,
     std::weak_ptr<IGameWorldRenderer> gameWorldRenderer,
-    std::weak_ptr<GameWorld> gameWorld) {
+    std::weak_ptr<GameWorld> gameWorld,
+    std::weak_ptr<GameTimer> gameTimer) {
   url_ = url;
   chatRenderer_ = chatRenderer;
   gameWorldRenderer_ = gameWorldRenderer;
   gameWorld_ = gameWorld;
+  gameTimer_ = gameTimer;
 
   initNetworkDataHandlers_();
   initAutoReconnectionNetwork_();

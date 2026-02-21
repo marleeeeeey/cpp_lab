@@ -7,6 +7,7 @@ add_executable(GameEngine
         src/GameApp.cpp
         src/GameWorld.cpp
         src/GameNetwork.cpp
+        src/GameTimer.cpp
 )
 
 

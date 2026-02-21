@@ -47,12 +47,15 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
 
   initGameWorld_();
   initChat_();
+  gameTimer_ = std::make_shared<GameTimer>();
+  gameTimer_->scheduleRepeating(3, 3, -1, []() { SPDLOG_INFO("Hello from timer!"); });
 
   // -----------------------
   // Init Networking
   // -----------------------
 
-  gameNetwork_ = std::make_unique<GameNetwork>(appOptions_.url, chatRenderer_, gameWorldRenderer_, gameWorld_);
+  gameNetwork_ = std::make_unique<GameNetwork>(
+      appOptions_.url, chatRenderer_, gameWorldRenderer_, gameWorld_, gameTimer_);
   gameNetwork_->start();
 
   beginFrameTime_ = SDL_GetTicks();
@@ -69,6 +72,8 @@ SDL_AppResult GameApp::iterate() {
   const float elapsed = calculateDeltaTime_();
 
   gameNetwork_->iterate();
+
+  gameTimer_->iterate(elapsed);
 
   updateGameWorld_(elapsed);
 

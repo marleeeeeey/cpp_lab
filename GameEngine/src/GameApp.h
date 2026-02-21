@@ -8,6 +8,7 @@
 #include "GameNetwork.h"
 #include "GameRenderer/IChatRenderer.h"
 #include "GameRenderer/IRenderContainer.h"
+#include "GameTimer.h"
 #include "GameWorld.h"
 
 // ------------------------------------
@@ -52,6 +53,7 @@ class GameApp {
 
   std::shared_ptr<GameWorld> gameWorld_;
   std::unique_ptr<IGameInputManager> gameInputManager_;
+  std::shared_ptr<GameTimer> gameTimer_;
 
   // ---------------------
   // Application Options
