@@ -36,16 +36,22 @@ void GameNetwork::stop() {
 }
 
 void GameNetwork::sendPlayer(const Player& player) {
-  // IMPROVE: do both operations in one call and one memory allocation
+  // IMPROVE: do both operations in one call and one memory allocation. Here and other similar places,
   auto payload = GameSerialization::serializePlayer(player);
   payload = networkDataHandler_->addTypeForBinaryMessage(GMT_AnyPlayerDataUpdated, payload);
   autoReconnectionNetwork_->sendBinary(payload);
 }
 
 void GameNetwork::sendChatMessage(const ChatMessage& message) {
-  // IMPROVE: do both operations in one call and one memory allocation
   auto payload = GameSerialization::serializeChatMessage(message);
   payload = networkDataHandler_->addTypeForBinaryMessage(GMT_ChatMessage, payload);
+  autoReconnectionNetwork_->sendBinary(payload);
+}
+
+void GameNetwork::sendPingFromClient() {
+  auto now = std::chrono::system_clock::now();
+  auto payload = GameSerialization::serializeTimeStamp(now);
+  payload = networkDataHandler_->addTypeForBinaryMessage(GMT_PingFromClient, payload);
   autoReconnectionNetwork_->sendBinary(payload);
 }
 
@@ -117,6 +123,19 @@ void GameNetwork::initNetworkDataHandlers_() {
         }
 
         SPDLOG_INFO("Your name is {}. Welcome!", player.name);
+
+        sendPingFromClient();
+      });
+
+  networkDataHandler_->registerCallbackForBinaryMessageWithType(
+      GMT_PingFromClient,
+      [this](const auto type, const std::vector<uint8_t>& payload) {
+        auto creationTime = GameSerialization::deserializeTimeStamp(payload);
+        auto now = std::chrono::system_clock::now();
+        if (auto renderer = chatRenderer_.lock()) {
+          auto pingMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - creationTime).count();
+          renderer->pingMs = pingMs;
+        }
       });
 }
 

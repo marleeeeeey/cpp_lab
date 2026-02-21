@@ -2,6 +2,25 @@
 
 #include "FlatBufferTemplates.h"
 
+// -------------------
+// TimeStamp
+// -------------------
+
+#include "GameSharedObjects/TimeStamp.h"
+
+std::vector<uint8_t> GameSerialization::serializeTimeStamp(const TimeStamp& p) {
+  const std::uint64_t ms = FlatBufferWrappers::serialize(p);
+  std::vector<std::uint8_t> payload(sizeof(ms));
+  std::memcpy(payload.data(), &ms, sizeof(ms));
+  return payload;
+}
+
+TimeStamp GameSerialization::deserializeTimeStamp(const std::vector<uint8_t>& payload) {
+  std::uint64_t ms = 0;
+  std::memcpy(&ms, payload.data(), sizeof(ms));
+  return FlatBufferWrappers::deserialize(ms);
+}
+
 // ----------------
 // Player
 // ----------------

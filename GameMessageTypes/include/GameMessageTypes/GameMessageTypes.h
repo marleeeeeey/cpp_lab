@@ -6,4 +6,5 @@ enum GameMessageType {
   GMT_NumberOfClients,
   GMT_AnyPlayerDataUpdated,
   GMT_AssignNameToThePlayer,
+  GMT_PingFromClient,
 };

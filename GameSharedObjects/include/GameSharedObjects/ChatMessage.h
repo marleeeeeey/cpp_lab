@@ -1,10 +1,7 @@
 #pragma once
 
-#include <chrono>
-
 #include "GameSharedObjects/Player.h"
-
-using TimeStamp = std::chrono::time_point<std::chrono::system_clock>;
+#include "GameSharedObjects/TimeStamp.h"
 
 struct ChatMessage {
   Player sender;

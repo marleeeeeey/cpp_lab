@@ -47,8 +47,6 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
 
   initGameWorld_();
   initChat_();
-  gameTimer_ = std::make_shared<GameTimer>();
-  gameTimer_->scheduleRepeating(3, 3, -1, []() { SPDLOG_INFO("Hello from timer!"); });
 
   // -----------------------
   // Init Networking
@@ -57,6 +55,8 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   gameNetwork_ = std::make_unique<GameNetwork>(
       appOptions_.url, chatRenderer_, gameWorldRenderer_, gameWorld_, gameTimer_);
   gameNetwork_->start();
+
+  initTimers_();
 
   beginFrameTime_ = SDL_GetTicks();
 
@@ -231,6 +231,13 @@ void GameApp::initChat_() {
   renderContainer_->addComponent(chatRenderer_);
 }
 
+void GameApp::initTimers_() {
+  gameTimer_ = std::make_shared<GameTimer>();
+  gameTimer_->scheduleRepeating(3, 3, -1, [this]() {
+    gameNetwork_->sendPingFromClient();
+  });
+}
+
 // ---------------------
 // Basic Iterate Steps
 // ---------------------
@@ -239,7 +246,7 @@ float GameApp::calculateDeltaTime_() {
   PROFILER_ZONE;
 
   const Uint64 now = SDL_GetTicks();
-  /* seconds since last iteration */
+  // seconds since the last iteration
   const float elapsed = ((float)(now - beginFrameTime_)) / 1000.0f;
   beginFrameTime_ = now;
   return elapsed;
@@ -257,6 +264,7 @@ void GameApp::renderFrame_() {
     // --------------------------------
     // Clear Screen (fill with black)
     // --------------------------------
+
     ImGuiIO& io = ImGui::GetIO();
     SDL_SetRenderScale(sdlRenderer_, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
     SDL_SetRenderDrawColor(sdlRenderer_, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -265,6 +273,7 @@ void GameApp::renderFrame_() {
     // -----------------------
     // Begin Frame
     // -----------------------
+
     ImGui_ImplSDLRenderer3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
@@ -272,9 +281,11 @@ void GameApp::renderFrame_() {
     // -----------------------
     // Render New Frame
     // -----------------------
+
     renderContainer_->render();
     ImGui::Render();
-    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), sdlRenderer_);  // render the GUI
+    // render the GUI
+    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), sdlRenderer_);
   }
 
   {

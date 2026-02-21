@@ -49,7 +49,8 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
         state->app->publish(state->getBroadcastTopicName(), messageStringView, uWS::OpCode::BINARY);  // broadcast
       };
 
-  state->binaryMessageParser = std::make_unique<BinaryMessageParser>(onBroadcastMessageCallback);
+  state->binaryMessageParser = std::make_unique<BinaryMessageParser>(
+      onBroadcastMessageCallback, sendTypedBinaryToWebSocket);
 
   // ---------------------
   // Upgrade (detect IP)
@@ -130,8 +131,8 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
       state->networkDataHandler->parseBinaryMessage(
         binaryMsg,
         [&](const INetworkDataHandler::MessageType type, const std::vector<uint8_t>& payload) {
-          state->binaryMessageParser->parseAnyBinaryMessage(type, payload, perSocketData);
-        });
+            state->binaryMessageParser->parseAnyBinaryMessage(type, payload, ws, perSocketData);
+          });
     } };
 
   // -------------------------

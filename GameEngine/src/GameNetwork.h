@@ -33,6 +33,7 @@ class GameNetwork {
 
   void sendPlayer(const Player& player);
   void sendChatMessage(const ChatMessage& message);
+  void sendPingFromClient();
 
  private:
   // ----------------------------

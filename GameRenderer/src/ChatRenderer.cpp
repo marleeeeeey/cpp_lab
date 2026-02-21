@@ -40,7 +40,8 @@ void ChatRenderer::render() {
   // Connection status
   // -------------------
 
-  ImGui::Text("Your Status: %s | Number Of Users: %d", connectionStatus.c_str(), numberOfConnectedUsers);
+  ImGui::Text("Your Status: %s | Number Of Users: %d | Ping: %d ms",
+              connectionStatus.c_str(), numberOfConnectedUsers, pingMs);
   ImGui::Separator();
 
   // ------------------
@@ -54,11 +55,12 @@ void ChatRenderer::render() {
     auto deliveryTime = chatMessage.receivedTimestamp - chatMessage.sentTimestamp;
     auto deliveryTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(deliveryTime).count();
 
-    ImGui::TextWrapped("[%s] [+%lldms] %s [%d]: %s",
+    // [Time] [Msg RTT] [Total Messages From This User] Name: Message
+    ImGui::TextWrapped("[%s] [+%lldms] [%d] %s: %s",
                        TimeUtils::timeToStringHHMMSSMS(chatMessage.sentTimestamp).c_str(),
                        deliveryTimeMs,
-                       chatMessage.sender.name.c_str(),
                        chatMessage.sender.messagesSent,
+                       chatMessage.sender.name.c_str(),
                        chatMessage.message.c_str());
   }
   if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())

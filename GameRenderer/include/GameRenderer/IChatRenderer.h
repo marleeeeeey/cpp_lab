@@ -26,6 +26,7 @@ class IChatRenderer : public IRenderer {
   // -----------
 
   virtual void addMessage(const ChatMessage& message) = 0;
+  int pingMs{};
   std::string connectionStatus;
   int numberOfConnectedUsers{0};
   OnMessageSentCallback onMessageSentCallback;

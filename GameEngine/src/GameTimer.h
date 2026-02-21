@@ -6,11 +6,18 @@
 
 class GameTimer final {
  public:
+  // --------------
+  // Signatures
+  // --------------
+
   using Callback = std::function<void()>;
   using TimerId = std::uint64_t;
 
   GameTimer() = default;
 
+  // --------------
+  // Interface
+  // --------------
   // elapsedSeconds — frame delta time (in seconds)
   void iterate(float elapsedSeconds);
 
@@ -19,7 +26,8 @@ class GameTimer final {
   void reset();  // resets time and clears all scheduled tasks
   bool isPaused() const { return paused_; }
 
-  float time() const { return timeSeconds_; }  // "game time" (stops when paused)
+  // "game time" (stops when paused)
+  float time() const { return timeSeconds_; }
 
   // Unity-like Invoke: run once after delaySeconds (in game time)
   TimerId scheduleOnce(float delaySeconds, Callback cb);
@@ -38,6 +46,10 @@ class GameTimer final {
 
   // Cancel everything
   void cancelAll();
+
+  // --------------
+  // Details
+  // --------------
 
  private:
   struct Task {

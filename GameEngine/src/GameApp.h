@@ -73,6 +73,7 @@ class GameApp {
   void initImGui_();
   void initGameWorld_();
   void initChat_();
+  void initTimers_();
 
   // ----------------------
   // Basic Iterate Steps

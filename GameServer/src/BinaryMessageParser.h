@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "GameMessageTypes/GameMessageTypes.h"
 #include "PerSocketData.h"
 
 class BinaryMessageParser {
@@ -14,18 +15,25 @@ class BinaryMessageParser {
   // -------------
 
   using OnBroadcastMessageCallback = std::function<void(INetworkDataHandler::MessageType type, const std::vector<uint8_t>&)>;
+  using OnSendTypedBinaryToTheSocketCallback = std::function<void(GameMessageType type, WsType* ws, const std::vector<uint8_t>& payload)>;
 
   // --------------
   // Constructor
   // --------------
 
-  BinaryMessageParser(OnBroadcastMessageCallback onBroadcastMessageCallback);
+  BinaryMessageParser(
+      OnBroadcastMessageCallback onBroadcastMessageCallback,
+      OnSendTypedBinaryToTheSocketCallback onSendTypedBinaryToTheSocketCallback);
 
   // -----------
   // Interface
   // -----------
 
-  void parseAnyBinaryMessage(INetworkDataHandler::MessageType type, const std::vector<uint8_t>& payload, PerSocketData* perSocketData) const;
+  void parseAnyBinaryMessage(
+      INetworkDataHandler::MessageType type,
+      const std::vector<uint8_t>& payload,
+      WsType* ws,                           // from which socket we received this message
+      PerSocketData* perSocketData) const;  // data assigned with this socket
 
  private:
   // --------------------
@@ -33,6 +41,9 @@ class BinaryMessageParser {
   // --------------------
 
   OnBroadcastMessageCallback onBroadcastMessageCallback_;
+  OnSendTypedBinaryToTheSocketCallback onSendTypedBinaryToTheSocketCallback_;
+
   void on_GMT_ChatMessage(const std::vector<uint8_t>& payload, PerSocketData* perSocketData) const;
   void on_GMT_AnyPlayerDataUpdated(const std::vector<uint8_t>& payload, PerSocketData* perSocketData) const;
+  void on_GMT_PingFromClient(const std::vector<uint8_t>& payload, WsType* ws, PerSocketData* perSocketData) const;
 };
