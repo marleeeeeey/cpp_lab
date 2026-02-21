@@ -94,7 +94,7 @@ endif ()
 # ----------------------------------
 
 if (EMSCRIPTEN)
-    include("${CPP_LAB_ROOT}/ItchWebPack.cmake")
+    include("${CPP_LAB_ROOT}/cmake/ItchWebPack.cmake")
     itch_pack_emscripten_web(
             TARGET GameEngine
             ZIP_NAME "GameEngine_itch_web.zip"

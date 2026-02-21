@@ -3,7 +3,7 @@
 #
 # How to use:
 #
-#   include("${CPP_LAB_ROOT}/ItchWebPack.cmake")
+#   include("${CPP_LAB_ROOT}/cmake/ItchWebPack.cmake")
 #   itch_pack_emscripten_web(
 #           TARGET WsConsoleClient
 #           ZIP_NAME "WsConsoleClient_web.zip"
@@ -74,7 +74,7 @@ function(itch_pack_emscripten_web)
             COMMAND "${CMAKE_COMMAND}"
             -Dsrc:FILEPATH=${CMAKE_CURRENT_BINARY_DIR}/${ITCH_DATA_NAME}
             -Ddst:FILEPATH=${ITCH_TEMP_DIR}/${ITCH_DATA_NAME}
-            -P "${CPP_LAB_ROOT}/CopySingleIfExists.cmake"
+            -P "${CPP_LAB_ROOT}/cmake/CopySingleIfExists.cmake"
 
             # zip files
             COMMAND "${CMAKE_COMMAND}" -E echo "Creating ${_zip_path}"

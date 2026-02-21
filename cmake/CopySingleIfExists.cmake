@@ -3,7 +3,7 @@
 # COMMAND "${CMAKE_COMMAND}"
 # -Dsrc:FILEPATH=${CMAKE_CURRENT_BINARY_DIR}/${ITCH_DATA_NAME}
 # -Ddst:FILEPATH=${ITCH_TEMP_DIR}/${ITCH_DATA_NAME}
-# -P "${CPP_LAB_ROOT}/CopySingleIfExists.cmake"
+# -P "${CPP_LAB_ROOT}/cmake/CopySingleIfExists.cmake"
 # ----------------------------------------------------------------
 
 if (NOT DEFINED src OR NOT DEFINED dst)
