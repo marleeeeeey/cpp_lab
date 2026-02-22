@@ -10,6 +10,7 @@
 #include "GameRenderer/IRenderContainer.h"
 #include "GameTimer.h"
 #include "GameWorld.h"
+#include "SDL_IMGUI_Wrapper.h"
 
 // ------------------------------------
 // Forward declarations
@@ -40,9 +41,7 @@ class GameApp {
   // Rendering and window data
   // ---------------------------
 
-  SDL_Window* window_ = nullptr;
-  SDL_Renderer* sdlRenderer_ = nullptr;
-  Uint64 beginFrameTime_ = 0;
+  std::unique_ptr<SDL_IMGUI_Wrapper> sdlImGuiWrapper_;
   std::shared_ptr<IGameWorldRenderer> gameWorldRenderer_;
   std::shared_ptr<IChatRenderer> chatRenderer_;
   std::shared_ptr<IRenderContainer> renderContainer_;
@@ -69,8 +68,6 @@ class GameApp {
 
   void initTracyProfiler_();
   void initOptions_(int argc, char* argv[]);
-  SDL_AppResult initSDL_();
-  void initImGui_();
   void initGameWorld_();
   void initChat_();
   void initTimers_();
@@ -79,7 +76,6 @@ class GameApp {
   // Basic Iterate Steps
   // ----------------------
 
-  float calculateDeltaTime_();
   void updateGameWorld_(float elapsed);
   void renderFrame_();
 

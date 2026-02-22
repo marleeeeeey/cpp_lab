@@ -1,8 +1,6 @@
 #include "GameApp.h"
 
 #include <imgui.h>
-#include <imgui_impl_sdl3.h>
-#include <imgui_impl_sdlrenderer3.h>
 #include <spdlog/spdlog.h>
 
 #include <cxxopts.hpp>
@@ -10,6 +8,7 @@
 #include "GameSharedObjects/ChatMessage.h"
 #include "Profiler/Profiler.h"
 
+// TODO: remove initial values duplication from here
 constexpr int INITIAL_WINDOWS_WIDTH = 800;
 constexpr int INITIAL_WINDOWS_HEIGHT = 600;
 
@@ -30,15 +29,9 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   // Init SDL, IMGui and InputManager
   // -----------------------------------
 
-  // TODO: move SDL and IMGui creation to separate class and use smart pointers
-
-  auto initSdlResult = initSDL_();  // initialize SDL and set renderer
-  if (initSdlResult != SDL_APP_CONTINUE) {
-    return initSdlResult;
-  }
-  initImGui_();
-  renderContainer_ = IRenderContainer::create(sdlRenderer_);
-  gameInputManager_ = IGameInputManager::create(window_, INITIAL_WINDOWS_WIDTH, INITIAL_WINDOWS_HEIGHT);
+  sdlImGuiWrapper_ = std::make_unique<SDL_IMGUI_Wrapper>();
+  renderContainer_ = IRenderContainer::create(sdlImGuiWrapper_->getRenderer());
+  gameInputManager_ = IGameInputManager::create(sdlImGuiWrapper_->getWindow(), INITIAL_WINDOWS_WIDTH, INITIAL_WINDOWS_HEIGHT);
   gameInputManager_->onWindowSizeChangedSink().connect<&IRenderContainer::onWindowSizeChanged>(renderContainer_);
 
   // ----------------------
@@ -56,20 +49,22 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
       appOptions_.url, chatRenderer_, gameWorldRenderer_, gameWorld_, gameTimer_);
   gameNetwork_->start();
 
-  initTimers_();
+  // -----------------------
+  // Init Timers
+  // -----------------------
 
-  beginFrameTime_ = SDL_GetTicks();
+  initTimers_();
 
   return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult GameApp::onEvent(SDL_Event* event) {
-  ImGui_ImplSDL3_ProcessEvent(event);
+  sdlImGuiWrapper_->onEvent(event);
   return gameInputManager_->applyEvent(event);
 }
 
 SDL_AppResult GameApp::iterate() {
-  const float elapsed = calculateDeltaTime_();
+  const float elapsed = sdlImGuiWrapper_->calculateDeltaTimeWhenFrameBegins();
 
   gameNetwork_->iterate();
 
@@ -77,22 +72,19 @@ SDL_AppResult GameApp::iterate() {
 
   updateGameWorld_(elapsed);
 
-  renderFrame_();
+  sdlImGuiWrapper_->render([this]() {
+    renderContainer_->render();
+  });
 
   gameInputManager_->onFrameEnd();
 
   PROFILER_FRAME_MARK;  // Mark end of frame for TRACY
-
   return SDL_APP_CONTINUE;
 }
 
 void GameApp::onQuit() {
   gameInputManager_->onAppQuit();
-
-  ImGui_ImplSDLRenderer3_Shutdown();
-  ImGui_ImplSDL3_Shutdown();
-  ImGui::DestroyContext();
-
+  sdlImGuiWrapper_->onQuit();
   gameNetwork_->stop();
 }
 
@@ -126,84 +118,8 @@ void GameApp::initOptions_(int argc, char* argv[]) {
   }
 }
 
-SDL_AppResult GameApp::initSDL_() {
-  SDL_SetAppMetadata("Example Renderer Points", "1.0", "com.example.renderer-points");
-
-  if (!SDL_Init(SDL_INIT_VIDEO)) {
-    SPDLOG_ERROR("SDL_Init() failed: {}", SDL_GetError());
-    return SDL_APP_FAILURE;
-  }
-
-  if (!SDL_CreateWindowAndRenderer("GameEngine", INITIAL_WINDOWS_WIDTH, INITIAL_WINDOWS_HEIGHT,
-                                   SDL_WINDOW_RESIZABLE, &window_, &sdlRenderer_)) {
-    SPDLOG_ERROR("SDL_CreateWindowAndRenderer() failed: {}", SDL_GetError());
-    return SDL_APP_FAILURE;
-  }
-
-  // VSync should be enabled to decrease CPU loading!
-  if (!SDL_SetRenderVSync(sdlRenderer_, 1)) {
-    SPDLOG_ERROR("SDL_SetRenderVSync() failed: {}", SDL_GetError());
-  }
-
-  // IMPORTANT:
-  // SDL logical presentation (LETTERBOX) changes render coordinates,
-  // but mouse events remain in window coords,
-  // which breaks ImGui hit-testing after resize.
-  // Keep renderer in native window coordinates when using ImGui.
-  // The next line should be commented.
-  // SDL_SetRenderLogicalPresentation(renderer, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_LOGICAL_PRESENTATION_LETTERBOX);
-
-  return SDL_APP_CONTINUE; /* carry on with the program! */
-}
-
-void GameApp::initImGui_() {
-  float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
-
-  // ------------------------
-  // Setup Dear ImGui context
-  // ------------------------
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO& io = ImGui::GetIO();
-  (void)io;
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
-
-  // ------------------------
-  // Setup Dear ImGui style
-  // ------------------------
-  ImGui::StyleColorsDark();
-  // ImGui::StyleColorsLight();
-
-  // ------------------------
-  // Setup scaling
-  // ------------------------
-  ImGuiStyle& style = ImGui::GetStyle();
-  // Bake a fixed style scale. (until we have a solution for dynamic style scaling,
-  // changing this requires resetting Style + calling this again)
-  style.ScaleAllSizes(main_scale);
-  // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary.
-  // We leave both here for documentation purpose)
-  style.FontScaleDpi = main_scale;
-
-  // ---------------------------------
-  // Setup Platform/Renderer backends
-  // ---------------------------------
-  ImGui_ImplSDL3_InitForSDLRenderer(window_, sdlRenderer_);
-  ImGui_ImplSDLRenderer3_Init(sdlRenderer_);
-
-  // ---------------------------------
-  // Load Fonts
-  // ---------------------------------
-
-  ImFont* font = io.Fonts->AddFontFromFileTTF("assets/fonts/OpenSans-VariableFont_wdth,wght.ttf");
-  if (font == nullptr) {
-    SPDLOG_CRITICAL("Failed to load font");
-  }
-}
-
 void GameApp::initGameWorld_() {
-  gameWorldRenderer_ = IGameWorldRenderer::create(sdlRenderer_);
+  gameWorldRenderer_ = IGameWorldRenderer::create(sdlImGuiWrapper_->getRenderer());
   gameWorld_ = std::make_shared<GameWorld>(INITIAL_WINDOWS_WIDTH, INITIAL_WINDOWS_HEIGHT, gameWorldRenderer_);
 
   gameWorld_->onPlayerPositionChanged = [this]() {
@@ -242,54 +158,7 @@ void GameApp::initTimers_() {
 // Basic Iterate Steps
 // ---------------------
 
-float GameApp::calculateDeltaTime_() {
-  PROFILER_ZONE;
-
-  const Uint64 now = SDL_GetTicks();
-  // seconds since the last iteration
-  const float elapsed = ((float)(now - beginFrameTime_)) / 1000.0f;
-  beginFrameTime_ = now;
-  return elapsed;
-}
-
 void GameApp::updateGameWorld_(const float elapsed) {
   PROFILER_ZONE;
   gameWorld_->iterate(elapsed, gameInputManager_->getGameInputData());
-}
-
-void GameApp::renderFrame_() {
-  {
-    PROFILER_ZONE_NAMED("RenderFrame");
-
-    // --------------------------------
-    // Clear Screen (fill with black)
-    // --------------------------------
-
-    ImGuiIO& io = ImGui::GetIO();
-    SDL_SetRenderScale(sdlRenderer_, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
-    SDL_SetRenderDrawColor(sdlRenderer_, 0, 0, 0, SDL_ALPHA_OPAQUE);
-    SDL_RenderClear(sdlRenderer_);
-
-    // -----------------------
-    // Begin Frame
-    // -----------------------
-
-    ImGui_ImplSDLRenderer3_NewFrame();
-    ImGui_ImplSDL3_NewFrame();
-    ImGui::NewFrame();
-
-    // -----------------------
-    // Render New Frame
-    // -----------------------
-
-    renderContainer_->render();
-    ImGui::Render();
-    // render the GUI
-    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), sdlRenderer_);
-  }
-
-  {
-    PROFILER_ZONE_NAMED("SDL_RenderPresent (vsync wait)");
-    SDL_RenderPresent(sdlRenderer_);  // show the rendered frame on screen
-  }
 }

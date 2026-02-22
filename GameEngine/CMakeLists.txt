@@ -8,6 +8,7 @@ add_executable(GameEngine
         src/GameWorld.cpp
         src/GameNetwork.cpp
         src/GameTimer.cpp
+        src/SDL_IMGUI_Wrapper.cpp
 )
 
 
