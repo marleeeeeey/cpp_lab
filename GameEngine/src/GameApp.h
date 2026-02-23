@@ -5,6 +5,7 @@
 #include "GameInputManager/IGameInputManager.h"
 #include "GameNetwork.h"
 #include "GameRenderer/IChatRenderer.h"
+#include "GameRenderer/IDebugRender.h"
 #include "GameRenderer/IRenderContainer.h"
 #include "GameTimer.h"
 #include "GameWorld.h"
@@ -43,6 +44,7 @@ class GameApp : public ISdlApp {
   std::unique_ptr<SdlWithImGuiWrapper> sdlWrapper_;
   std::shared_ptr<IGameWorldRenderer> gameWorldRenderer_;
   std::shared_ptr<IChatRenderer> chatRenderer_;
+  std::shared_ptr<IDebugRender> debugRender_;
   std::shared_ptr<IRenderContainer> renderContainer_;
 
   // ------------------
@@ -76,6 +78,7 @@ class GameApp : public ISdlApp {
   // ----------------------
 
   void updateGameWorld_(float elapsed);
+  void updateDebugRender_();
   void renderFrame_();
 
   // ---------

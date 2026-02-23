@@ -13,6 +13,9 @@ class GameInputManager : public IGameInputManager {
   void onFrameEnd() override;
 
  private:
+  void checkKeyboardInput_(SDL_Event* event);
+  void checkMouseInput_(SDL_Event* event);
+
   SDL_Window* window_{};  // This class is not responsible for window lifecycle management
   GameInputData userInputData_;
 };

@@ -54,6 +54,9 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
 
   initGameWorld_();
   initChat_();
+  // TODO: add flag or button to switch DebugWindow on/off
+  // debugRender_ = IDebugRender::create();
+  renderContainer_->addComponent(debugRender_);
 
   // -----------------------
   // Init Networking
@@ -85,6 +88,8 @@ SDL_AppResult GameApp::iterate() {
   gameTimer_->iterate(elapsed);
 
   updateGameWorld_(elapsed);
+
+  updateDebugRender_();
 
   sdlWrapper_->render([this]() {
     renderContainer_->render();
@@ -169,4 +174,16 @@ void GameApp::initTimers_() {
 void GameApp::updateGameWorld_(const float elapsed) {
   PROFILER_ZONE;
   gameWorld_->iterate(elapsed, gameInputManager_->getGameInputData());
+}
+
+void GameApp::updateDebugRender_() {
+  if (!debugRender_) return;
+
+  auto& userInputData = gameInputManager_->getGameInputData();
+  auto& m = userInputData.mouse;
+
+  debugRender_->addLine(std::format("Mouse diff  : ({}, {})", m.dx, m.dy));
+  debugRender_->addLine(std::format("Mouse abs   : ({}, {})", m.winX, m.winY));
+  debugRender_->addLine(std::format("Mouse screen: ({}, {})", m.screenX, m.screenY));
+  debugRender_->addLine(std::format("Mouse wheel : ({}, {})", m.wheelX, m.wheelY));
 }

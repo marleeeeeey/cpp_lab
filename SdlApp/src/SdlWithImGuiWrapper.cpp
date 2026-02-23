@@ -131,13 +131,11 @@ SDL_AppResult SdlWithImGuiWrapper::initSDL_() {
     SPDLOG_ERROR("SDL_SetRenderVSync() failed: {}", SDL_GetError());
   }
 
-  // IMPORTANT:
-  // SDL logical presentation (LETTERBOX) changes render coordinates,
-  // but mouse events remain in window coords,
-  // which breaks ImGui hit-testing after resize.
-  // Keep renderer in native window coordinates when using ImGui.
-  // The next line should be commented.
-  // SDL_SetRenderLogicalPresentation(renderer, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+  // TODO: Continue receiving events outside window - DOES NOT WORK
+  // SDL_CaptureMouse(true);
+
+  // Mouse grab confines the mouse cursor to the window
+  // SDL_SetWindowMouseGrab(window_, true);
 
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }

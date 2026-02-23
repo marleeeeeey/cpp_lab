@@ -65,14 +65,14 @@ void GameWorld::impactOnSnowflakes_(double elapsed, const GameInputData& userInp
     // Pressed keys change an acceleration or rotation direction.
     float accelerationShift = elapsed * 5.f;
     float rotateAngleDeg = elapsed * 100.0f;
-    if (userInputData.held.up) {
+    if (userInputData.keyboard.held.up) {
       acceleration_ += accelerationShift;
-    } else if (userInputData.held.down) {
+    } else if (userInputData.keyboard.held.down) {
       acceleration_ -= accelerationShift;
-    } else if (userInputData.held.left) {
+    } else if (userInputData.keyboard.held.left) {
       glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(rotateAngleDeg), glm::vec3(0.0f, 0.0f, 1.0f));
       globalDirection_ = glm::vec2(rotation * glm::vec4(globalDirection_, 0.0f, 0.0f));
-    } else if (userInputData.held.right) {
+    } else if (userInputData.keyboard.held.right) {
       glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(-rotateAngleDeg), glm::vec3(0.0f, 0.0f, 1.0f));
       globalDirection_ = glm::vec2(rotation * glm::vec4(globalDirection_, 0.0f, 0.0f));
     }
@@ -107,13 +107,13 @@ void GameWorld::impactOnPlayer_(double elapsed, const GameInputData& userInputDa
   float step = 10.0f;
   bool positionChanged = true;
 
-  if (userInputData.pressed.up)
+  if (userInputData.keyboard.pressed.up)
     renderer->myPlayer.position.y -= step;
-  else if (userInputData.pressed.down)
+  else if (userInputData.keyboard.pressed.down)
     renderer->myPlayer.position.y += step;
-  else if (userInputData.pressed.left)
+  else if (userInputData.keyboard.pressed.left)
     renderer->myPlayer.position.x -= step;
-  else if (userInputData.pressed.right)
+  else if (userInputData.keyboard.pressed.right)
     renderer->myPlayer.position.x += step;
   else
     positionChanged = false;
