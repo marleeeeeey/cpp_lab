@@ -81,9 +81,9 @@ void SdlWithImGuiWrapper::render(std::function<void()> userRenderCallback) {
       ImGui::DockSpaceOverViewport(0, 0, ImGuiDockNodeFlags_PassthruCentralNode);
     }
 
-    // -------------------------------
-    // Prepare Game Layout (No ImGui)
-    // -------------------------------
+    // -------------------------
+    // Prepare User Rendering
+    // -------------------------
 
     if (userRenderCallback) {
       userRenderCallback();
