@@ -19,7 +19,6 @@ class RenderContainer : public IRenderContainer {
   explicit RenderContainer(SDL_Renderer* sdlRenderer);
   void addComponent(std::weak_ptr<IRenderer> component) override;
   void render() override;
-  void onWindowSizeChanged(int width, int height) override;
 
  private:
   SDL_Renderer* sdlRenderer_ = nullptr;

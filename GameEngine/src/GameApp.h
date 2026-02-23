@@ -29,10 +29,11 @@ class GameApp : public ISdlApp {
   // SDL Based Steps (override ISdlApp interface)
   // ----------------------------------------------
 
+  ~GameApp() override;
+
   SDL_AppResult init(int argc, char* argv[]) override;
   SDL_AppResult onEvent(SDL_Event* event) override;
   SDL_AppResult iterate() override;
-  void onQuit() override;
 
  private:
   // ---------------------------

@@ -12,13 +12,19 @@
 // ISdlApp Factory Method
 // ---------------------------
 
-ISdlApp* ISdlApp::create() {
-  return new GameApp();  // TODO: replace with smart pointer
+std::unique_ptr<ISdlApp> ISdlApp::create() {
+  return std::make_unique<GameApp>();
 }
 
 // ------------------
 // SDL Based Steps
 // ------------------
+
+GameApp::~GameApp() {
+  sdlWrapper_->onQuit();
+  gameNetwork_->stop();
+  SPDLOG_CRITICAL("GameApp destroyed");
+}
 
 SDL_AppResult GameApp::init(int argc, char* argv[]) {
   // ---------------------------
@@ -35,7 +41,6 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
 
   sdlWrapper_ = std::make_unique<SdlWithImGuiWrapper>();
   renderContainer_ = IRenderContainer::create(sdlWrapper_->getRenderer());
-  sdlWrapper_->onWindowSizeChangedSink().connect<&IRenderContainer::onWindowSizeChanged>(renderContainer_);
 
   // ---------------------
   // Init Input Manager
@@ -89,12 +94,6 @@ SDL_AppResult GameApp::iterate() {
 
   PROFILER_FRAME_MARK;  // Mark end of frame for TRACY
   return SDL_APP_CONTINUE;
-}
-
-void GameApp::onQuit() {
-  gameInputManager_->onAppQuit();
-  sdlWrapper_->onQuit();
-  gameNetwork_->stop();
 }
 
 // ------------

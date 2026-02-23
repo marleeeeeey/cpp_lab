@@ -32,6 +32,8 @@ bool SdlWithImGuiWrapper::onEvent(SDL_Event* event) {
 
   if (event->type == SDL_EVENT_WINDOW_RESIZED) {
     SDL_GetWindowSize(window_, &windowWidth_, &windowHeight_);
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(static_cast<float>(windowWidth_), static_cast<float>(windowHeight_));
     onWindowSizeChangedSignal_.publish(windowWidth_, windowHeight_);
   }
 

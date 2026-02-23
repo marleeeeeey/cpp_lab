@@ -3,11 +3,13 @@
 
 #include "SdlApp/ISdlApp.h"
 
+std::unique_ptr<ISdlApp> app;
+
 // This function runs once at startup.
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
-  ISdlApp* app = ISdlApp::create();
+  app = ISdlApp::create();
   auto result = app->init(argc, argv);
-  *appstate = app;
+  *appstate = app.get();
   return result;
 }
 
@@ -23,6 +25,6 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
 // This function runs once at shutdown.
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {
-  ((ISdlApp*)appstate)->onQuit();
+  app.reset();
   // SDL will clean up the window/renderer for us.
 }

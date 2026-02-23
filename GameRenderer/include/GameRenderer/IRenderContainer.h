@@ -19,5 +19,4 @@ class IRenderContainer {
 
   virtual void addComponent(std::weak_ptr<IRenderer> component) = 0;
   virtual void render() = 0;
-  virtual void onWindowSizeChanged(int width, int height) = 0;
 };

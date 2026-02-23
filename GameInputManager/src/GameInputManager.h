@@ -11,7 +11,6 @@ class GameInputManager : public IGameInputManager {
   SDL_AppResult applyEvent(SDL_Event* event) override;
   const GameInputData& getGameInputData() const override;
   void onFrameEnd() override;
-  void onAppQuit() override;
 
  private:
   SDL_Window* window_{};  // This class is not responsible for window lifecycle management

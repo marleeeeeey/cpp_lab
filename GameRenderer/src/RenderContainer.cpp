@@ -23,8 +23,3 @@ void RenderContainer::render() {
     }
   }
 }
-
-void RenderContainer::onWindowSizeChanged(int width, int height) {
-  ImGuiIO& io = ImGui::GetIO();
-  io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
-}

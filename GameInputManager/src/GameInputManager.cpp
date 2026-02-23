@@ -68,6 +68,3 @@ const GameInputData& GameInputManager::getGameInputData() const {
 void GameInputManager::onFrameEnd() {
   userInputData_.pressed = {};
 }
-
-void GameInputManager::onAppQuit() {
-}

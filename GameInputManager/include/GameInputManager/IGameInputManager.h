@@ -23,5 +23,4 @@ class IGameInputManager {
   virtual SDL_AppResult applyEvent(SDL_Event* event) = 0;
   virtual const GameInputData& getGameInputData() const = 0;
   virtual void onFrameEnd() = 0;
-  virtual void onAppQuit() = 0;
 };
