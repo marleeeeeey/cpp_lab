@@ -116,10 +116,18 @@ entt::sink<SdlWithImGuiWrapper::OnWindowSizeChangedSignal> SdlWithImGuiWrapper::
 }
 
 void SdlWithImGuiWrapper::confineMouseCursorToWindow(bool flag) {
-  // TODO: Continue receiving events outside window - DOES NOT WORK
-  // SDL_CaptureMouse(true);
-
   SDL_SetWindowMouseGrab(window_, flag);
+}
+
+void SdlWithImGuiWrapper::enableWindowsDocking(bool flag) {
+  // TODO: Here is a known issue with current ImGui with Docking Mode:
+  // Background opacity always ignored when docking to central node.
+  // It hide SDL_renderer content with game objects.
+  if (flag) {
+    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  } else {
+    ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
+  }
 }
 
 // -----------------------
@@ -167,7 +175,6 @@ void SdlWithImGuiWrapper::initImGui_() {
   // ------------------------
 
   ImGui::StyleColorsDark();
-  // ImGui::StyleColorsLight();
 
   // ------------------------
   // Setup scaling
@@ -196,13 +203,4 @@ void SdlWithImGuiWrapper::initImGui_() {
   if (font == nullptr) {
     SPDLOG_CRITICAL("Failed to load font");
   }
-
-  // --------------------------
-  // Enable windows docking
-  // --------------------------
-
-  // TODO: Here is a known issue with current ImGui with Docking Mode:
-  // Background opacity always ignored when docking to central node.
-  // It hide SDL_renderer content with game objects.
-  // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 }
