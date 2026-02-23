@@ -1,7 +1,7 @@
 #pragma once
 #include <SDL3/SDL.h>
 
-#include <entt/signal/sigh.hpp>
+#include <memory>
 
 #include "GameInputData.h"
 
@@ -13,14 +13,8 @@ class IGameInputManager {
   // Factory
   // ----------------------
 
-  static std::unique_ptr<IGameInputManager> create(SDL_Window* window, int windowWidth, int windowHeight);
+  static std::unique_ptr<IGameInputManager> create();
   virtual ~IGameInputManager() = default;
-
-  // -------------
-  // Signatures
-  // -------------
-
-  using OnWindowSizeChangedSignal = entt::sigh<void(int width, int height)>;
 
   // --------------------
   // Virtual Interface
@@ -30,5 +24,4 @@ class IGameInputManager {
   virtual const GameInputData& getGameInputData() const = 0;
   virtual void onFrameEnd() = 0;
   virtual void onAppQuit() = 0;
-  virtual entt::sink<OnWindowSizeChangedSignal> onWindowSizeChangedSink() = 0;
 };

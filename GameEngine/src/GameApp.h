@@ -1,7 +1,5 @@
 #pragma once
 
-#include <SDL3/SDL.h>
-
 #include <memory>
 
 #include "GameInputManager/IGameInputManager.h"
@@ -10,7 +8,8 @@
 #include "GameRenderer/IRenderContainer.h"
 #include "GameTimer.h"
 #include "GameWorld.h"
-#include "SDL_IMGUI_Wrapper.h"
+#include "SdlApp/ISdlApp.h"
+#include "SdlApp/SdlWithImGuiWrapper.h"
 
 // ------------------------------------
 // Forward declarations
@@ -22,26 +21,25 @@ class INetworkTransport;
 // The main application object.
 // ----------------------------
 
-// It manages the SDL window and renderer, and the game world.
-// GameApp is a bridge between GameWorld, SceneRenderer,
-// UserInputManger and Network.
-class GameApp {
+// GameApp is a bridge between GameWorld, GameNetwork, Render Classes, GameInputManager.
+// It overrides ISdlApp interface and uses SdlWithImGuiWrapper as Helper.
+class GameApp : public ISdlApp {
  public:
-  // ------------------------------------
-  // SDL Based Steps (public interface)
-  // ------------------------------------
+  // ----------------------------------------------
+  // SDL Based Steps (override ISdlApp interface)
+  // ----------------------------------------------
 
-  SDL_AppResult init(int argc, char* argv[]);
-  SDL_AppResult onEvent(SDL_Event* event);
-  SDL_AppResult iterate();
-  void onQuit();
+  SDL_AppResult init(int argc, char* argv[]) override;
+  SDL_AppResult onEvent(SDL_Event* event) override;
+  SDL_AppResult iterate() override;
+  void onQuit() override;
 
  private:
   // ---------------------------
   // Rendering and window data
   // ---------------------------
 
-  std::unique_ptr<SDL_IMGUI_Wrapper> sdlImGuiWrapper_;
+  std::unique_ptr<SdlWithImGuiWrapper> sdlWrapper_;
   std::shared_ptr<IGameWorldRenderer> gameWorldRenderer_;
   std::shared_ptr<IChatRenderer> chatRenderer_;
   std::shared_ptr<IRenderContainer> renderContainer_;

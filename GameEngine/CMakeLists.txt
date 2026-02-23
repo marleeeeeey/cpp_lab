@@ -3,12 +3,10 @@
 # ----------------------
 
 add_executable(GameEngine
-        src/GameMain.cpp
         src/GameApp.cpp
-        src/GameWorld.cpp
         src/GameNetwork.cpp
         src/GameTimer.cpp
-        src/SDL_IMGUI_Wrapper.cpp
+        src/GameWorld.cpp
 )
 
 
@@ -28,6 +26,7 @@ target_link_libraries(GameEngine PRIVATE
         NetworkDataHandler
 
         Profiler
+        SdlApp
 
         # 3rd_party libraries
         imgui::imgui

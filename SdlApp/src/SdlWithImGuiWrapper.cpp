@@ -1,4 +1,4 @@
-#include "SDL_IMGUI_Wrapper.h"
+#include "SdlApp/SdlWithImGuiWrapper.h"
 
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
@@ -16,7 +16,7 @@ constexpr int INITIAL_WINDOWS_HEIGHT = 600;
 // Public Interface
 // -----------------------
 
-SDL_IMGUI_Wrapper::SDL_IMGUI_Wrapper() {
+SdlWithImGuiWrapper::SdlWithImGuiWrapper() {
   auto initSdlResult = initSDL_();  // initialize SDL and set renderer
   if (initSdlResult != SDL_APP_CONTINUE) {
     SPDLOG_CRITICAL("SDL_IMGUI_Wrapper failed to initialize SDL: Code {}. {}", (int)initSdlResult, SDL_GetError());
@@ -27,20 +27,34 @@ SDL_IMGUI_Wrapper::SDL_IMGUI_Wrapper() {
   beginFrameTime_ = SDL_GetTicks();
 }
 
-bool SDL_IMGUI_Wrapper::onEvent(SDL_Event* event) {
+bool SdlWithImGuiWrapper::onEvent(SDL_Event* event) {
   bool isInputHandled = ImGui_ImplSDL3_ProcessEvent(event);
+
+  if (event->type == SDL_EVENT_WINDOW_RESIZED) {
+    SDL_GetWindowSize(window_, &windowWidth_, &windowHeight_);
+    onWindowSizeChangedSignal_.publish(windowWidth_, windowHeight_);
+  }
+
   return isInputHandled;
 }
 
-float SDL_IMGUI_Wrapper::calculateDeltaTimeWhenFrameBegins() {
+float SdlWithImGuiWrapper::calculateDeltaTimeWhenFrameBegins() {
   PROFILER_ZONE;
+
+  // send initial window size event
+  if (!onWindowSizeChangedInitialCallbackCalled_) {
+    onWindowSizeChangedInitialCallbackCalled_ = true;
+    SDL_GetWindowSize(window_, &windowWidth_, &windowHeight_);
+    onWindowSizeChangedSignal_.publish(windowWidth_, windowHeight_);
+  }
+
   const Uint64 now = SDL_GetTicks();
   const float elapsed = static_cast<float>(now - beginFrameTime_) / 1000.0f;
   beginFrameTime_ = now;
   return elapsed;
 }
 
-void SDL_IMGUI_Wrapper::render(std::function<void()> userRenderCallback) {
+void SdlWithImGuiWrapper::render(std::function<void()> userRenderCallback) {
   {
     PROFILER_ZONE_NAMED("RenderFrame");
 
@@ -80,17 +94,23 @@ void SDL_IMGUI_Wrapper::render(std::function<void()> userRenderCallback) {
   }
 }
 
-void SDL_IMGUI_Wrapper::onQuit() {
+void SdlWithImGuiWrapper::onQuit() {
+  onWindowSizeChangedSink().disconnect();
+
   ImGui_ImplSDLRenderer3_Shutdown();
   ImGui_ImplSDL3_Shutdown();
   ImGui::DestroyContext();
+}
+
+entt::sink<SdlWithImGuiWrapper::OnWindowSizeChangedSignal> SdlWithImGuiWrapper::onWindowSizeChangedSink() {
+  return entt::sink{onWindowSizeChangedSignal_};
 }
 
 // -----------------------
 // Private Methods
 // -----------------------
 
-SDL_AppResult SDL_IMGUI_Wrapper::initSDL_() {
+SDL_AppResult SdlWithImGuiWrapper::initSDL_() {
   SDL_SetAppMetadata("Example Renderer Points", "1.0", "com.example.renderer-points");
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -120,7 +140,7 @@ SDL_AppResult SDL_IMGUI_Wrapper::initSDL_() {
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }
 
-void SDL_IMGUI_Wrapper::initImGui_() {
+void SdlWithImGuiWrapper::initImGui_() {
   float main_scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
 
   // ------------------------

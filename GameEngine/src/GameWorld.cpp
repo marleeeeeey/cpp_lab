@@ -11,11 +11,8 @@
 static constexpr int MIN_PIXELS_PER_SECOND = 30;  // move at least this many pixels per second
 static constexpr int MAX_PIXELS_PER_SECOND = 60;  // move this many pixels per second at most
 
-GameWorld::GameWorld(int width, int height, std::weak_ptr<IGameWorldRenderer> gameWorldRenderer) {
-  windowWidth_ = width;
-  windowHeight_ = height;
+GameWorld::GameWorld(std::weak_ptr<IGameWorldRenderer> gameWorldRenderer) {
   gameWorldRenderer_ = gameWorldRenderer;
-  updateSnowflakesCount_(width, height);
 }
 
 void GameWorld::iterate(double elapsed, const GameInputData& userInputData) {

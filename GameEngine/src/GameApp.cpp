@@ -8,9 +8,13 @@
 #include "GameSharedObjects/ChatMessage.h"
 #include "Profiler/Profiler.h"
 
-// TODO: remove initial values duplication from here
-constexpr int INITIAL_WINDOWS_WIDTH = 800;
-constexpr int INITIAL_WINDOWS_HEIGHT = 600;
+// ---------------------------
+// ISdlApp Factory Method
+// ---------------------------
+
+ISdlApp* ISdlApp::create() {
+  return new GameApp();  // TODO: replace with smart pointer
+}
 
 // ------------------
 // SDL Based Steps
@@ -25,14 +29,19 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   initOptions_(argc, argv);
   initTracyProfiler_();
 
-  // -----------------------------------
-  // Init SDL, IMGui and InputManager
-  // -----------------------------------
+  // -----------------
+  // Init SDL, IMGui
+  // -----------------
 
-  sdlImGuiWrapper_ = std::make_unique<SDL_IMGUI_Wrapper>();
-  renderContainer_ = IRenderContainer::create(sdlImGuiWrapper_->getRenderer());
-  gameInputManager_ = IGameInputManager::create(sdlImGuiWrapper_->getWindow(), INITIAL_WINDOWS_WIDTH, INITIAL_WINDOWS_HEIGHT);
-  gameInputManager_->onWindowSizeChangedSink().connect<&IRenderContainer::onWindowSizeChanged>(renderContainer_);
+  sdlWrapper_ = std::make_unique<SdlWithImGuiWrapper>();
+  renderContainer_ = IRenderContainer::create(sdlWrapper_->getRenderer());
+  sdlWrapper_->onWindowSizeChangedSink().connect<&IRenderContainer::onWindowSizeChanged>(renderContainer_);
+
+  // ---------------------
+  // Init Input Manager
+  // ---------------------
+
+  gameInputManager_ = IGameInputManager::create();
 
   // ----------------------
   // Init Domain Systems
@@ -59,12 +68,12 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
 }
 
 SDL_AppResult GameApp::onEvent(SDL_Event* event) {
-  sdlImGuiWrapper_->onEvent(event);
+  sdlWrapper_->onEvent(event);
   return gameInputManager_->applyEvent(event);
 }
 
 SDL_AppResult GameApp::iterate() {
-  const float elapsed = sdlImGuiWrapper_->calculateDeltaTimeWhenFrameBegins();
+  const float elapsed = sdlWrapper_->calculateDeltaTimeWhenFrameBegins();
 
   gameNetwork_->iterate();
 
@@ -72,7 +81,7 @@ SDL_AppResult GameApp::iterate() {
 
   updateGameWorld_(elapsed);
 
-  sdlImGuiWrapper_->render([this]() {
+  sdlWrapper_->render([this]() {
     renderContainer_->render();
   });
 
@@ -84,7 +93,7 @@ SDL_AppResult GameApp::iterate() {
 
 void GameApp::onQuit() {
   gameInputManager_->onAppQuit();
-  sdlImGuiWrapper_->onQuit();
+  sdlWrapper_->onQuit();
   gameNetwork_->stop();
 }
 
@@ -119,8 +128,8 @@ void GameApp::initOptions_(int argc, char* argv[]) {
 }
 
 void GameApp::initGameWorld_() {
-  gameWorldRenderer_ = IGameWorldRenderer::create(sdlImGuiWrapper_->getRenderer());
-  gameWorld_ = std::make_shared<GameWorld>(INITIAL_WINDOWS_WIDTH, INITIAL_WINDOWS_HEIGHT, gameWorldRenderer_);
+  gameWorldRenderer_ = IGameWorldRenderer::create(sdlWrapper_->getRenderer());
+  gameWorld_ = std::make_shared<GameWorld>(gameWorldRenderer_);
 
   gameWorld_->onPlayerPositionChanged = [this]() {
     Player& player = gameWorldRenderer_->myPlayer;
@@ -128,7 +137,7 @@ void GameApp::initGameWorld_() {
   };
 
   renderContainer_->addComponent(gameWorldRenderer_);
-  gameInputManager_->onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
+  sdlWrapper_->onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
 }
 
 void GameApp::initChat_() {

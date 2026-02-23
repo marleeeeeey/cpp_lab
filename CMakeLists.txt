@@ -54,6 +54,7 @@ add_subdirectory(Network/DoubleQueueNetwork)
 add_subdirectory(Network/NetworkDataHandler)
 add_subdirectory(Network/NetworkTransport)
 add_subdirectory(Profiler)
+add_subdirectory(SdlApp)
 
 # Disable projects with Asio, OpenSSL and uWebSockets for Emscripten
 if (NOT EMSCRIPTEN)

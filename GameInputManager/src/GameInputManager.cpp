@@ -2,18 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
-GameInputManager::GameInputManager(SDL_Window* window, int windowWidth, int windowHeight) {
-  window_ = window;
-  windowWidth_ = windowWidth;
-  windowHeight_ = windowHeight;
-}
-
 SDL_AppResult GameInputManager::applyEvent(SDL_Event* event) {
-  if (event->type == SDL_EVENT_WINDOW_RESIZED) {
-    SDL_GetWindowSize(window_, &windowWidth_, &windowHeight_);
-    onWindowSizeChangedSignal_.publish(windowWidth_, windowHeight_);
-  }
-
   if (event->type == SDL_EVENT_QUIT) {
     // end the program, reporting success to the OS
     return SDL_APP_SUCCESS;
@@ -81,5 +70,4 @@ void GameInputManager::onFrameEnd() {
 }
 
 void GameInputManager::onAppQuit() {
-  onWindowSizeChangedSink().disconnect();
 }
