@@ -5,8 +5,9 @@
 #include <entt/signal/sigh.hpp>
 #include <functional>
 
-// Idea that RAW pointers should not leave this class
-// and should be wrapped in smart pointers if possible
+// This is an optional component. It adds ImGui support for SDL application.
+// It hides SDL and ImGui initialization routine.
+// The only SDL_Renderer and SDL_Event pointers are exported to client code.
 class SdlWithImGuiWrapper {
  public:
   // -------------

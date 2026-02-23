@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 
+// Interface for SDL application
 class ISdlApp {
  public:
   // IMPORTANT: must be implemented in client code
