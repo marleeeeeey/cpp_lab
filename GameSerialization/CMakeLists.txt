@@ -10,7 +10,7 @@ add_library(GameSerialization
 # Flatbuffers
 # --------------
 
-include(${THIRD_PARTY_ROOT}/FlatbuffersHelper.cmake)
+include(${THIRD_PARTY_ROOT}/cmake/FlatbuffersHelper.cmake)
 
 # This creates a target 'FlatbufferSchemas' that you can link to anywhere.
 # Target allow you #include "Player_generated.h" to work with flatbuffers methods.

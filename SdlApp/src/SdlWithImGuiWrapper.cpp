@@ -108,6 +108,13 @@ entt::sink<SdlWithImGuiWrapper::OnWindowSizeChangedSignal> SdlWithImGuiWrapper::
   return entt::sink{onWindowSizeChangedSignal_};
 }
 
+void SdlWithImGuiWrapper::confineMouseCursorToWindow(bool flag) {
+  // TODO: Continue receiving events outside window - DOES NOT WORK
+  // SDL_CaptureMouse(true);
+
+  SDL_SetWindowMouseGrab(window_, flag);
+}
+
 // -----------------------
 // Private Methods
 // -----------------------
@@ -130,12 +137,6 @@ SDL_AppResult SdlWithImGuiWrapper::initSDL_() {
   if (!SDL_SetRenderVSync(sdlRenderer_, 1)) {
     SPDLOG_ERROR("SDL_SetRenderVSync() failed: {}", SDL_GetError());
   }
-
-  // TODO: Continue receiving events outside window - DOES NOT WORK
-  // SDL_CaptureMouse(true);
-
-  // Mouse grab confines the mouse cursor to the window
-  // SDL_SetWindowMouseGrab(window_, true);
 
   return SDL_APP_CONTINUE; /* carry on with the program! */
 }

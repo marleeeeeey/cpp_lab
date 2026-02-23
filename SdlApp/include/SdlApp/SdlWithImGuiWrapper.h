@@ -29,6 +29,9 @@ class SdlWithImGuiWrapper {
   void onQuit();
   entt::sink<OnWindowSizeChangedSignal> onWindowSizeChangedSink();
 
+  // confines the mouse cursor to the window
+  void confineMouseCursorToWindow(bool flag);
+
   // I decided not to use smart pointers here because SDL will manage its lifetime
   SDL_Renderer* getRenderer() const { return sdlRenderer_; }
 
