@@ -6,11 +6,36 @@ void DebugRender::addLine(const std::string& line) {
   lines_.push_back(line);
 }
 
-void DebugRender::render() {
-  ImGui::SetNextWindowSize(ImVec2(520, 320), ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowBgAlpha(0.05f);
+void DebugRender::addStaticLine(const std::string& key, const std::string& line) {
+  staticLines_[key] = line;
+}
 
-  if (!ImGui::Begin("Debug", nullptr)) {
+void DebugRender::render() {
+  // ------------------------
+  // Configure ImGui window
+  // ------------------------
+
+  ImGuiIO& io = ImGui::GetIO();
+
+  ImVec2 halfDisplaySize = io.DisplaySize;
+  halfDisplaySize.y /= 2;
+  ImGui::SetNextWindowPos(ImVec2{0, 0}, ImGuiCond_Always);
+  ImGui::SetNextWindowSize(halfDisplaySize, ImGuiCond_Always);
+  ImGui::SetNextWindowBgAlpha(0.0f);
+
+  // Disable window interaction
+  ImGuiWindowFlags flags =
+      ImGuiWindowFlags_NoMove |
+      ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoSavedSettings |
+      ImGuiWindowFlags_NoTitleBar;
+
+  // -----------------------
+  // Render ImGui window
+  // -----------------------
+
+  if (!ImGui::Begin("Debug", nullptr, flags)) {
     ImGui::End();
     lines_.clear();
     return;
@@ -29,6 +54,15 @@ void DebugRender::render() {
                     ImGuiWindowFlags_HorizontalScrollbar);
 
   const bool hasFilter = filter[0] != '\0';
+
+  for (const auto& [key, line] : staticLines_) {
+    if (hasFilter) {
+      if (line.find(filter) == std::string::npos) {
+        continue;
+      }
+    }
+    ImGui::TextUnformatted(line.c_str());
+  }
 
   for (const auto& line : lines_) {
     if (hasFilter) {

@@ -70,23 +70,30 @@ void SdlWithImGuiWrapper::render(std::function<void()> userRenderCallback) {
     SDL_RenderClear(sdlRenderer_);
 
     // -----------------------
-    // Begin Frame
+    // Prepare ImGui Layout
     // -----------------------
 
     ImGui_ImplSDLRenderer3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
-    // -----------------------
-    // Render New Frame
-    // -----------------------
+    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+      ImGui::DockSpaceOverViewport(0, 0, ImGuiDockNodeFlags_PassthruCentralNode);
+    }
+
+    // -------------------------------
+    // Prepare Game Layout (No ImGui)
+    // -------------------------------
 
     if (userRenderCallback) {
       userRenderCallback();
     }
 
+    // ----------------------
+    // Render Everything
+    // ----------------------
+
     ImGui::Render();
-    // render the GUI
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), sdlRenderer_);
   }
 
@@ -147,6 +154,7 @@ void SdlWithImGuiWrapper::initImGui_() {
   // ------------------------
   // Setup Dear ImGui context
   // ------------------------
+
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
@@ -157,12 +165,14 @@ void SdlWithImGuiWrapper::initImGui_() {
   // ------------------------
   // Setup Dear ImGui style
   // ------------------------
+
   ImGui::StyleColorsDark();
   // ImGui::StyleColorsLight();
 
   // ------------------------
   // Setup scaling
   // ------------------------
+
   ImGuiStyle& style = ImGui::GetStyle();
   // Bake a fixed style scale. (until we have a solution for dynamic style scaling,
   // changing this requires resetting Style + calling this again)
@@ -174,15 +184,25 @@ void SdlWithImGuiWrapper::initImGui_() {
   // ---------------------------------
   // Setup Platform/Renderer backends
   // ---------------------------------
+
   ImGui_ImplSDL3_InitForSDLRenderer(window_, sdlRenderer_);
   ImGui_ImplSDLRenderer3_Init(sdlRenderer_);
 
-  // ---------------------------------
+  // -------------
   // Load Fonts
-  // ---------------------------------
+  // -------------
 
   ImFont* font = io.Fonts->AddFontFromFileTTF("assets/fonts/OpenSans-VariableFont_wdth,wght.ttf");
   if (font == nullptr) {
     SPDLOG_CRITICAL("Failed to load font");
   }
+
+  // --------------------------
+  // Enable windows docking
+  // --------------------------
+
+  // TODO: Here is a known issue with current ImGui with Docking Mode:
+  // Background opacity always ignored when docking to central node.
+  // It hide SDL_renderer content with game objects.
+  // ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 }

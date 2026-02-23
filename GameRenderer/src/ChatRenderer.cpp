@@ -16,14 +16,14 @@ void ChatRenderer::render() {
   ImGuiIO& io = ImGui::GetIO();
 
   // This window always occupies the entire screen of the host window
-  ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
-  ImGui::SetNextWindowSize(io.DisplaySize, ImGuiCond_Always);
-
-  // Set up opacity to show the falling snow on the back
-  ImGui::SetNextWindowBgAlpha(0.05f);
+  ImVec2 halfDisplaySize = io.DisplaySize;
+  halfDisplaySize.y /= 2;
+  ImGui::SetNextWindowPos(ImVec2{0, halfDisplaySize.y}, ImGuiCond_Always);
+  ImGui::SetNextWindowSize(halfDisplaySize, ImGuiCond_Always);
+  ImGui::SetNextWindowBgAlpha(0.0f);  // Background fully transparent
 
   // Disable window interaction
-  const ImGuiWindowFlags flags =
+  ImGuiWindowFlags flags =
       ImGuiWindowFlags_NoMove |
       ImGuiWindowFlags_NoResize |
       ImGuiWindowFlags_NoCollapse |
@@ -36,32 +36,29 @@ void ChatRenderer::render() {
 
   ImGui::Begin("Chat Window", nullptr, flags);
 
-  // -------------------
-  // Connection status
-  // -------------------
-
-  ImGui::Text("Your Status: %s | Number Of Users: %d | Ping: %d ms",
-              connectionStatus.c_str(), numberOfConnectedUsers, pingMs);
-  ImGui::Separator();
-
   // ------------------
   // Message history
   // ------------------
 
   ImGui::BeginChild("ScrollingRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()),
-                    false, ImGuiWindowFlags_HorizontalScrollbar);
+                    ImGuiChildFlags_Borders, ImGuiWindowFlags_HorizontalScrollbar);
   for (const auto& chatMessage : chatHistory_) {
     // Calculate delivery time
     auto deliveryTime = chatMessage.receivedTimestamp - chatMessage.sentTimestamp;
     auto deliveryTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(deliveryTime).count();
 
-    // [Time] [Msg RTT] [Total Messages From This User] Name: Message
-    ImGui::TextWrapped("[%s] [+%lldms] [%d] %s: %s",
-                       TimeUtils::timeToStringHHMMSSMS(chatMessage.sentTimestamp).c_str(),
-                       deliveryTimeMs,
-                       chatMessage.sender.messagesSent,
-                       chatMessage.sender.name.c_str(),
-                       chatMessage.message.c_str());
+    const bool useExtendedFormat = false;
+    if (useExtendedFormat) {
+      // [Time] [Msg RTT] [Total Messages From This User] Name: Message
+      ImGui::TextWrapped("[%s] [+%lldms] [%d] %s: %s",
+                         TimeUtils::timeToStringHHMMSSMS(chatMessage.sentTimestamp).c_str(),
+                         deliveryTimeMs,
+                         chatMessage.sender.messagesSent,
+                         chatMessage.sender.name.c_str(),
+                         chatMessage.message.c_str());
+    } else {
+      ImGui::TextWrapped("%s: %s", chatMessage.sender.name.c_str(), chatMessage.message.c_str());
+    }
   }
   if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
     ImGui::SetScrollHereY(1.0f);

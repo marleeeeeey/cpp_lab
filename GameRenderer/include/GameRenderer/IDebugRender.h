@@ -18,5 +18,6 @@ class IDebugRender : public IRenderer {
   // -------------
 
   virtual void addLine(const std::string& line) = 0;
+  virtual void addStaticLine(const std::string& key, const std::string& line) = 0;
   virtual void render() = 0;
 };

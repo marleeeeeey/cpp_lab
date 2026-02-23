@@ -9,11 +9,13 @@
 
 GameNetwork::GameNetwork(
     const std::string& url,
+    std::weak_ptr<IDebugRender> debugRender,
     std::weak_ptr<IChatRenderer> chatRenderer,
     std::weak_ptr<IGameWorldRenderer> gameWorldRenderer,
     std::weak_ptr<GameWorld> gameWorld,
     std::weak_ptr<GameTimer> gameTimer) {
   url_ = url;
+  debugRender_ = debugRender;
   chatRenderer_ = chatRenderer;
   gameWorldRenderer_ = gameWorldRenderer;
   gameWorld_ = gameWorld;
@@ -92,8 +94,8 @@ void GameNetwork::initNetworkDataHandlers_() {
         std::memcpy(&receivedNumber, payload.data(), sizeof(receivedNumber));
 
         // set and log
-        if (auto renderer = chatRenderer_.lock()) {
-          renderer->numberOfConnectedUsers = receivedNumber;
+        if (auto renderer = debugRender_.lock()) {
+          renderer->addStaticLine("user count", std::format("Users: {}", receivedNumber));
         }
         SPDLOG_TRACE("Message type {} received: {}", type, receivedNumber);
       });
@@ -132,9 +134,9 @@ void GameNetwork::initNetworkDataHandlers_() {
       [this](const auto type, const std::vector<uint8_t>& payload) {
         auto creationTime = GameSerialization::deserializeTimeStamp(payload);
         auto now = std::chrono::system_clock::now();
-        if (auto renderer = chatRenderer_.lock()) {
+        if (auto renderer = debugRender_.lock()) {
           auto pingMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - creationTime).count();
-          renderer->pingMs = pingMs;
+          renderer->addStaticLine("ping", std::format("Ping: {} ms", pingMs));
         }
       });
 }
@@ -152,8 +154,8 @@ void GameNetwork::initAutoReconnectionNetwork_() {
         networkDataHandler_->notifyAboutBinaryMessage(binaryMessage);
       },
       [this](IAutoReconnectionNetwork::State newState) {
-        if (auto render = chatRenderer_.lock()) {
-          render->connectionStatus = magic_enum::enum_name(newState);
+        if (auto render = debugRender_.lock()) {
+          render->addStaticLine("connection state", std::format("State: {}", magic_enum::enum_name(newState)));
         }
       });
 }

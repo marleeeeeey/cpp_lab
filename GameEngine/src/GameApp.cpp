@@ -55,15 +55,27 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   initGameWorld_();
   initChat_();
   // TODO: add flag or button to switch DebugWindow on/off
-  // debugRender_ = IDebugRender::create();
+  debugRender_ = IDebugRender::create();
+
+  // -----------------------
+  // Set Rendering Order
+  // -----------------------
+
+  renderContainer_->addComponent(chatRenderer_);
   renderContainer_->addComponent(debugRender_);
+  renderContainer_->addComponent(gameWorldRenderer_);
 
   // -----------------------
   // Init Networking
   // -----------------------
 
   gameNetwork_ = std::make_unique<GameNetwork>(
-      appOptions_.url, chatRenderer_, gameWorldRenderer_, gameWorld_, gameTimer_);
+      appOptions_.url,
+      debugRender_,
+      chatRenderer_,
+      gameWorldRenderer_,
+      gameWorld_,
+      gameTimer_);
   gameNetwork_->start();
 
   // -----------------------
@@ -140,7 +152,6 @@ void GameApp::initGameWorld_() {
     gameNetwork_->sendPlayer(player);
   };
 
-  renderContainer_->addComponent(gameWorldRenderer_);
   sdlWrapper_->onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
 }
 
@@ -156,8 +167,6 @@ void GameApp::initChat_() {
 
     gameNetwork_->sendChatMessage(chatMessage);
   };
-
-  renderContainer_->addComponent(chatRenderer_);
 }
 
 void GameApp::initTimers_() {

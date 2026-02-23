@@ -3,6 +3,7 @@
 
 #include "AutoReconnectionNetwork/IAutoReconnectionNetwork.h"
 #include "GameRenderer/IChatRenderer.h"
+#include "GameRenderer/IDebugRender.h"
 #include "GameRenderer/IGameWorldRenderer.h"
 #include "GameSharedObjects/ChatMessage.h"
 #include "GameSharedObjects/Player.h"
@@ -14,6 +15,7 @@ class GameNetwork {
  public:
   GameNetwork(
       const std::string& url,
+      std::weak_ptr<IDebugRender> debugRender,
       std::weak_ptr<IChatRenderer> chatRenderer,
       std::weak_ptr<IGameWorldRenderer> gameWorldRenderer,
       std::weak_ptr<GameWorld> gameWorld,
@@ -55,6 +57,7 @@ class GameNetwork {
   // Shared data
   // ---------------------
 
+  std::weak_ptr<IDebugRender> debugRender_;
   std::weak_ptr<IChatRenderer> chatRenderer_;
   std::weak_ptr<IGameWorldRenderer> gameWorldRenderer_;
   std::weak_ptr<GameWorld> gameWorld_;
