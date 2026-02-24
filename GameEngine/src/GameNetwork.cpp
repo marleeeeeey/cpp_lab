@@ -123,8 +123,9 @@ void GameNetwork::initNetworkDataHandlers_() {
         if (auto gameWorld = gameWorld_.lock()) {
           gameWorld->setPlayerRandomPosition();
         }
-
-        SPDLOG_INFO("Your name is {}. Welcome!", player.name);
+        if (auto debugRender = debugRender_.lock()) {
+          debugRender->addStaticLine("name", std::format("Name: {}", player.name));
+        }
 
         sendPingFromClient();
       });

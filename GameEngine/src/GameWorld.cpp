@@ -29,7 +29,16 @@ void GameWorld::onWindowSizeChanged(int width, int height) {
 void GameWorld::setPlayerRandomPosition() const {
   auto renderer = gameWorldRenderer_.lock();
   if (!renderer) return;
-  renderer->myPlayer.position = glm::vec2(SDL_randf() * windowWidth_, SDL_randf() * windowHeight_);
+
+  const float margin = 0.15f;
+  const float minX = windowWidth_ * margin;
+  const float maxX = windowWidth_ * (1.0f - margin);
+  const float minY = windowHeight_ * margin;
+  const float maxY = windowHeight_ * (1.0f - margin);
+  renderer->myPlayer.position = glm::vec2(
+      minX + SDL_randf() * (maxX - minX),
+      minY + SDL_randf() * (maxY - minY));
+
   onPlayerPositionChanged();
 }
 
