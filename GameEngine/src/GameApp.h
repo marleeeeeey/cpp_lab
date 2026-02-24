@@ -79,7 +79,6 @@ class GameApp : public ISdlApp {
 
   void updateGameWorld_(float elapsed);
   void updateDebugRender_();
-  void renderFrame_();
 
   // ---------
   // Network

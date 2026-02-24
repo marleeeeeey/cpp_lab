@@ -43,12 +43,12 @@ void ChatRenderer::render() {
   ImGui::BeginChild("ScrollingRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()),
                     ImGuiChildFlags_Borders, ImGuiWindowFlags_HorizontalScrollbar);
   for (const auto& chatMessage : chatHistory_) {
-    // Calculate delivery time
-    auto deliveryTime = chatMessage.receivedTimestamp - chatMessage.sentTimestamp;
-    auto deliveryTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(deliveryTime).count();
-
     const bool useExtendedFormat = false;
     if (useExtendedFormat) {
+      // Calculate delivery time
+      auto deliveryTime = chatMessage.receivedTimestamp - chatMessage.sentTimestamp;
+      auto deliveryTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(deliveryTime).count();
+
       // [Time] [Msg RTT] [Total Messages From This User] Name: Message
       ImGui::TextWrapped("[%s] [+%lldms] [%d] %s: %s",
                          TimeUtils::timeToStringHHMMSSMS(chatMessage.sentTimestamp).c_str(),

@@ -191,8 +191,8 @@ void GameApp::updateDebugRender_() {
   auto& userInputData = gameInputManager_->getGameInputData();
   auto& m = userInputData.mouse;
 
-  debugRender_->addLine(std::format("Mouse diff  : ({}, {})", m.dx, m.dy));
-  debugRender_->addLine(std::format("Mouse abs   : ({}, {})", m.winX, m.winY));
+  debugRender_->addLine(std::format("Mouse diff: ({}, {})", m.dx, m.dy));
+  debugRender_->addLine(std::format("Mouse abs: ({}, {})", m.winX, m.winY));
   debugRender_->addLine(std::format("Mouse screen: ({}, {})", m.screenX, m.screenY));
-  debugRender_->addLine(std::format("Mouse wheel : ({}, {})", m.wheelX, m.wheelY));
+  debugRender_->addLine(std::format("Mouse wheel: ({}, {})", m.wheelX, m.wheelY));
 }

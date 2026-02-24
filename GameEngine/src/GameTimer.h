@@ -18,6 +18,7 @@ class GameTimer final {
   // --------------
   // Interface
   // --------------
+
   // elapsedSeconds — frame delta time (in seconds)
   void iterate(float elapsedSeconds);
 

@@ -29,8 +29,6 @@ class GameWorld {
 
   std::weak_ptr<IGameWorldRenderer> gameWorldRenderer_;
   std::vector<float> snowflakesSpeed_;
-  glm::vec2 globalDirection_ = glm::normalize(glm::vec2(1.0f, 1.0f));
-  float acceleration_ = 1.0f;
   int windowWidth_{};
   int windowHeight_{};
 };

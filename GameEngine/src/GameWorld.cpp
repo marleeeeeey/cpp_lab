@@ -70,30 +70,16 @@ void GameWorld::updateSnowflakesCount_(int width, int height) {
 }
 
 void GameWorld::impactOnSnowflakes_(double elapsed, const GameInputData& userInputData) {
-  if constexpr (false) {
-    // Pressed keys change an acceleration or rotation direction.
-    float accelerationShift = elapsed * 5.f;
-    float rotateAngleDeg = elapsed * 100.0f;
-    if (userInputData.keyboard.held.up) {
-      acceleration_ += accelerationShift;
-    } else if (userInputData.keyboard.held.down) {
-      acceleration_ -= accelerationShift;
-    } else if (userInputData.keyboard.held.left) {
-      glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(rotateAngleDeg), glm::vec3(0.0f, 0.0f, 1.0f));
-      globalDirection_ = glm::vec2(rotation * glm::vec4(globalDirection_, 0.0f, 0.0f));
-    } else if (userInputData.keyboard.held.right) {
-      glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(-rotateAngleDeg), glm::vec3(0.0f, 0.0f, 1.0f));
-      globalDirection_ = glm::vec2(rotation * glm::vec4(globalDirection_, 0.0f, 0.0f));
-    }
-  }
-
   auto renderer = gameWorldRenderer_.lock();
   if (!renderer) return;
+
+  glm::vec2 snowflakesDirection = glm::normalize(glm::vec2(1.0f, 1.0f));
+  float acceleration = 1.0f;
 
   /* let's move all our gameDataForRendering.points a little for a new frame. */
   for (int i = 0; i < renderer->snowflakes.size(); i++) {
     glm::vec2& point = renderer->snowflakes[i];
-    point += snowflakesSpeed_[i] * (float)elapsed * globalDirection_;
+    point += snowflakesSpeed_[i] * (float)elapsed * snowflakesDirection;
 
     // Generate new points if they go off the screen.
     if ((point.x >= windowWidth_) || (point.y >= windowHeight_)) {
@@ -103,7 +89,7 @@ void GameWorld::impactOnSnowflakes_(double elapsed, const GameInputData& userInp
         point = glm::vec2(0.0f, SDL_randf() * ((float)windowHeight_));
       }
 
-      snowflakesSpeed_[i] = MIN_PIXELS_PER_SECOND + (SDL_randf() * (MAX_PIXELS_PER_SECOND - MIN_PIXELS_PER_SECOND) * acceleration_);
+      snowflakesSpeed_[i] = MIN_PIXELS_PER_SECOND + (SDL_randf() * (MAX_PIXELS_PER_SECOND - MIN_PIXELS_PER_SECOND) * acceleration);
     }
   }
 }
