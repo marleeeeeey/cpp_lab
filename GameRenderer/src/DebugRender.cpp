@@ -46,8 +46,6 @@ void DebugRender::render() {
   ImGui::SetNextItemWidth(-1);
   ImGui::InputTextWithHint("##dbg_filter", "Filter...", filter, sizeof(filter));
 
-  ImGui::Separator();
-
   ImGui::BeginChild("##dbg_lines",
                     ImVec2(0, 0),
                     ImGuiChildFlags_Borders,
