@@ -31,4 +31,5 @@ class GameWorld {
   std::vector<float> snowflakesSpeed_;
   int windowWidth_{};
   int windowHeight_{};
+  glm::vec2 playerVelocity_{0.0f, 0.0f};  // px/s
 };

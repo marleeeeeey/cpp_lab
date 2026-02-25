@@ -11,6 +11,21 @@
 static constexpr int MIN_PIXELS_PER_SECOND = 30;  // move at least this many pixels per second
 static constexpr int MAX_PIXELS_PER_SECOND = 60;  // move this many pixels per second at most
 
+namespace {
+float approach(float current, float target, float maxDelta) {
+  const float delta = target - current;
+  if (delta > maxDelta) return current + maxDelta;
+  if (delta < -maxDelta) return current - maxDelta;
+  return target;
+}
+
+glm::vec2 approachVec2(const glm::vec2& current, const glm::vec2& target, float maxDelta) {
+  return glm::vec2(
+      approach(current.x, target.x, maxDelta),
+      approach(current.y, target.y, maxDelta));
+}
+}  // namespace
+
 GameWorld::GameWorld(std::weak_ptr<IGameWorldRenderer> gameWorldRenderer) {
   gameWorldRenderer_ = gameWorldRenderer;
 }
@@ -98,22 +113,76 @@ void GameWorld::impactOnPlayer_(double elapsed, const GameInputData& userInputDa
   auto renderer = gameWorldRenderer_.lock();
   if (!renderer) {
     SPDLOG_ERROR("GameWorldRenderer is not initialized");
+    return;
   }
-  float step = 10.0f;
-  bool positionChanged = true;
 
-  if (userInputData.keyboard.pressed.up)
-    renderer->myPlayer.position.y -= step;
-  else if (userInputData.keyboard.pressed.down)
-    renderer->myPlayer.position.y += step;
-  else if (userInputData.keyboard.pressed.left)
-    renderer->myPlayer.position.x -= step;
-  else if (userInputData.keyboard.pressed.right)
-    renderer->myPlayer.position.x += step;
-  else
-    positionChanged = false;
+  const float dt = static_cast<float>(elapsed);
+  if (dt <= 0.0f) return;
 
-  if (positionChanged) {
+  // ----------------------------------
+  // Motion Params (px/s and px/s^2)
+  // ----------------------------------
+
+  const float maxSpeed = 260.0f;
+  const float accel = 900.0f;
+  const float decel = 1100.0f;
+
+  // --------------
+  // Read Input
+  // --------------
+
+  glm::vec2 dir(0.0f, 0.0f);
+  if (userInputData.keyboard.held.up) dir.y -= 1.0f;
+  if (userInputData.keyboard.held.down) dir.y += 1.0f;
+  if (userInputData.keyboard.held.left) dir.x -= 1.0f;
+  if (userInputData.keyboard.held.right) dir.x += 1.0f;
+
+  // -----------------------
+  // Normalize Speed
+  // -----------------------
+
+  const bool hasInput = (dir.x != 0.0f || dir.y != 0.0f);
+  if (hasInput) {
+    const float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+    dir /= len;
+  }
+
+  const glm::vec2 targetVelocity = hasInput ? (dir * maxSpeed) : glm::vec2(0.0f);
+
+  // ---------------------------
+  // Accelerate/Decelerate
+  // ---------------------------
+
+  const float maxDelta = (hasInput ? accel : decel) * dt;
+  playerVelocity_ = approachVec2(playerVelocity_, targetVelocity, maxDelta);
+
+  // -----------------------
+  // Minimal speed to stop
+  // -----------------------
+
+  const float stopEpsilon = 1.0f;
+  if (!hasInput) {
+    if (std::abs(playerVelocity_.x) < stopEpsilon) playerVelocity_.x = 0.0f;
+    if (std::abs(playerVelocity_.y) < stopEpsilon) playerVelocity_.y = 0.0f;
+  }
+
+  // --------------------
+  // Save old position
+  // --------------------
+
+  const glm::vec2 oldPos = renderer->myPlayer.position;
+
+  // ---------------------------------
+  // Move Player (px/s * s = px)
+  // ---------------------------------
+
+  renderer->myPlayer.position += playerVelocity_ * dt;
+
+  // TODO: think about world boundaries
+  // renderer->myPlayer.position.x = std::clamp(renderer->myPlayer.position.x, 0.0f, (float)windowWidth_);
+  // renderer->myPlayer.position.y = std::clamp(renderer->myPlayer.position.y, 0.0f, (float)windowHeight_);
+
+  if (renderer->myPlayer.position != oldPos) {
     onPlayerPositionChanged();
   }
 }
