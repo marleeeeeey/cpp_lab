@@ -16,9 +16,6 @@ void DebugRender::render() {
   // Clear dynamic lines anyway
   auto guard = makeExitGuard([this] { lines_.clear(); });
 
-  // Check if window is visible
-  if (!isVisible_) return;
-
   // ------------------------
   // Configure ImGui window
   // ------------------------
@@ -51,34 +48,64 @@ void DebugRender::render() {
 
   static char filter[256] = {0};
 
-  ImGui::SetNextItemWidth(-1);
-  ImGui::InputTextWithHint("##dbg_filter", "Filter...", filter, sizeof(filter));
+  const float buttonW = 90.0f;
+  const float spacing = ImGui::GetStyle().ItemSpacing.x;
+  const float inputW = std::max(1.0f, ImGui::GetContentRegionAvail().x - buttonW - spacing);
 
-  ImGui::BeginChild("##dbg_lines",
-                    ImVec2(0, 0),
-                    ImGuiChildFlags_Borders,
-                    ImGuiWindowFlags_HorizontalScrollbar);
-
-  const bool hasFilter = filter[0] != '\0';
-
-  for (const auto& [key, line] : staticLines_) {
-    if (hasFilter) {
-      if (line.find(filter) == std::string::npos) {
-        continue;
-      }
-    }
-    ImGui::TextUnformatted(line.c_str());
+  if (isVisible_) {
+    ImGui::SetNextItemWidth(inputW);
+    ImGui::InputTextWithHint("##dbg_filter", "Filter...", filter, sizeof(filter));
+  } else {
+    ImGui::Dummy(ImVec2(inputW, ImGui::GetFrameHeight()));
   }
 
-  for (const auto& line : lines_) {
-    if (hasFilter) {
-      if (line.find(filter) == std::string::npos) {
-        continue;
-      }
+  ImGui::SameLine();
+  if (ImGui::Button("DEBUG", ImVec2(buttonW, ImGui::GetFrameHeight()))) {
+    if (onDebugToggleCallback_) {
+      onDebugToggleCallback_();
     }
-    ImGui::TextUnformatted(line.c_str());
   }
 
-  ImGui::EndChild();
+  // ----------------------
+  // Draw Debug Console
+  // ----------------------
+
+  if (isVisible_) {
+    ImGui::BeginChild("##dbg_lines",
+                      ImVec2(0, 0),
+                      ImGuiChildFlags_Borders,
+                      ImGuiWindowFlags_HorizontalScrollbar);
+
+    const bool hasFilter = filter[0] != '\0';
+
+    for (const auto& [key, line] : staticLines_) {
+      if (hasFilter) {
+        if (line.find(filter) == std::string::npos) {
+          continue;
+        }
+      }
+      ImGui::TextUnformatted(line.c_str());
+    }
+
+    for (const auto& line : lines_) {
+      if (hasFilter) {
+        if (line.find(filter) == std::string::npos) {
+          continue;
+        }
+      }
+      ImGui::TextUnformatted(line.c_str());
+    }
+
+    ImGui::EndChild();
+  }
+
+  // ----------------------------
+  // Complete Window Rendering
+  // ----------------------------
+
   ImGui::End();
+}
+
+void DebugRender::setOnDebugToggleCallback(std::function<void()> callback) {
+  onDebugToggleCallback_ = callback;
 }

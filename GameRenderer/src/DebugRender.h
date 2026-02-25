@@ -10,8 +10,10 @@ class DebugRender : public IDebugRender {
   void addLine(const std::string& line) override;
   void addStaticLine(const std::string& key, const std::string& line) override;
   void render() override;
+  void setOnDebugToggleCallback(std::function<void()> callback) override;
 
  private:
   std::vector<std::string> lines_;
   std::unordered_map<std::string, std::string> staticLines_;
+  std::function<void()> onDebugToggleCallback_;
 };

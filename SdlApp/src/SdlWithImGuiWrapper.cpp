@@ -166,9 +166,8 @@ void SdlWithImGuiWrapper::initImGui_() {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
-  (void)io;
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
 
   // ------------------------
   // Setup Dear ImGui style
@@ -187,6 +186,12 @@ void SdlWithImGuiWrapper::initImGui_() {
   // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary.
   // We leave both here for documentation purpose)
   style.FontScaleDpi = main_scale;
+
+  // ---------------------------------
+  // Disable Window Border
+  // ---------------------------------
+
+  ImGui::GetStyle().WindowBorderSize = 0.0f;
 
   // ---------------------------------
   // Setup Platform/Renderer backends

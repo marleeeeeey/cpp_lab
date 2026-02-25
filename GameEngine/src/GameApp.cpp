@@ -58,6 +58,11 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
 
   debugRender_ = IDebugRender::create();
   debugRender_->setVisible(showDebugWindows_);
+  debugRender_->setOnDebugToggleCallback([this]() {
+    showDebugWindows_ = !showDebugWindows_;
+    debugRender_->setVisible(showDebugWindows_);
+    chatRenderer_->setVisible(showDebugWindows_);
+  });
 
   // -----------------------
   // Set Rendering Order
