@@ -69,14 +69,23 @@ void GameWorld::updateSnowflakesCount_(int width, int height) {
   auto renderer = gameWorldRenderer_.lock();
   if (!renderer) return;
 
-  int numObjects = 0;
+  // ----------------------------------
+  // Calculate numbers of snowflakes
+  // ----------------------------------
 
-  if (auto sqrt = std::sqrt(width * height); sqrt != 0) {
-    numObjects = width * height / sqrt;
-  }
+  int numObjects = 0;
+  const float area = width * height;
+  constexpr float MEGAPIXEL = 1'000'000.0f;
+  constexpr float OBJECTS_PER_MEGAPIXEL = 1300.0f;
+  numObjects = static_cast<int>(std::lround(area * (OBJECTS_PER_MEGAPIXEL / MEGAPIXEL)));
+  numObjects = std::clamp(numObjects, 0, 50'000);
 
   renderer->snowflakes.resize(numObjects);
   snowflakesSpeed_.resize(numObjects);
+
+  // -------------------------------------------
+  // Calculate snowflake positions and speeds
+  // -------------------------------------------
 
   for (int i = 0; i < numObjects; i++) {
     glm::vec2& point = renderer->snowflakes[i];
