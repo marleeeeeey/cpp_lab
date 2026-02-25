@@ -46,7 +46,8 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   // Init Input Manager
   // ---------------------
 
-  gameInputManager_ = IGameInputManager::create();
+  gameInputManager_ = IGameInputManager::create(dispatcher_);
+  dispatcher_.sink<KeyPressed>().connect<&GameApp::onKeyPressed>(this);
 
   // ----------------------
   // Init Domain Systems
@@ -54,8 +55,9 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
 
   initGameWorld_();
   initChat_();
-  // TODO: add flag or button to switch DebugWindow on/off
+
   debugRender_ = IDebugRender::create();
+  debugRender_->setVisible(showDebugWindows_);
 
   // -----------------------
   // Set Rendering Order
@@ -99,9 +101,9 @@ SDL_AppResult GameApp::iterate() {
 
   gameTimer_->iterate(elapsed);
 
-  updateGameWorld_(elapsed);
+  iterateGameWorld_(elapsed);
 
-  updateDebugRender_();
+  iterateDebugRender_();
 
   sdlWrapper_->render([this]() {
     renderContainer_->render();
@@ -111,6 +113,19 @@ SDL_AppResult GameApp::iterate() {
 
   PROFILER_FRAME_MARK;  // Mark end of frame for TRACY
   return SDL_APP_CONTINUE;
+}
+
+// -------------------
+// Input and Events
+// -------------------
+
+void GameApp::onKeyPressed(const KeyPressed& keyPressed) {
+  // Tilda
+  if (keyPressed.scancode == SDL_SCANCODE_GRAVE && !keyPressed.repeat) {
+    showDebugWindows_ = !showDebugWindows_;
+    debugRender_->setVisible(showDebugWindows_);
+    chatRenderer_->setVisible(showDebugWindows_);
+  }
 }
 
 // ------------
@@ -157,6 +172,7 @@ void GameApp::initGameWorld_() {
 
 void GameApp::initChat_() {
   chatRenderer_ = IChatRenderer::create();
+  chatRenderer_->setVisible(showDebugWindows_);
 
   chatRenderer_->onMessageSentCallback = [this](const std::string& message) {
     ChatMessage chatMessage{
@@ -180,12 +196,12 @@ void GameApp::initTimers_() {
 // Basic Iterate Steps
 // ---------------------
 
-void GameApp::updateGameWorld_(const float elapsed) {
+void GameApp::iterateGameWorld_(const float elapsed) {
   PROFILER_ZONE;
   gameWorld_->iterate(elapsed, gameInputManager_->getGameInputData());
 }
 
-void GameApp::updateDebugRender_() {
+void GameApp::iterateDebugRender_() {
   if (!debugRender_) return;
 
   auto& userInputData = gameInputManager_->getGameInputData();

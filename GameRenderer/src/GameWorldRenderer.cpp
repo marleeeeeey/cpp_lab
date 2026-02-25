@@ -7,6 +7,8 @@ GameWorldRenderer::GameWorldRenderer(SDL_Renderer* renderer) {
 }
 
 void GameWorldRenderer::render() {
+  if (!isVisible_) return;
+
   // Set brush color to white with full alpha
   SDL_SetRenderDrawColor(renderer_, 255, 255, 255, SDL_ALPHA_OPAQUE);
 
@@ -21,7 +23,7 @@ void GameWorldRenderer::render() {
     SDL_RenderFillRect(renderer_, &rect);
   }
 
-  // Draw My Player with RED color over Oponents
+  // Draw My Player with RED color over Opponents
   SDL_SetRenderDrawColor(renderer_, 255, 0, 0, SDL_ALPHA_OPAQUE);
   SDL_FRect rect = {myPlayer.position.x, myPlayer.position.y, 10, 10};
   SDL_RenderFillRect(renderer_, &rect);

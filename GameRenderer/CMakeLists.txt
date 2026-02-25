@@ -38,6 +38,7 @@ target_link_libraries(GameRenderer PRIVATE
         # User libraries
         GameSharedObjects
         Profiler
+        GameUtils
 
         # 3rd_party libraries
         imgui::imgui

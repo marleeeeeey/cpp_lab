@@ -3,7 +3,7 @@ add_library(Profiler INTERFACE)
 option(CPP_LAB_ENABLE_PROFILER "Enable CPP_LAB profiler" OFF)
 
 target_include_directories(Profiler INTERFACE
-        ${CMAKE_CURRENT_LIST_DIR}/include
+        include
 )
 
 # Enable Tracy only on native builds AND when the option is ON.

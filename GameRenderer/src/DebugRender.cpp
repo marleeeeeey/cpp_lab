@@ -2,6 +2,8 @@
 
 #include <imgui.h>
 
+#include "GameUtils/GameUtils.h"
+
 void DebugRender::addLine(const std::string& line) {
   lines_.push_back(line);
 }
@@ -11,6 +13,12 @@ void DebugRender::addStaticLine(const std::string& key, const std::string& line)
 }
 
 void DebugRender::render() {
+  // Clear dynamic lines anyway
+  auto guard = makeExitGuard([this] { lines_.clear(); });
+
+  // Check if window is visible
+  if (!isVisible_) return;
+
   // ------------------------
   // Configure ImGui window
   // ------------------------
@@ -73,6 +81,4 @@ void DebugRender::render() {
 
   ImGui::EndChild();
   ImGui::End();
-
-  lines_.clear();
 }

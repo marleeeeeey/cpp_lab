@@ -2,12 +2,16 @@
 
 #include <spdlog/spdlog.h>
 
+GameInputManager::GameInputManager(entt::dispatcher& dispatcher)
+    : dispatcher_(dispatcher) {}
+
 SDL_AppResult GameInputManager::applyEvent(SDL_Event* event) {
   if (event->type == SDL_EVENT_QUIT) {
     // end the program, reporting success to the OS
     return SDL_APP_SUCCESS;
   }
 
+  checkKeyboardInputForDispatcher_(event);
   checkKeyboardInput_(event);
   checkMouseInput_(event);
 
@@ -29,53 +33,70 @@ void GameInputManager::onFrameEnd() {
   userInputData_.mouse.released = {};
 }
 
+// Uses SDL_Scancode type. It is physical representation of key
+void GameInputManager::checkKeyboardInputForDispatcher_(SDL_Event* event) {
+  switch (event->type) {
+    case SDL_EVENT_KEY_DOWN: {
+      dispatcher_.trigger(KeyPressed{event->key.scancode, event->key.repeat});
+      heldScancodesForDispatcher_[event->key.scancode] = true;
+      break;
+    }
+    case SDL_EVENT_KEY_UP: {
+      dispatcher_.trigger(KeyReleased{event->key.scancode});
+      heldScancodesForDispatcher_[event->key.scancode] = false;
+      break;
+    }
+    default:
+      break;
+  }
+
+  for (auto sc = 0; sc < heldScancodesForDispatcher_.size(); ++sc) {
+    if (heldScancodesForDispatcher_[sc]) {
+      dispatcher_.trigger(KeyHeld{static_cast<SDL_Scancode>(sc)});
+    }
+  }
+}
+
+// Uses SDL_Scancode type. It is physical representation of key
 void GameInputManager::checkKeyboardInput_(SDL_Event* event) {
-  if (event->type == SDL_EVENT_KEY_DOWN) {
-    SPDLOG_DEBUG("Keyboard pressed: {}", event->key.key);
-  }
-
-  if (event->type == SDL_EVENT_KEY_UP) {
-    SPDLOG_DEBUG("Keyboard released: {}", event->key.key);
-  }
-
   switch (event->type) {
     case SDL_EVENT_KEY_DOWN:
       if (event->key.repeat)
         break;  // ignore repeating keys
-      switch (event->key.key) {
-        case SDLK_UP:
+      switch (event->key.scancode) {
+        case SDL_SCANCODE_UP:
           userInputData_.keyboard.pressed.up = true;
           userInputData_.keyboard.held.up = true;
           break;
-        case SDLK_DOWN:
+        case SDL_SCANCODE_DOWN:
           userInputData_.keyboard.pressed.down = true;
           userInputData_.keyboard.held.down = true;
           break;
-        case SDLK_LEFT:
+        case SDL_SCANCODE_LEFT:
           userInputData_.keyboard.pressed.left = true;
           userInputData_.keyboard.held.left = true;
           break;
-        case SDLK_RIGHT:
+        case SDL_SCANCODE_RIGHT:
           userInputData_.keyboard.pressed.right = true;
           userInputData_.keyboard.held.right = true;
           break;
       }
       break;
     case SDL_EVENT_KEY_UP:
-      switch (event->key.key) {
-        case SDLK_UP:
+      switch (event->key.scancode) {
+        case SDL_SCANCODE_UP:
           userInputData_.keyboard.held.up = false;
           userInputData_.keyboard.released.up = true;
           break;
-        case SDLK_DOWN:
+        case SDL_SCANCODE_DOWN:
           userInputData_.keyboard.held.down = false;
           userInputData_.keyboard.released.down = true;
           break;
-        case SDLK_LEFT:
+        case SDL_SCANCODE_LEFT:
           userInputData_.keyboard.held.left = false;
           userInputData_.keyboard.released.left = true;
           break;
-        case SDLK_RIGHT:
+        case SDL_SCANCODE_RIGHT:
           userInputData_.keyboard.held.right = false;
           userInputData_.keyboard.released.right = true;
           break;

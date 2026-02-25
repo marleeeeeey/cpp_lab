@@ -1,5 +1,20 @@
 #pragma once
 
+#include <SDL3/SDL.h>  // SDL_Scancode
+
+struct KeyPressed {
+  SDL_Scancode scancode;
+  bool repeat;
+};
+
+struct KeyReleased {
+  SDL_Scancode scancode;
+};
+
+struct KeyHeld {
+  SDL_Scancode scancode;
+};
+
 // High-level representation of user input
 struct GameInputData {
   // ----------

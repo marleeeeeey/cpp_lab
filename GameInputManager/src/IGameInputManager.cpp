@@ -2,6 +2,6 @@
 
 #include "GameInputManager.h"
 
-std::unique_ptr<IGameInputManager> IGameInputManager::create() {
-  return std::make_unique<GameInputManager>();
+std::unique_ptr<IGameInputManager> IGameInputManager::create(entt::dispatcher& dispatcher) {
+  return std::make_unique<GameInputManager>(dispatcher);
 }

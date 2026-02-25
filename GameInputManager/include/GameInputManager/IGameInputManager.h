@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL3/SDL.h>
 
+#include <entt/signal/dispatcher.hpp>
 #include <memory>
 
 #include "GameInputData.h"
@@ -13,7 +14,7 @@ class IGameInputManager {
   // Factory
   // ----------------------
 
-  static std::unique_ptr<IGameInputManager> create();
+  static std::unique_ptr<IGameInputManager> create(entt::dispatcher& dispatcher);
   virtual ~IGameInputManager() = default;
 
   // --------------------

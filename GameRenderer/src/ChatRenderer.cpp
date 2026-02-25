@@ -9,6 +9,8 @@ void ChatRenderer::addMessage(const ChatMessage& message) {
 }
 
 void ChatRenderer::render() {
+  if (!isVisible_) return;
+
   // ------------------------
   // Configure ImGui window
   // ------------------------

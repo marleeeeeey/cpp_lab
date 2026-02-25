@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 
@@ -23,6 +24,13 @@ glm::vec2 approachVec2(const glm::vec2& current, const glm::vec2& target, float 
   return glm::vec2(
       approach(current.x, target.x, maxDelta),
       approach(current.y, target.y, maxDelta));
+}
+
+float wrapCoord(float v, float maxExclusive) {
+  if (maxExclusive <= 0.0f) return 0.0f;
+  v = std::fmod(v, maxExclusive);
+  if (v < 0.0f) v += maxExclusive;
+  return v;
 }
 }  // namespace
 
@@ -178,9 +186,16 @@ void GameWorld::impactOnPlayer_(double elapsed, const GameInputData& userInputDa
 
   renderer->myPlayer.position += playerVelocity_ * dt;
 
-  // TODO: think about world boundaries
-  // renderer->myPlayer.position.x = std::clamp(renderer->myPlayer.position.x, 0.0f, (float)windowWidth_);
-  // renderer->myPlayer.position.y = std::clamp(renderer->myPlayer.position.y, 0.0f, (float)windowHeight_);
+  // --------------------------
+  // Wrap Player Position
+  // --------------------------
+
+  renderer->myPlayer.position.x = wrapCoord(renderer->myPlayer.position.x, static_cast<float>(windowWidth_));
+  renderer->myPlayer.position.y = wrapCoord(renderer->myPlayer.position.y, static_cast<float>(windowHeight_));
+
+  // -----------------------------
+  // Notify if position changed
+  // -----------------------------
 
   if (renderer->myPlayer.position != oldPos) {
     onPlayerPositionChanged();

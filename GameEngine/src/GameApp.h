@@ -1,5 +1,6 @@
 #pragma once
 
+#include <entt/signal/dispatcher.hpp>
 #include <memory>
 
 #include "GameInputManager/IGameInputManager.h"
@@ -37,6 +38,14 @@ class GameApp : public ISdlApp {
   SDL_AppResult iterate() override;
 
  private:
+  // -------------------
+  // Input and Events
+  // -------------------
+  std::unique_ptr<IGameInputManager> gameInputManager_;
+  entt::dispatcher dispatcher_;
+  void onKeyPressed(const KeyPressed&);
+  bool showDebugWindows_ = false;
+
   // ---------------------------
   // Rendering and window data
   // ---------------------------
@@ -52,7 +61,6 @@ class GameApp : public ISdlApp {
   // ------------------
 
   std::shared_ptr<GameWorld> gameWorld_;
-  std::unique_ptr<IGameInputManager> gameInputManager_;
   std::shared_ptr<GameTimer> gameTimer_;
 
   // ---------------------
@@ -77,8 +85,8 @@ class GameApp : public ISdlApp {
   // Basic Iterate Steps
   // ----------------------
 
-  void updateGameWorld_(float elapsed);
-  void updateDebugRender_();
+  void iterateGameWorld_(float elapsed);
+  void iterateDebugRender_();
 
   // ---------
   // Network
