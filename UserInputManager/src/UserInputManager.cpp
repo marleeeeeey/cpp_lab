@@ -1,11 +1,11 @@
-#include "GameInputManager.h"
+#include "UserInputManager.h"
 
 #include <spdlog/spdlog.h>
 
-GameInputManager::GameInputManager(entt::dispatcher& dispatcher)
+UserInputManager::UserInputManager(entt::dispatcher& dispatcher)
     : dispatcher_(dispatcher) {}
 
-SDL_AppResult GameInputManager::applyEvent(SDL_Event* event) {
+SDL_AppResult UserInputManager::applyEvent(SDL_Event* event) {
   if (event->type == SDL_EVENT_QUIT) {
     // end the program, reporting success to the OS
     return SDL_APP_SUCCESS;
@@ -19,11 +19,11 @@ SDL_AppResult GameInputManager::applyEvent(SDL_Event* event) {
   return SDL_APP_CONTINUE;
 }
 
-const GameInputData& GameInputManager::getGameInputData() const {
+const UserInputData& UserInputManager::getUserInputData() const {
   return userInputData_;
 }
 
-void GameInputManager::onFrameEnd() {
+void UserInputManager::onFrameEnd() {
   userInputData_.keyboard.pressed = {};
   userInputData_.mouse.dx = 0;
   userInputData_.mouse.dy = 0;
@@ -34,7 +34,7 @@ void GameInputManager::onFrameEnd() {
 }
 
 // Uses SDL_Scancode type. It is physical representation of key
-void GameInputManager::checkKeyboardInputForDispatcher_(SDL_Event* event) {
+void UserInputManager::checkKeyboardInputForDispatcher_(SDL_Event* event) {
   switch (event->type) {
     case SDL_EVENT_KEY_DOWN: {
       dispatcher_.trigger(KeyPressed{event->key.scancode, event->key.repeat});
@@ -58,7 +58,7 @@ void GameInputManager::checkKeyboardInputForDispatcher_(SDL_Event* event) {
 }
 
 // Uses SDL_Scancode type. It is physical representation of key
-void GameInputManager::checkKeyboardInput_(SDL_Event* event) {
+void UserInputManager::checkKeyboardInput_(SDL_Event* event) {
   switch (event->type) {
     case SDL_EVENT_KEY_DOWN:
       if (event->key.repeat)
@@ -105,7 +105,7 @@ void GameInputManager::checkKeyboardInput_(SDL_Event* event) {
   }
 }
 
-void GameInputManager::checkMouseInput_(SDL_Event* event) {
+void UserInputManager::checkMouseInput_(SDL_Event* event) {
   // -----------------------------------------------
   // Global screen position (desktop coordinates)
   // -----------------------------------------------

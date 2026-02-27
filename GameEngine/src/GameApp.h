@@ -3,7 +3,6 @@
 #include <entt/signal/dispatcher.hpp>
 #include <memory>
 
-#include "GameInputManager/IGameInputManager.h"
 #include "GameNetwork.h"
 #include "GameRenderer/IChatRenderer.h"
 #include "GameRenderer/IDebugRender.h"
@@ -12,6 +11,7 @@
 #include "GameWorld.h"
 #include "SdlApp/ISdlApp.h"
 #include "SdlApp/SdlWithImGuiWrapper.h"
+#include "UserInputManager/IUserInputManager.h"
 
 // ------------------------------------
 // Forward declarations
@@ -23,7 +23,7 @@ class INetworkTransport;
 // The main application object.
 // ----------------------------
 
-// GameApp is a bridge between GameWorld, GameNetwork, Render Classes, GameInputManager.
+// GameApp is a bridge between GameWorld, GameNetwork, Render Classes, UserInputManager.
 // It overrides ISdlApp interface and uses SdlWithImGuiWrapper as Helper.
 class GameApp : public ISdlApp {
  public:
@@ -41,7 +41,7 @@ class GameApp : public ISdlApp {
   // -------------------
   // Input and Events
   // -------------------
-  std::unique_ptr<IGameInputManager> gameInputManager_;
+  std::unique_ptr<IUserInputManager> userInputManager_;
   entt::dispatcher dispatcher_;
   void onKeyPressed(const KeyPressed&);
   bool showDebugWindows_ = false;

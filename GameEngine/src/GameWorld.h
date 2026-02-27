@@ -4,14 +4,14 @@
 #include <memory>
 #include <vector>
 
-#include "GameInputManager/GameInputData.h"
 #include "GameRenderer/IGameWorldRenderer.h"
+#include "UserInputManager/UserInputData.h"
 
 // Business logic for the game world.
 class GameWorld {
  public:
   GameWorld(std::weak_ptr<IGameWorldRenderer> gameWorldRenderer);
-  void iterate(double elapsed, const GameInputData& userInputData);
+  void iterate(double elapsed, const UserInputData& userInputData);
   void onWindowSizeChanged(int width, int height);
   void setPlayerRandomPosition() const;
 
@@ -20,8 +20,8 @@ class GameWorld {
 
  private:
   void updateSnowflakesCount_(int width, int height);
-  void impactOnSnowflakes_(double elapsed, const GameInputData& userInputData);
-  void impactOnPlayer_(double elapsed, const GameInputData& userInputData);
+  void impactOnSnowflakes_(double elapsed, const UserInputData& userInputData);
+  void impactOnPlayer_(double elapsed, const UserInputData& userInputData);
 
   // -------------------------
   // Private state

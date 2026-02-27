@@ -38,7 +38,7 @@ GameWorld::GameWorld(std::weak_ptr<IGameWorldRenderer> gameWorldRenderer) {
   gameWorldRenderer_ = gameWorldRenderer;
 }
 
-void GameWorld::iterate(double elapsed, const GameInputData& userInputData) {
+void GameWorld::iterate(double elapsed, const UserInputData& userInputData) {
   impactOnSnowflakes_(elapsed, userInputData);
   impactOnPlayer_(elapsed, userInputData);
 }
@@ -101,7 +101,7 @@ void GameWorld::updateSnowflakesCount_(int width, int height) {
   }
 }
 
-void GameWorld::impactOnSnowflakes_(double elapsed, const GameInputData& userInputData) {
+void GameWorld::impactOnSnowflakes_(double elapsed, const UserInputData& userInputData) {
   auto renderer = gameWorldRenderer_.lock();
   if (!renderer) return;
 
@@ -126,7 +126,7 @@ void GameWorld::impactOnSnowflakes_(double elapsed, const GameInputData& userInp
   }
 }
 
-void GameWorld::impactOnPlayer_(double elapsed, const GameInputData& userInputData) {
+void GameWorld::impactOnPlayer_(double elapsed, const UserInputData& userInputData) {
   auto renderer = gameWorldRenderer_.lock();
   if (!renderer) {
     SPDLOG_ERROR("GameWorldRenderer is not initialized");

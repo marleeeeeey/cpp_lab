@@ -16,7 +16,7 @@ struct KeyHeld {
 };
 
 // High-level representation of user input
-struct GameInputData {
+struct UserInputData {
   // ----------
   // Keyboard
   // ----------

@@ -46,7 +46,7 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   // Init Input Manager
   // ---------------------
 
-  gameInputManager_ = IGameInputManager::create(dispatcher_);
+  userInputManager_ = IUserInputManager::create(dispatcher_);
   dispatcher_.sink<KeyPressed>().connect<&GameApp::onKeyPressed>(this);
 
   // ----------------------
@@ -96,7 +96,7 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
 
 SDL_AppResult GameApp::onEvent(SDL_Event* event) {
   sdlWrapper_->onEvent(event);
-  return gameInputManager_->applyEvent(event);
+  return userInputManager_->applyEvent(event);
 }
 
 SDL_AppResult GameApp::iterate() {
@@ -114,7 +114,7 @@ SDL_AppResult GameApp::iterate() {
     renderContainer_->render();
   });
 
-  gameInputManager_->onFrameEnd();
+  userInputManager_->onFrameEnd();
 
   PROFILER_FRAME_MARK;  // Mark end of frame for TRACY
   return SDL_APP_CONTINUE;
@@ -203,13 +203,13 @@ void GameApp::initTimers_() {
 
 void GameApp::iterateGameWorld_(const float elapsed) {
   PROFILER_ZONE;
-  gameWorld_->iterate(elapsed, gameInputManager_->getGameInputData());
+  gameWorld_->iterate(elapsed, userInputManager_->getUserInputData());
 }
 
 void GameApp::iterateDebugRender_() {
   if (!debugRender_) return;
 
-  auto& userInputData = gameInputManager_->getGameInputData();
+  auto& userInputData = userInputManager_->getUserInputData();
   auto& m = userInputData.mouse;
 
   debugRender_->addLine(std::format("Mouse diff: ({}, {})", m.dx, m.dy));

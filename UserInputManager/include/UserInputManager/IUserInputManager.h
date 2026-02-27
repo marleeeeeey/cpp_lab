@@ -4,24 +4,24 @@
 #include <entt/signal/dispatcher.hpp>
 #include <memory>
 
-#include "GameInputData.h"
+#include "UserInputData.h"
 
-// Reads SDL events and converts them into GameInputData.
+// Reads SDL events and converts them into UserInputData.
 // Also initiates callback calls.
-class IGameInputManager {
+class IUserInputManager {
  public:
   // ----------------------
   // Factory
   // ----------------------
 
-  static std::unique_ptr<IGameInputManager> create(entt::dispatcher& dispatcher);
-  virtual ~IGameInputManager() = default;
+  static std::unique_ptr<IUserInputManager> create(entt::dispatcher& dispatcher);
+  virtual ~IUserInputManager() = default;
 
   // --------------------
   // Virtual Interface
   // --------------------
 
   virtual SDL_AppResult applyEvent(SDL_Event* event) = 0;
-  virtual const GameInputData& getGameInputData() const = 0;
+  virtual const UserInputData& getUserInputData() const = 0;
   virtual void onFrameEnd() = 0;
 };

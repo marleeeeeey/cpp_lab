@@ -16,7 +16,7 @@ add_executable(GameEngine
 
 target_link_libraries(GameEngine PRIVATE
         # User libraries
-        GameInputManager
+        UserInputManager
         GameMessageTypes
         GameRenderer
         GameSerialization

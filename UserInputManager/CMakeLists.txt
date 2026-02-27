@@ -2,9 +2,9 @@
 # Sources
 # ---------
 
-add_library(GameInputManager
-        src/IGameInputManager.cpp
-        src/GameInputManager.cpp
+add_library(UserInputManager
+        src/IUserInputManager.cpp
+        src/UserInputManager.cpp
 )
 
 
@@ -13,7 +13,7 @@ add_library(GameInputManager
 # ----------
 
 
-target_include_directories(GameInputManager
+target_include_directories(UserInputManager
         PUBLIC include
         PRIVATE src
 )
@@ -23,7 +23,7 @@ target_include_directories(GameInputManager
 # Link
 # -------
 
-target_link_libraries(GameInputManager PRIVATE
+target_link_libraries(UserInputManager PRIVATE
         # User libraries
 
         # 3rd_party libraries
