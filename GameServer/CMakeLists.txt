@@ -22,4 +22,5 @@ target_link_libraries(GameServer PRIVATE
         uWebSockets::uWebSockets
         spdlog::spdlog
         magic_enum::magic_enum
+        # SDL3::SDL3 # SDL should not be used in Server!
 )

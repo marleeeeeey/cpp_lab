@@ -113,6 +113,13 @@ void GameNetwork::initNetworkDataHandlers_() {
       GMT_WorldSnapshot,
       [this](const auto type, const std::vector<uint8_t>& payload) {
         auto worldSnapshot = GameSerialization::deserializeWorldSnapshot(payload);
+        SPDLOG_TRACE("Message type GMT_WorldSnapshot received", type);
+
+        if (!worldSnapshot.players.empty()) {
+          auto& p1 = worldSnapshot.players[0];
+          SPDLOG_TRACE("Received WorldSnapshot: p1 pos=({},{})", p1.position.x, p1.position.y);
+        }
+
         if (auto gameWorld = gameWorld_.lock()) {
           gameWorld->setWorldSnapshot(worldSnapshot);
         }

@@ -24,6 +24,6 @@ target_include_directories(GameShared
 target_link_libraries(GameShared
         PRIVATE
         spdlog::spdlog
-        PUBLIC # TODO: remove it
-        glm::glm
+        PUBLIC
+        glm::glm # OK to public glm dependency and use it in interfaces
 )

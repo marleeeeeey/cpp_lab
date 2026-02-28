@@ -99,6 +99,35 @@ SDL_AppResult GameApp::onEvent(SDL_Event* event) {
   return userInputManager_->applyEvent(event);
 }
 
+void GameApp::sendUserInputToServer_() {
+  auto userInputData = userInputManager_->getUserInputData();
+
+  if (!userInputData.keyboardInputChanged) {
+    return;
+  }
+
+  // ---------------------------
+  // Calculate input direction
+  // ---------------------------
+
+  glm::vec2 dir(0.0f, 0.0f);
+  if (userInputData.keyboard.held.up) dir.y -= 1.0f;
+  if (userInputData.keyboard.held.down) dir.y += 1.0f;
+  if (userInputData.keyboard.held.left) dir.x -= 1.0f;
+  if (userInputData.keyboard.held.right) dir.x += 1.0f;
+  dir = glm::normalize(dir);
+
+  // ---------------------------
+  // Send input direction
+  // ---------------------------
+
+  InputPacket inputPacket;
+  inputPacket.moveX = dir.x;
+  inputPacket.moveY = dir.y;
+  SPDLOG_INFO("Sending input: ({}, {})", inputPacket.moveX, inputPacket.moveY);
+  gameNetwork_->sendInputPacketFromClient(inputPacket);
+}
+
 SDL_AppResult GameApp::iterate() {
   const float elapsed = sdlWrapper_->calculateDeltaTimeWhenFrameBegins();
 
@@ -106,22 +135,7 @@ SDL_AppResult GameApp::iterate() {
 
   gameTimer_->iterate(elapsed);
 
-  // TODO: move it out
-  auto userInputData = userInputManager_->getUserInputData();
-  glm::vec2 dir(0.0f, 0.0f);
-  if (userInputData.keyboard.held.up) dir.y -= 1.0f;
-  if (userInputData.keyboard.held.down) dir.y += 1.0f;
-  if (userInputData.keyboard.held.left) dir.x -= 1.0f;
-  if (userInputData.keyboard.held.right) dir.x += 1.0f;
-  const bool hasInput = (dir.x != 0.0f || dir.y != 0.0f);
-  dir = glm::normalize(dir);
-  if (hasInput) {
-    InputPacket inputPacket;
-    inputPacket.moveX = dir.x;
-    inputPacket.moveY = dir.y;
-    SPDLOG_INFO("Sending input: ({}, {})", inputPacket.moveX, inputPacket.moveY);
-    gameNetwork_->sendInputPacketFromClient(inputPacket);
-  }
+  sendUserInputToServer_();
 
   iterateGameWorld_(elapsed);
 

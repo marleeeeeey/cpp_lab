@@ -28,7 +28,7 @@ float wrapCoord(float v, float maxExclusive) {
 
 void simulatePlayer(PlayerState& state, float dt, const glm::vec2& input,
                     float worldWidth, float worldHeight) {
-  SPDLOG_INFO("simulatePlayer: dt={}, input=({},{})", dt, input.x, input.y);
+  SPDLOG_TRACE("simulatePlayer: dt={}, input=({},{})", dt, input.x, input.y);
 
   // ----------------------------------
   // Motion Params (px/s and px/s^2)
@@ -43,9 +43,9 @@ void simulatePlayer(PlayerState& state, float dt, const glm::vec2& input,
   // Parse Input
   // --------------
 
-  glm::vec2 dir = glm::normalize(input);
-  const bool hasInput = dir != glm::vec2(0);
-  const glm::vec2 targetVelocity = hasInput ? dir * maxSpeed : glm::vec2(0);
+  const bool hasInput = glm::length(input) > 0.0f;
+  glm::vec2 dir = hasInput ? glm::normalize(input) : glm::vec2(0.0f);
+  const glm::vec2 targetVelocity = dir * maxSpeed;
 
   // ---------------------------
   // Accelerate/Decelerate
@@ -81,9 +81,9 @@ void simulatePlayer(PlayerState& state, float dt, const glm::vec2& input,
   state.position.x = wrapCoord(state.position.x, worldWidth);
   state.position.y = wrapCoord(state.position.y, worldHeight);
 
-  // ----------------------------
-  // Notify if position changed
-  // ----------------------------
+  // ------------------------------
+  // Debug on position changed
+  // ------------------------------
 
   if (oldPos != state.position) {
     SPDLOG_INFO("Player moved from ({}, {}) to ({}, {})", oldPos.x, oldPos.y, state.position.x, state.position.y);

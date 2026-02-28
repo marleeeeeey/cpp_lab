@@ -31,6 +31,9 @@ void GameWorld::onWindowSizeChanged(int width, int height) {
 
 void GameWorld::setWorldSnapshot(const WorldSnapshot& worldSnapshot) {
   worldSnapshot_ = worldSnapshot;
+  for (PlayerSnapshot& player : worldSnapshot_.players) {
+    SPDLOG_TRACE("Player {}: pos=({},{})", player.id, player.position.x, player.position.y);
+  }
 }
 
 void GameWorld::updateSnowflakesCount_(int width, int height) {

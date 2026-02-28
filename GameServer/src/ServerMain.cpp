@@ -45,12 +45,19 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
     ws->send(stringView, uWS::OpCode::BINARY);
   };
 
+  // IMPORTANT: Use the main loop for deferring tasks.
+  // Otherwise, "defer" callback will no be executed.
+  uWS::Loop* mainLoop = uWS::Loop::get();
+
   BinaryMessageParser::OnBroadcastMessageCallback onBroadcastMessageCallback =
-      [&state](const INetworkDataHandler::MessageType replyType, const std::vector<uint8_t>& replyPayload) {
-        auto typedPayload = state->networkDataHandler->addTypeForBinaryMessage(replyType, replyPayload);
-        std::string_view messageStringView(reinterpret_cast<const char*>(typedPayload.data()), typedPayload.size());
-        // TODO: replace it to message queue
-        uWS::Loop::get()->defer([state, messageStringView] {
+      [state, mainLoop](const INetworkDataHandler::MessageType type, const std::vector<uint8_t>& replyPayload) {
+        std::ostringstream oss;
+        oss << std::this_thread::get_id();
+        SPDLOG_TRACE("Broadcasting message {}. ThreadId {}", type, oss.str());
+        auto typedPayload = state->networkDataHandler->addTypeForBinaryMessage(type, replyPayload);
+        mainLoop->defer([state, typedPayload] {
+          SPDLOG_TRACE("Broadcasting message as uWS::OpCode::BINARY");
+          std::string_view messageStringView(reinterpret_cast<const char*>(typedPayload.data()), typedPayload.size());
           state->app->publish(state->getBroadcastTopicName(), messageStringView, uWS::OpCode::BINARY);  // broadcast
         });
       };
@@ -100,17 +107,18 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
     Player& player = perSocketData->player;
     static PlayerId nextPlayerId = 0;
     player.id = nextPlayerId++;
-    auto ip = perSocketData->clientIp;
     auto name = player.name;
     player.state.position = {100.0f, 100.0f};
     while (state->connectedClientNames.contains(name)) {
-      name = HumanHash::getShortHumanName(ip + name);
+      name = HumanHash::getShortHumanName(perSocketData->clientIp + name);
     }
     player.name = name;
     state->connectedClientNames.insert(name);
     SPDLOG_DEBUG("ws.open");
-    SPDLOG_INFO("{} connected from ip {}", player.name, ip);
+    SPDLOG_INFO("{} connected from ip {}", player.name, perSocketData->clientIp);
 
+    SPDLOG_INFO("Connected player: ptr: {}, id: {}, pos: ({}, {})",
+                (int)&player, player.id, player.state.position.x, player.state.position.y);
     // ---------------------------
     // Add user to game session
     // ---------------------------

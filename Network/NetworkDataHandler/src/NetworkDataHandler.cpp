@@ -58,6 +58,7 @@ void NetworkDataHandler::notifyAboutBinaryMessage(const std::vector<uint8_t>& me
         } else {
           SPDLOG_WARN("No handler for message type: {}", type);
         }
+        SPDLOG_TRACE("Message type {} received", type);
       });
 }
 

@@ -24,7 +24,17 @@ const UserInputData& UserInputManager::getUserInputData() const {
 }
 
 void UserInputManager::onFrameEnd() {
+  // -----------------------
+  // Keyboard reset
+  // -----------------------
+
   userInputData_.keyboard.pressed = {};
+  userInputData_.keyboardInputChanged = false;
+
+  // -----------------------
+  // Mouse reset
+  // -----------------------
+
   userInputData_.mouse.dx = 0;
   userInputData_.mouse.dy = 0;
   userInputData_.mouse.wheelX = 0.0f;
@@ -63,6 +73,9 @@ void UserInputManager::checkKeyboardInput_(SDL_Event* event) {
     case SDL_EVENT_KEY_DOWN:
       if (event->key.repeat)
         break;  // ignore repeating keys
+
+      userInputData_.keyboardInputChanged = true;
+
       switch (event->key.scancode) {
         case SDL_SCANCODE_UP:
           userInputData_.keyboard.pressed.up = true;
@@ -83,6 +96,8 @@ void UserInputManager::checkKeyboardInput_(SDL_Event* event) {
       }
       break;
     case SDL_EVENT_KEY_UP:
+      userInputData_.keyboardInputChanged = true;
+
       switch (event->key.scancode) {
         case SDL_SCANCODE_UP:
           userInputData_.keyboard.held.up = false;

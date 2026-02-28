@@ -42,8 +42,8 @@ void GameLoop::stop() {
 void GameLoop::updateState_(std::shared_ptr<ServerState> state) {
   for (PerSocketData* psd : state->gameSession->perSocketDatas) {
     auto& player = psd->player;
-    SPDLOG_INFO("Player {}: pos=({},{})", player.id, player.state.position.x, player.state.position.y);
-    SPDLOG_INFO("Player {}: input=({},{})", player.id, player.lastInput.x, player.lastInput.y);
+    SPDLOG_TRACE("Player {}: pos=({},{})", player.id, player.state.position.x, player.state.position.y);
+    SPDLOG_TRACE("Player {}: input=({},{})", player.id, player.lastInput.x, player.lastInput.y);
     simulatePlayer(player.state, 1.0f / 60.0f, player.lastInput, 800, 600);
   }
 }
@@ -60,6 +60,11 @@ void GameLoop::sendStateToClients_(std::shared_ptr<ServerState> state) {
     snap.position = player.state.position;
 
     world.players.push_back(snap);
+  }
+
+  if (!world.players.empty()) {
+    auto& p1 = world.players[0];
+    SPDLOG_TRACE("Sending WorldSnapshot: p1 pos=({},{}) ptr={}", p1.position.x, p1.position.y, (uint64_t)&state->gameSession->perSocketDatas[0]->player);
   }
 
   // Send the same snapshot to all clients

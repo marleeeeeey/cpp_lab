@@ -35,6 +35,7 @@ struct UserInputData {
   };
 
   KeyboardState keyboard;
+  bool keyboardInputChanged = false;
 
   // -------
   // Mouse

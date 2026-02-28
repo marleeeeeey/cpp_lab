@@ -41,6 +41,8 @@ class GameApp : public ISdlApp {
   // -------------------
   // Input and Events
   // -------------------
+
+  void sendUserInputToServer_();
   std::unique_ptr<IUserInputManager> userInputManager_;
   entt::dispatcher dispatcher_;
   void onKeyPressed(const KeyPressed&);
