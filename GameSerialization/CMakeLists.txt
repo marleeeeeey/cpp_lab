@@ -15,9 +15,11 @@ include(${THIRD_PARTY_ROOT}/cmake/FlatbuffersHelper.cmake)
 # This creates a target 'FlatbufferSchemas' that you can link to anywhere.
 # Target allow you #include "Player_generated.h" to work with flatbuffers methods.
 add_flatbuffers_schema(FlatbufferSchemas
-        fbs/Player.fbs
         fbs/Bullet.fbs
         fbs/ChatMessage.fbs
+        fbs/Math.fbs
+        fbs/Player.fbs
+        fbs/WorldSnapshot.fbs
 )
 
 # ----------
@@ -37,7 +39,7 @@ target_include_directories(GameSerialization
 target_link_libraries(GameSerialization PRIVATE
         # User libraries
         FlatbufferSchemas
-        GameSharedObjects
+        GameShared
 
         # 3rd_party libraries
         spdlog::spdlog

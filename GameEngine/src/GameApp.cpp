@@ -5,7 +5,7 @@
 
 #include <cxxopts.hpp>
 
-#include "GameSharedObjects/ChatMessage.h"
+#include "GameShared/ChatMessage.h"
 #include "Profiler/Profiler.h"
 
 // ---------------------------
@@ -106,6 +106,23 @@ SDL_AppResult GameApp::iterate() {
 
   gameTimer_->iterate(elapsed);
 
+  // TODO: move it out
+  auto userInputData = userInputManager_->getUserInputData();
+  glm::vec2 dir(0.0f, 0.0f);
+  if (userInputData.keyboard.held.up) dir.y -= 1.0f;
+  if (userInputData.keyboard.held.down) dir.y += 1.0f;
+  if (userInputData.keyboard.held.left) dir.x -= 1.0f;
+  if (userInputData.keyboard.held.right) dir.x += 1.0f;
+  const bool hasInput = (dir.x != 0.0f || dir.y != 0.0f);
+  dir = glm::normalize(dir);
+  if (hasInput) {
+    InputPacket inputPacket;
+    inputPacket.moveX = dir.x;
+    inputPacket.moveY = dir.y;
+    SPDLOG_INFO("Sending input: ({}, {})", inputPacket.moveX, inputPacket.moveY);
+    gameNetwork_->sendInputPacketFromClient(inputPacket);
+  }
+
   iterateGameWorld_(elapsed);
 
   iterateDebugRender_();
@@ -166,12 +183,6 @@ void GameApp::initOptions_(int argc, char* argv[]) {
 void GameApp::initGameWorld_() {
   gameWorldRenderer_ = IGameWorldRenderer::create(sdlWrapper_->getRenderer());
   gameWorld_ = std::make_shared<GameWorld>(gameWorldRenderer_);
-
-  gameWorld_->onPlayerPositionChanged = [this]() {
-    Player& player = gameWorldRenderer_->myPlayer;
-    gameNetwork_->sendPlayer(player);
-  };
-
   sdlWrapper_->onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
 }
 

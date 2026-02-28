@@ -13,25 +13,6 @@ static constexpr int MIN_PIXELS_PER_SECOND = 30;  // move at least this many pix
 static constexpr int MAX_PIXELS_PER_SECOND = 60;  // move this many pixels per second at most
 
 namespace {
-float approach(float current, float target, float maxDelta) {
-  const float delta = target - current;
-  if (delta > maxDelta) return current + maxDelta;
-  if (delta < -maxDelta) return current - maxDelta;
-  return target;
-}
-
-glm::vec2 approachVec2(const glm::vec2& current, const glm::vec2& target, float maxDelta) {
-  return glm::vec2(
-      approach(current.x, target.x, maxDelta),
-      approach(current.y, target.y, maxDelta));
-}
-
-float wrapCoord(float v, float maxExclusive) {
-  if (maxExclusive <= 0.0f) return 0.0f;
-  v = std::fmod(v, maxExclusive);
-  if (v < 0.0f) v += maxExclusive;
-  return v;
-}
 }  // namespace
 
 GameWorld::GameWorld(std::weak_ptr<IGameWorldRenderer> gameWorldRenderer) {
@@ -40,7 +21,6 @@ GameWorld::GameWorld(std::weak_ptr<IGameWorldRenderer> gameWorldRenderer) {
 
 void GameWorld::iterate(double elapsed, const UserInputData& userInputData) {
   impactOnSnowflakes_(elapsed, userInputData);
-  impactOnPlayer_(elapsed, userInputData);
 }
 
 void GameWorld::onWindowSizeChanged(int width, int height) {
@@ -49,20 +29,8 @@ void GameWorld::onWindowSizeChanged(int width, int height) {
   updateSnowflakesCount_(width, height);
 }
 
-void GameWorld::setPlayerRandomPosition() const {
-  auto renderer = gameWorldRenderer_.lock();
-  if (!renderer) return;
-
-  const float margin = 0.15f;
-  const float minX = windowWidth_ * margin;
-  const float maxX = windowWidth_ * (1.0f - margin);
-  const float minY = windowHeight_ * margin;
-  const float maxY = windowHeight_ * (1.0f - margin);
-  renderer->myPlayer.position = glm::vec2(
-      minX + SDL_randf() * (maxX - minX),
-      minY + SDL_randf() * (maxY - minY));
-
-  onPlayerPositionChanged();
+void GameWorld::setWorldSnapshot(const WorldSnapshot& worldSnapshot) {
+  worldSnapshot_ = worldSnapshot;
 }
 
 void GameWorld::updateSnowflakesCount_(int width, int height) {
@@ -123,90 +91,5 @@ void GameWorld::impactOnSnowflakes_(double elapsed, const UserInputData& userInp
 
       snowflakesSpeed_[i] = MIN_PIXELS_PER_SECOND + (SDL_randf() * (MAX_PIXELS_PER_SECOND - MIN_PIXELS_PER_SECOND) * acceleration);
     }
-  }
-}
-
-void GameWorld::impactOnPlayer_(double elapsed, const UserInputData& userInputData) {
-  auto renderer = gameWorldRenderer_.lock();
-  if (!renderer) {
-    SPDLOG_ERROR("GameWorldRenderer is not initialized");
-    return;
-  }
-
-  const float dt = static_cast<float>(elapsed);
-  if (dt <= 0.0f) return;
-
-  // ----------------------------------
-  // Motion Params (px/s and px/s^2)
-  // ----------------------------------
-
-  const float maxSpeed = 260.0f;
-  const float accel = 900.0f;
-  const float decel = 1100.0f;
-
-  // --------------
-  // Read Input
-  // --------------
-
-  glm::vec2 dir(0.0f, 0.0f);
-  if (userInputData.keyboard.held.up) dir.y -= 1.0f;
-  if (userInputData.keyboard.held.down) dir.y += 1.0f;
-  if (userInputData.keyboard.held.left) dir.x -= 1.0f;
-  if (userInputData.keyboard.held.right) dir.x += 1.0f;
-
-  // -----------------------
-  // Normalize Speed
-  // -----------------------
-
-  const bool hasInput = (dir.x != 0.0f || dir.y != 0.0f);
-  if (hasInput) {
-    const float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-    dir /= len;
-  }
-
-  const glm::vec2 targetVelocity = hasInput ? (dir * maxSpeed) : glm::vec2(0.0f);
-
-  // ---------------------------
-  // Accelerate/Decelerate
-  // ---------------------------
-
-  const float maxDelta = (hasInput ? accel : decel) * dt;
-  playerVelocity_ = approachVec2(playerVelocity_, targetVelocity, maxDelta);
-
-  // -----------------------
-  // Minimal speed to stop
-  // -----------------------
-
-  const float stopEpsilon = 1.0f;
-  if (!hasInput) {
-    if (std::abs(playerVelocity_.x) < stopEpsilon) playerVelocity_.x = 0.0f;
-    if (std::abs(playerVelocity_.y) < stopEpsilon) playerVelocity_.y = 0.0f;
-  }
-
-  // --------------------
-  // Save old position
-  // --------------------
-
-  const glm::vec2 oldPos = renderer->myPlayer.position;
-
-  // ---------------------------------
-  // Move Player (px/s * s = px)
-  // ---------------------------------
-
-  renderer->myPlayer.position += playerVelocity_ * dt;
-
-  // --------------------------
-  // Wrap Player Position
-  // --------------------------
-
-  renderer->myPlayer.position.x = wrapCoord(renderer->myPlayer.position.x, static_cast<float>(windowWidth_));
-  renderer->myPlayer.position.y = wrapCoord(renderer->myPlayer.position.y, static_cast<float>(windowHeight_));
-
-  // -----------------------------
-  // Notify if position changed
-  // -----------------------------
-
-  if (renderer->myPlayer.position != oldPos) {
-    onPlayerPositionChanged();
   }
 }

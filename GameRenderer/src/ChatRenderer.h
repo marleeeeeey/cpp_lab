@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "GameRenderer/IChatRenderer.h"
-#include "GameSharedObjects/ChatMessage.h"
+#include "GameShared/ChatMessage.h"
 
 class ChatRenderer : public IChatRenderer {
  public:

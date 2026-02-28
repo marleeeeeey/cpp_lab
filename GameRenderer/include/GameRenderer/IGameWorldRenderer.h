@@ -4,7 +4,8 @@
 #include <memory>
 #include <vector>
 
-#include "GameSharedObjects/Player.h"
+#include "GameShared/Player.h"
+#include "GameShared/WorldSnapshot.h"
 #include "IRenderer.h"
 
 // Interface for rendering the game world.
@@ -23,7 +24,8 @@ class IGameWorldRenderer : public IRenderer {
   // Interface
   // -------------
 
+  // TODO: covert this fields to methods?
   std::vector<glm::vec2> snowflakes;
-  Player myPlayer;
-  std::unordered_map<std::string, Player> otherPlayers;
+  PlayerId myPlayerId;
+  WorldSnapshot worldSnapshot;
 };

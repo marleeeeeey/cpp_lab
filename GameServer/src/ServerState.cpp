@@ -1,6 +1,6 @@
 #include "ServerState.h"
 
-#include "GameMessageTypes/GameMessageTypes.h"
+#include "GameShared/GameMessageTypes.h"
 
 ServerState::ServerState() {
   app = std::make_shared<uWS::App>();

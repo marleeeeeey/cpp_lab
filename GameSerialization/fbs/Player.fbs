@@ -1,9 +1,6 @@
-namespace GameSerializationFlatbuffer;
+include "Math.fbs";
 
-struct Vec2 {
-  x:float;
-  y:float;
-}
+namespace GameSerializationFlatbuffer;
 
 table Player {
   name:string;

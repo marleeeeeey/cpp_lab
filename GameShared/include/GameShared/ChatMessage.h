@@ -1,7 +1,7 @@
 #pragma once
 
-#include "GameSharedObjects/Player.h"
-#include "GameSharedObjects/TimeStamp.h"
+#include "GameShared/Player.h"
+#include "GameShared/TimeStamp.h"
 
 struct ChatMessage {
   Player sender;

@@ -9,13 +9,13 @@ add_executable(GameServer
         src/CommandLineParser.cpp
         src/ServerState.cpp
         src/BinaryMessageParser.cpp
+        src/GameLoop.cpp
 )
 
 target_link_libraries(GameServer PRIVATE
         # User libraries
         NetworkDataHandler
-        GameMessageTypes
-        GameSharedObjects
+        GameShared
         GameSerialization
 
         # 3rd_party libraries

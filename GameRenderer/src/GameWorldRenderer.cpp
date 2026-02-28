@@ -16,15 +16,13 @@ void GameWorldRenderer::render() {
     SDL_RenderPoint(renderer_, point.x, point.y);
   }
 
-  // Draw Opponent Players with BLUE color
-  for (const auto& opponent : otherPlayers | std::views::values) {
-    SDL_SetRenderDrawColor(renderer_, 0, 0, 255, SDL_ALPHA_OPAQUE);
-    SDL_FRect rect = {opponent.position.x, opponent.position.y, 10, 10};
+  for (PlayerSnapshot& playerSnapshot : worldSnapshot.players) {
+    if (playerSnapshot.id == myPlayerId) {
+      SDL_SetRenderDrawColor(renderer_, 255, 0, 0, SDL_ALPHA_OPAQUE);  // RED - My Player
+    } else {
+      SDL_SetRenderDrawColor(renderer_, 0, 0, 255, SDL_ALPHA_OPAQUE);  // BLUE - Opponents
+    }
+    SDL_FRect rect = {playerSnapshot.position.x, playerSnapshot.position.y, 10, 10};
     SDL_RenderFillRect(renderer_, &rect);
   }
-
-  // Draw My Player with RED color over Opponents
-  SDL_SetRenderDrawColor(renderer_, 255, 0, 0, SDL_ALPHA_OPAQUE);
-  SDL_FRect rect = {myPlayer.position.x, myPlayer.position.y, 10, 10};
-  SDL_RenderFillRect(renderer_, &rect);
 }

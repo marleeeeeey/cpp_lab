@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "GameMessageTypes/GameMessageTypes.h"
+#include "GameShared/GameMessageTypes.h"
 #include "PerSocketData.h"
 
 class BinaryMessageParser {
@@ -44,6 +44,6 @@ class BinaryMessageParser {
   OnSendTypedBinaryToTheSocketCallback onSendTypedBinaryToTheSocketCallback_;
 
   void on_GMT_ChatMessage(const std::vector<uint8_t>& payload, PerSocketData* perSocketData) const;
-  void on_GMT_AnyPlayerDataUpdated(const std::vector<uint8_t>& payload, PerSocketData* perSocketData) const;
   void on_GMT_PingFromClient(const std::vector<uint8_t>& payload, WsType* ws, PerSocketData* perSocketData) const;
+  void on_GMT_InputDataFromClient(const std::vector<uint8_t>& payload, WsType* ws, PerSocketData* perSocketData) const;
 };

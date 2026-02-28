@@ -4,8 +4,8 @@
 
 #include <magic_enum/magic_enum.hpp>
 
-#include "GameMessageTypes/GameMessageTypes.h"
 #include "GameSerialization/GameSerialization.h"
+#include "GameShared/GameMessageTypes.h"
 
 GameNetwork::GameNetwork(
     const std::string& url,
@@ -37,13 +37,6 @@ void GameNetwork::stop() {
   autoReconnectionNetwork_->stop();
 }
 
-void GameNetwork::sendPlayer(const Player& player) {
-  // IMPROVE: do both operations in one call and one memory allocation. Here and other similar places,
-  auto payload = GameSerialization::serializePlayer(player);
-  payload = networkDataHandler_->addTypeForBinaryMessage(GMT_AnyPlayerDataUpdated, payload);
-  autoReconnectionNetwork_->sendBinary(payload);
-}
-
 void GameNetwork::sendChatMessage(const ChatMessage& message) {
   auto payload = GameSerialization::serializeChatMessage(message);
   payload = networkDataHandler_->addTypeForBinaryMessage(GMT_ChatMessage, payload);
@@ -57,23 +50,14 @@ void GameNetwork::sendPingFromClient() {
   autoReconnectionNetwork_->sendBinary(payload);
 }
 
+void GameNetwork::sendInputPacketFromClient(const InputPacket& inputPacket) {
+  auto payload = GameSerialization::serializeInputPacket(inputPacket);
+  payload = networkDataHandler_->addTypeForBinaryMessage(GMT_InputDataFromClient, payload);
+  autoReconnectionNetwork_->sendBinary(payload);
+}
+
 void GameNetwork::initNetworkDataHandlers_() {
   networkDataHandler_ = INetworkDataHandler::create();
-
-  networkDataHandler_->registerCallbackForTextMessages(
-      [this](std::string_view textMessage) {
-        ChatMessage chatMessage{
-            .sender = Player{
-                .name = "Anonymous",
-                .messagesSent = 0,
-            },
-            .message = std::string(textMessage),
-        };
-        if (auto render = chatRenderer_.lock()) {
-          render->addMessage(chatMessage);
-        }
-        SPDLOG_INFO("Text Message received: {}", chatMessage.message);
-      });
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_ChatMessage,
@@ -101,27 +85,11 @@ void GameNetwork::initNetworkDataHandlers_() {
       });
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
-      GMT_AnyPlayerDataUpdated,
+      GMT_PlayerIdFromServer,
       [this](const auto type, const std::vector<uint8_t>& payload) {
         auto player = GameSerialization::deserializePlayer(payload);
         if (auto renderer = gameWorldRenderer_.lock()) {
-          if (player.name == renderer->myPlayer.name) {
-            return;  // don't update my own data
-          }
-          renderer->otherPlayers[player.name] = player;
-        }
-        SPDLOG_DEBUG("Message type {} received", type);
-      });
-
-  networkDataHandler_->registerCallbackForBinaryMessageWithType(
-      GMT_AssignNameToThePlayer,
-      [this](const auto type, const std::vector<uint8_t>& payload) {
-        auto player = GameSerialization::deserializePlayer(payload);
-        if (auto renderer = gameWorldRenderer_.lock()) {
-          renderer->myPlayer = player;
-        }
-        if (auto gameWorld = gameWorld_.lock()) {
-          gameWorld->setPlayerRandomPosition();
+          renderer->myPlayerId = player.id;
         }
         if (auto debugRender = debugRender_.lock()) {
           debugRender->addStaticLine("name", std::format("Name: {}", player.name));
@@ -138,6 +106,18 @@ void GameNetwork::initNetworkDataHandlers_() {
         if (auto renderer = debugRender_.lock()) {
           auto pingMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - creationTime).count();
           renderer->addStaticLine("ping", std::format("Ping: {} ms", pingMs));
+        }
+      });
+
+  networkDataHandler_->registerCallbackForBinaryMessageWithType(
+      GMT_WorldSnapshot,
+      [this](const auto type, const std::vector<uint8_t>& payload) {
+        auto worldSnapshot = GameSerialization::deserializeWorldSnapshot(payload);
+        if (auto gameWorld = gameWorld_.lock()) {
+          gameWorld->setWorldSnapshot(worldSnapshot);
+        }
+        if (auto gameRenderer = gameWorldRenderer_.lock()) {
+          gameRenderer->worldSnapshot = worldSnapshot;
         }
       });
 }

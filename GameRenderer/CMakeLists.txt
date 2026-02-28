@@ -36,7 +36,7 @@ target_include_directories(GameRenderer
 
 target_link_libraries(GameRenderer PRIVATE
         # User libraries
-        GameSharedObjects
+        GameShared
         Profiler
         GameUtils
 

@@ -3,16 +3,20 @@
 #include <cstdint>
 #include <vector>
 
-#include "GameSharedObjects/TimeStamp.h"
-
-// -------------------------
-// Forward Declarations
-// -------------------------
-
-struct Player;
-struct ChatMessage;
+#include "GameShared/ChatMessage.h"
+#include "GameShared/InputPacket.h"
+#include "GameShared/Player.h"
+#include "GameShared/TimeStamp.h"
+#include "GameShared/WorldSnapshot.h"
 
 namespace GameSerialization {
+
+// ----------------
+// InputPacket
+// ----------------
+
+std::vector<uint8_t> serializeInputPacket(const InputPacket& item);
+InputPacket deserializeInputPacket(const std::vector<uint8_t>& payload);
 
 // ----------------
 // TimeStamp
@@ -34,5 +38,12 @@ Player deserializePlayer(const std::vector<uint8_t>& payload);
 
 std::vector<uint8_t> serializeChatMessage(const ChatMessage& chatMessage);
 ChatMessage deserializeChatMessage(const std::vector<uint8_t>& payload);
+
+// ----------------
+// WorldSnapshot
+// ----------------
+
+std::vector<uint8_t> serializeWorldSnapshot(const WorldSnapshot& worldSnapshot);
+WorldSnapshot deserializeWorldSnapshot(const std::vector<uint8_t>& payload);
 
 };  // namespace GameSerialization

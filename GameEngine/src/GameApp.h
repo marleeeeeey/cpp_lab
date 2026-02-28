@@ -44,6 +44,7 @@ class GameApp : public ISdlApp {
   std::unique_ptr<IUserInputManager> userInputManager_;
   entt::dispatcher dispatcher_;
   void onKeyPressed(const KeyPressed&);
+  void onKeyKeyHeld(const KeyHeld&);
   bool showDebugWindows_ = false;
 
   // ---------------------------

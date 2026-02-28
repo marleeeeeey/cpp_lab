@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GameSharedObjects/Player.h"
+#include "GameShared/Player.h"
 
 // User data per socket
 struct PerSocketData {

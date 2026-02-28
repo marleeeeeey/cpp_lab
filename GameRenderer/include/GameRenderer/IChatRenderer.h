@@ -2,7 +2,7 @@
 
 #include <functional>
 
-#include "GameSharedObjects/ChatMessage.h"
+#include "GameShared/ChatMessage.h"
 #include "IRenderer.h"
 
 // Class to render a chat window

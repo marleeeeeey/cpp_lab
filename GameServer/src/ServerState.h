@@ -7,6 +7,7 @@
 #include <string_view>
 
 #include "BinaryMessageParser.h"
+#include "GameSession.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
 
 class ServerState {
@@ -15,6 +16,7 @@ class ServerState {
   std::unique_ptr<INetworkDataHandler> networkDataHandler;
   std::unique_ptr<BinaryMessageParser> binaryMessageParser;
   std::set<std::string> connectedClientNames;
+  std::unique_ptr<GameSession> gameSession;
 
   ServerState();
   void incrementNumberOfClients();

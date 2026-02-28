@@ -1,5 +1,5 @@
+#include <../../GameShared/include/GameShared/GameMessageTypes.h>
 #include <App.h>
-#include <GameMessageTypes/GameMessageTypes.h>
 #include <GameSerialization/GameSerialization.h>
 #include <spdlog/spdlog.h>
 
@@ -11,6 +11,7 @@
 #include <string_view>
 
 #include "CommandLineParser.h"
+#include "GameLoop.h"
 #include "GetClientIpText.h"
 #include "HumanHash.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
@@ -31,22 +32,27 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
   int port = commandLineParser.getPort();
   auto state = std::make_shared<ServerState>();
 
-  // TODO create wrapper around uWS::App and make this function as interface of this wrapper
-  auto sendTypedBinaryToWebSocket = [&state](GameMessageType type, auto* ws, const std::vector<uint8_t>& payload) {
-    auto typedPayload = state->networkDataHandler->addTypeForBinaryMessage(type, payload);
-    std::string_view stringView(reinterpret_cast<const char*>(typedPayload.data()), typedPayload.size());
-    ws->send(stringView, uWS::OpCode::BINARY);
-  };
+  state->gameSession = std::make_unique<GameSession>();
 
   // --------------------------------------
   // Create BinaryMessageParser instance
   // --------------------------------------
 
+  // TODO create wrapper around uWS::App and make this function as interface of this wrapper
+  auto sendTypedBinaryToWebSocket = [&state](GameMessageType type, WsType* ws, const std::vector<uint8_t>& payload) {
+    auto typedPayload = state->networkDataHandler->addTypeForBinaryMessage(type, payload);
+    std::string_view stringView(reinterpret_cast<const char*>(typedPayload.data()), typedPayload.size());
+    ws->send(stringView, uWS::OpCode::BINARY);
+  };
+
   BinaryMessageParser::OnBroadcastMessageCallback onBroadcastMessageCallback =
       [&state](const INetworkDataHandler::MessageType replyType, const std::vector<uint8_t>& replyPayload) {
         auto typedPayload = state->networkDataHandler->addTypeForBinaryMessage(replyType, replyPayload);
         std::string_view messageStringView(reinterpret_cast<const char*>(typedPayload.data()), typedPayload.size());
-        state->app->publish(state->getBroadcastTopicName(), messageStringView, uWS::OpCode::BINARY);  // broadcast
+        // TODO: replace it to message queue
+        uWS::Loop::get()->defer([state, messageStringView] {
+          state->app->publish(state->getBroadcastTopicName(), messageStringView, uWS::OpCode::BINARY);  // broadcast
+        });
       };
 
   state->binaryMessageParser = std::make_unique<BinaryMessageParser>(
@@ -92,8 +98,11 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
     state->incrementNumberOfClients();
 
     Player& player = perSocketData->player;
+    static PlayerId nextPlayerId = 0;
+    player.id = nextPlayerId++;
     auto ip = perSocketData->clientIp;
     auto name = player.name;
+    player.state.position = {100.0f, 100.0f};
     while (state->connectedClientNames.contains(name)) {
       name = HumanHash::getShortHumanName(ip + name);
     }
@@ -102,38 +111,18 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
     SPDLOG_DEBUG("ws.open");
     SPDLOG_INFO("{} connected from ip {}", player.name, ip);
 
-    auto payload = GameSerialization::serializePlayer(player);
-    sendTypedBinaryToWebSocket(GMT_AssignNameToThePlayer, ws, payload);
+    // ---------------------------
+    // Add user to game session
+    // ---------------------------
 
-    // TODO world state should be sent to this client. Need to save player positions on server
-  };
-
-  // ---------------------------
-  // Message (incoming data)
-  // ---------------------------
-
-  auto onSocketMessage = [state](auto* ws, std::string_view msg, uWS::OpCode op) {
-    PerSocketData* perSocketData = (PerSocketData*)ws->getUserData();
-    auto& player = perSocketData->player;
-    player.messagesSent++; // update message count; just for statistics
-
-    // Echo any text. This is obsolete.
-    if (op == uWS::OpCode::TEXT) {
-      std::string personWithMessage = player.name + ": " + std::string(msg);
-      state->app->publish(state->getBroadcastTopicName(), personWithMessage, op, false);
-      SPDLOG_DEBUG("ws.message. {}: {}. op={}", perSocketData->player.name, msg, magic_enum::enum_name(op));
+    {
+      std::lock_guard lock(state->gameSession->mutex);
+      state->gameSession->perSocketDatas.push_back(perSocketData);
     }
-
-    // Detect a binary message type and delegate parsing to BinaryMessageParser
-    if (op == uWS::OpCode::BINARY) {
-      std::vector<uint8_t> binaryMsg = std::vector<uint8_t>(msg.begin(), msg.end());  // TODO: remove unnecessary copy
-      SPDLOG_DEBUG("ws.message. From {}; op={}", perSocketData->player.name, magic_enum::enum_name(op));
-      state->networkDataHandler->parseBinaryMessage(
-        binaryMsg,
-        [&](const INetworkDataHandler::MessageType type, const std::vector<uint8_t>& payload) {
-            state->binaryMessageParser->parseAnyBinaryMessage(type, payload, ws, perSocketData);
-          });
-    } };
+    //
+    // std::vector<uint8_t> payload = GameSerialization::serializePlayer(player);
+    // sendTypedBinaryToWebSocket(GMT_AssignNameToThePlayer, ws, payload);  // TODO: send name only???
+  };
 
   // -------------------------
   // Close (connection end)
@@ -148,7 +137,41 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
     SPDLOG_INFO("{} disconnected", perSocketData->player.name);
     state->connectedClientNames.erase(perSocketData->player.name);
 
+    // ---------------------------------
+    // Remove user from game session
+    // ---------------------------------
+
+    {
+      std::lock_guard lock(state->gameSession->mutex);
+      std::erase(state->gameSession->perSocketDatas, perSocketData);
+    }
+
     state->decrementNumberOfClients(); };
+
+  // ---------------------------
+  // Message (incoming data)
+  // ---------------------------
+
+  auto onSocketMessage = [state](auto* ws, std::string_view msg, uWS::OpCode op) {
+    PerSocketData* perSocketData = (PerSocketData*)ws->getUserData();
+    auto& player = perSocketData->player;
+    player.messagesSent++; // update message count; just for statistics
+
+    // Text messages are not supported
+    if (op == uWS::OpCode::TEXT) {
+      SPDLOG_CRITICAL("ws.message. From {}; op={}", perSocketData->player.name, magic_enum::enum_name(op));
+    }
+
+    // Detect a binary message type and delegate parsing to BinaryMessageParser
+    if (op == uWS::OpCode::BINARY) {
+      std::vector<uint8_t> binaryMsg = std::vector<uint8_t>(msg.begin(), msg.end());  // TODO: remove unnecessary copy
+      SPDLOG_DEBUG("ws.message. From {}; op={}", perSocketData->player.name, magic_enum::enum_name(op));
+      state->networkDataHandler->parseBinaryMessage(
+        binaryMsg,
+        [&](const INetworkDataHandler::MessageType type, const std::vector<uint8_t>& payload) {
+            state->binaryMessageParser->parseAnyBinaryMessage(type, payload, ws, perSocketData);
+          });
+    } };
 
   // -------------------------------
   // Register WebSocket Callbacks
@@ -174,9 +197,22 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
     }
   });
 
+  // ------------------
+  // Start Game Loop
+  // ------------------
+
+  GameLoop gameLoop(state, onBroadcastMessageCallback);
+  gameLoop.start();
+
   // ---------------------------------
   // Run WebSocket server (blocking)
   // ---------------------------------
 
   state->app->run();
+
+  // ----------------------------
+  // Stop Game Loop (blocking)
+  // ----------------------------
+
+  gameLoop.stop();
 }

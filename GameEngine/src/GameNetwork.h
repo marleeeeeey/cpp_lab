@@ -5,8 +5,8 @@
 #include "GameRenderer/IChatRenderer.h"
 #include "GameRenderer/IDebugRender.h"
 #include "GameRenderer/IGameWorldRenderer.h"
-#include "GameSharedObjects/ChatMessage.h"
-#include "GameSharedObjects/Player.h"
+#include "GameShared/ChatMessage.h"
+#include "GameShared/InputPacket.h"
 #include "GameTimer.h"
 #include "GameWorld.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
@@ -33,9 +33,9 @@ class GameNetwork {
   // Transfer Data Interface
   // --------------------------
 
-  void sendPlayer(const Player& player);
   void sendChatMessage(const ChatMessage& message);
   void sendPingFromClient();
+  void sendInputPacketFromClient(const InputPacket& inputPacket);
 
  private:
   // ----------------------------

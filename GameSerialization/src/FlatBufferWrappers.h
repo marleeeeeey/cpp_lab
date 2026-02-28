@@ -6,10 +6,12 @@
 #include <glm/glm.hpp>
 
 #include "ChatMessage_generated.h"
-#include "GameSharedObjects/ChatMessage.h"
-#include "GameSharedObjects/Player.h"
-#include "GameSharedObjects/TimeStamp.h"
+#include "GameShared/ChatMessage.h"
+#include "GameShared/Player.h"
+#include "GameShared/TimeStamp.h"
+#include "GameShared/WorldSnapshot.h"
 #include "Player_generated.h"
+#include "WorldSnapshot_generated.h"
 
 namespace FlatBufferWrappers {
 
@@ -45,7 +47,7 @@ glm::vec2 deserialize(const GameSerializationFlatbuffer::Vec2* fbVec2) {
 
 auto serialize(flatbuffers::FlatBufferBuilder& builder, const Player& player) {
   auto fbName = builder.CreateString(player.name);
-  auto fbPosition = serialize(player.position);
+  auto fbPosition = serialize(player.state.position);
   auto fbPlayer = GameSerializationFlatbuffer::CreatePlayer(
       builder, fbName, player.messagesSent, &fbPosition);
   return fbPlayer;
@@ -55,7 +57,7 @@ Player deserialize(const GameSerializationFlatbuffer::Player* fbPlayer) {
   Player player;
   player.name = fbPlayer->name()->str();
   player.messagesSent = fbPlayer->messages_sent();
-  player.position = deserialize(fbPlayer->position());
+  player.state.position = deserialize(fbPlayer->position());
   return player;
 }
 
@@ -82,6 +84,60 @@ ChatMessage deserialize(const GameSerializationFlatbuffer::ChatMessage* fbChatMe
   chatMessage.sentTimestamp = deserialize(fbChatMessage->sent_timestamp());
   chatMessage.receivedTimestamp = deserialize(fbChatMessage->received_timestamp());
   return chatMessage;
+}
+
+// ------------------
+// PlayerSnapshot
+// ------------------
+
+auto serialize(flatbuffers::FlatBufferBuilder& builder, const PlayerSnapshot& snapshot) {
+  auto fbPosition = serialize(snapshot.position);
+
+  return GameSerializationFlatbuffer::CreatePlayerSnapshot(builder, snapshot.id, &fbPosition);
+}
+
+PlayerSnapshot deserialize(const GameSerializationFlatbuffer::PlayerSnapshot* fbSnapshot) {
+  PlayerSnapshot snapshot;
+
+  snapshot.id = fbSnapshot->id();
+  snapshot.position = deserialize(fbSnapshot->position());
+
+  return snapshot;
+}
+
+// -----------------
+// WorldSnapshot
+// -----------------
+
+auto serialize(flatbuffers::FlatBufferBuilder& builder, const WorldSnapshot& worldSnapshot) {
+  std::vector<flatbuffers::Offset<GameSerializationFlatbuffer::PlayerSnapshot>> playerOffsets;
+
+  playerOffsets.reserve(worldSnapshot.players.size());
+
+  for (const auto& player : worldSnapshot.players) {
+    playerOffsets.push_back(serialize(builder, player));
+  }
+
+  auto fbPlayers = builder.CreateVector(playerOffsets);
+
+  return GameSerializationFlatbuffer::CreateWorldSnapshot(builder, worldSnapshot.serverTick, fbPlayers);
+}
+
+WorldSnapshot deserialize(const GameSerializationFlatbuffer::WorldSnapshot* fbWorld) {
+  WorldSnapshot worldSnapshot;
+
+  worldSnapshot.serverTick = fbWorld->server_tick();
+
+  auto fbPlayers = fbWorld->players();
+  if (fbPlayers) {
+    worldSnapshot.players.reserve(fbPlayers->size());
+
+    for (const auto* fbPlayer : *fbPlayers) {
+      worldSnapshot.players.push_back(deserialize(fbPlayer));
+    }
+  }
+
+  return worldSnapshot;
 }
 
 }  // namespace FlatBufferWrappers

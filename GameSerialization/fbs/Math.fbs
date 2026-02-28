@@ -1,0 +1,6 @@
+namespace GameSerializationFlatbuffer;
+
+struct Vec2 {
+  x:float;
+  y:float;
+}

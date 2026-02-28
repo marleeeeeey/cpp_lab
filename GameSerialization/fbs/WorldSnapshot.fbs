@@ -1,0 +1,15 @@
+include "Math.fbs";
+
+namespace GameSerializationFlatbuffer;
+
+table PlayerSnapshot {
+  id:uint;
+  position:Vec2;
+}
+
+table WorldSnapshot {
+  server_tick:uint;
+  players:[PlayerSnapshot];
+}
+
+root_type WorldSnapshot;
