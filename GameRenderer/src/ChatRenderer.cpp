@@ -2,7 +2,7 @@
 
 #include <imgui.h>
 
-#include "TimeUtils.h"
+#include "GameUtils/TimeUtils.h"
 
 void ChatRenderer::addMessage(const ChatMessage& message) {
   chatHistory_.push_back(message);

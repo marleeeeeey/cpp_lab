@@ -1,5 +1,6 @@
 #include "ClientApp.h"
 
+#include <GameUtils/GeomUtils.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
@@ -115,7 +116,7 @@ void ClientApp::sendUserInputToServer_() {
   if (userInputData.keyboard.held.down) dir.y += 1.0f;
   if (userInputData.keyboard.held.left) dir.x -= 1.0f;
   if (userInputData.keyboard.held.right) dir.x += 1.0f;
-  dir = glm::normalize(dir);
+  dir = GeomUtils::safeNormalize(dir);
 
   // ---------------------------
   // Send input direction
@@ -124,7 +125,7 @@ void ClientApp::sendUserInputToServer_() {
   InputPacket inputPacket;
   inputPacket.moveX = dir.x;
   inputPacket.moveY = dir.y;
-  SPDLOG_INFO("Sending input: ({}, {})", inputPacket.moveX, inputPacket.moveY);
+  SPDLOG_TRACE("Sending input: ({}, {})", inputPacket.moveX, inputPacket.moveY);
   gameNetwork_->sendInputPacketFromClient(inputPacket);
 }
 

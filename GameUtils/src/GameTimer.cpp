@@ -1,6 +1,7 @@
 #include "GameUtils/GameTimer.h"
 
 #include <algorithm>
+#include <glm/ext/scalar_constants.hpp>
 
 GameTimer::TimerId GameTimer::allocateId_() {
   return nextId_++;
@@ -87,7 +88,7 @@ void GameTimer::iterate(float elapsedSeconds) {
     auto& t = tasks_[i];
     if (t.cancelled) continue;
 
-    if (timeSeconds_ + 1e-6f < t.nextFireTime) continue;
+    if (timeSeconds_ + glm::epsilon<float>() < t.nextFireTime) continue;
 
     // Execute
     if (t.cb) t.cb();

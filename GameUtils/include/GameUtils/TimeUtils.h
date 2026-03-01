@@ -3,12 +3,10 @@
 #include <chrono>
 #include <string>
 
+#include "GlobalTypes/GlobalTypes.h"
+
 class TimeUtils {
  public:
-  // ----------------
-  // Signatures
-  // ----------------
-  using TimeStamp = std::chrono::time_point<std::chrono::system_clock>;
 
   // ---------------
   // Interface

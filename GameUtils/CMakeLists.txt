@@ -4,6 +4,8 @@
 
 add_library(GameUtils
         src/GameTimer.cpp
+        src/TimeUtils.cpp
+        src/GeomUtils.cpp
 )
 
 
@@ -22,5 +24,10 @@ target_include_directories(GameUtils
 # -------
 
 target_link_libraries(GameUtils PRIVATE
+        # User Libraries
+        GlobalTypes
+
+        # 3rd Party Libraries
         spdlog::spdlog
+        glm::glm
 )

@@ -14,8 +14,6 @@ add_library(GameRenderer
 
         src/IDebugRender.cpp
         src/DebugRender.cpp
-
-        src/TimeUtils.cpp
 )
 
 
