@@ -21,8 +21,8 @@ BinaryMessageParser::BinaryMessageParser(
 }
 
 void BinaryMessageParser::parseAnyBinaryMessage(
-    INetworkDataHandler::MessageType type,
-    const std::vector<uint8_t>& payload,
+    PayloadType type,
+    PayloadView payload,
     WsType* ws,
     PerSocketData* perSocketData) const {
   switch (type) {
@@ -40,7 +40,7 @@ void BinaryMessageParser::parseAnyBinaryMessage(
   }
 }
 
-void BinaryMessageParser::on_GMT_ChatMessage(const std::vector<uint8_t>& payload, PerSocketData* perSocketData) const {
+void BinaryMessageParser::on_GMT_ChatMessage(PayloadView payload, PerSocketData* perSocketData) const {
   ChatMessage chatMessage = GameSerialization::deserializeChatMessage(payload);
   chatMessage.sender = perSocketData->player;  // Update sender data. Keep timestamp data and msg the same.
   auto replyPayload = GameSerialization::serializeChatMessage(chatMessage);
@@ -48,11 +48,11 @@ void BinaryMessageParser::on_GMT_ChatMessage(const std::vector<uint8_t>& payload
   SPDLOG_INFO("{}: {}", chatMessage.sender.name, chatMessage.message);
 }
 
-void BinaryMessageParser::on_GMT_PingFromClient(const std::vector<uint8_t>& payload, WsType* ws, PerSocketData* perSocketData) const {
+void BinaryMessageParser::on_GMT_PingFromClient(PayloadView payload, WsType* ws, PerSocketData* perSocketData) const {
   onSendTypedBinaryToTheSocketCallback_(GMT_PingFromClient, ws, payload);
 }
 
-void BinaryMessageParser::on_GMT_InputDataFromClient(const std::vector<uint8_t>& payload, WsType* ws, PerSocketData* perSocketData) const {
+void BinaryMessageParser::on_GMT_InputDataFromClient(PayloadView payload, WsType* ws, PerSocketData* perSocketData) const {
   auto inputPacket = GameSerialization::deserializeInputPacket(payload);
   auto& player = perSocketData->player;
   player.lastInput.x = std::clamp(inputPacket.moveX, -1.0f, 1.0f);

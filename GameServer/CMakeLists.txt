@@ -17,6 +17,7 @@ target_link_libraries(GameServer PRIVATE
         NetworkDataHandler
         GameShared
         GameSerialization
+        GlobalTypes
 
         # 3rd_party libraries
         uWebSockets::uWebSockets

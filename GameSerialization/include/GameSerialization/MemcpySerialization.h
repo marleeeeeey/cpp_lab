@@ -1,4 +1,4 @@
-#pragma once #pragma once
+#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
+
+#include "GlobalTypes/GlobalTypes.h"
 
 namespace GameSerialization {
 
@@ -22,7 +24,7 @@ inline std::vector<std::uint8_t> serializeMemcpy(const T& item) {
 }
 
 template <MemcpySerializable T>
-inline T deserializeMemcpy(std::span<const std::uint8_t> payload) {
+inline T deserializeMemcpy(PayloadView payload) {
   if (payload.size() != sizeof(T)) {
     throw std::runtime_error("deserializeMemcpy: payload size mismatch");
   }

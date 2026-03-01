@@ -40,6 +40,7 @@ target_link_libraries(GameSerialization PRIVATE
         # User libraries
         FlatbufferSchemas
         GameShared
+        GlobalTypes
 
         # 3rd_party libraries
         spdlog::spdlog

@@ -22,5 +22,9 @@ target_include_directories(NetworkDataHandler
 # -----------------------------------------------------
 
 target_link_libraries(NetworkDataHandler PRIVATE
+        # User Libs
+        GlobalTypes
+
+        # 3rd Party Libs
         spdlog::spdlog
 )

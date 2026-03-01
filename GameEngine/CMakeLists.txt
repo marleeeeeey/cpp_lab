@@ -20,6 +20,7 @@ target_link_libraries(GameEngine PRIVATE
         GameSerialization
         GameShared
         GameUtils
+        GlobalTypes
 
         AutoReconnectionNetwork
         NetworkDataHandler

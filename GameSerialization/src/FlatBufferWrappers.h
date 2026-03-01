@@ -8,7 +8,6 @@
 #include "ChatMessage_generated.h"
 #include "GameShared/ChatMessage.h"
 #include "GameShared/Player.h"
-#include "GameShared/TimeStamp.h"
 #include "GameShared/WorldSnapshot.h"
 #include "Player_generated.h"
 #include "WorldSnapshot_generated.h"

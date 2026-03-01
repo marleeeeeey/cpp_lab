@@ -7,19 +7,17 @@
 
 class NetworkDataHandler : public INetworkDataHandler {
  public:
-  void registerCallbackForBinaryMessageWithType(MessageType type, OnBinaryMessageCallback callback) override;
+  void registerCallbackForBinaryMessageWithType(PayloadType type, OnBinaryMessageCallback callback) override;
 
   void registerCallbackForTextMessages(OnTextMessageCallback callback) override;
 
-  std::vector<uint8_t> addTypeForBinaryMessage(MessageType type, const std::vector<uint8_t>& payload) override;
-
-  void parseBinaryMessage(const std::vector<uint8_t>& message, OnBinaryMessageCallback callback) override;
-
-  void notifyAboutBinaryMessage(const std::vector<uint8_t>& message) override;
+  void notifyAboutBinaryMessage(PayloadView message) override;
 
   void notifyAboutTextMessage(std::string_view message) override;
 
+  std::vector<std::uint8_t> makeBinaryMessage(PayloadType type, PayloadView payload) const override;
+
  private:
-  std::unordered_map<MessageType, OnBinaryMessageCallback> messageCallbacks_;
+  std::unordered_map<PayloadType, OnBinaryMessageCallback> messageCallbacks_;
   OnTextMessageCallback textMessageCallback_;
 };

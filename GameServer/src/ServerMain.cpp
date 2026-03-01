@@ -39,8 +39,8 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
   // --------------------------------------
 
   // TODO create wrapper around uWS::App and make this function as interface of this wrapper
-  auto sendTypedBinaryToWebSocket = [&state](GameMessageType type, WsType* ws, const std::vector<uint8_t>& payload) {
-    auto typedPayload = state->networkDataHandler->addTypeForBinaryMessage(type, payload);
+  auto sendTypedBinaryToWebSocket = [&state](GameMessageType type, WsType* ws, PayloadView payload) {
+    auto typedPayload = state->networkDataHandler->makeBinaryMessage(type, payload);
     std::string_view stringView(reinterpret_cast<const char*>(typedPayload.data()), typedPayload.size());
     ws->send(stringView, uWS::OpCode::BINARY);
   };
@@ -50,11 +50,11 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
   uWS::Loop* mainLoop = uWS::Loop::get();
 
   BinaryMessageParser::OnBroadcastMessageCallback onBroadcastMessageCallback =
-      [state, mainLoop](const INetworkDataHandler::MessageType type, const std::vector<uint8_t>& replyPayload) {
+      [state, mainLoop](const PayloadType type, PayloadView replyPayload) {
         std::ostringstream oss;
         oss << std::this_thread::get_id();
         SPDLOG_TRACE("Broadcasting message {}. ThreadId {}", type, oss.str());
-        auto typedPayload = state->networkDataHandler->addTypeForBinaryMessage(type, replyPayload);
+        auto typedPayload = state->networkDataHandler->makeBinaryMessage(type, replyPayload);
         mainLoop->defer([state, typedPayload] {
           SPDLOG_TRACE("Broadcasting message as uWS::OpCode::BINARY");
           std::string_view messageStringView(reinterpret_cast<const char*>(typedPayload.data()), typedPayload.size());
@@ -175,7 +175,7 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
       SPDLOG_DEBUG("ws.message. From {}; op={}", perSocketData->player.name, magic_enum::enum_name(op));
       state->networkDataHandler->parseBinaryMessage(
         binaryMsg,
-        [&](const INetworkDataHandler::MessageType type, const std::vector<uint8_t>& payload) {
+        [&](const PayloadType type, PayloadView payload) {
             state->binaryMessageParser->parseAnyBinaryMessage(type, payload, ws, perSocketData);
           });
     } };

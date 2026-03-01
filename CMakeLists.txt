@@ -44,17 +44,18 @@ add_subdirectory(3rd_party)
 # ----------------------------
 
 add_subdirectory(GameEngine)
-add_subdirectory(UserInputManager)
 add_subdirectory(GameRenderer)
 add_subdirectory(GameSerialization)
 add_subdirectory(GameShared)
 add_subdirectory(GameUtils)
+add_subdirectory(GlobalTypes)
 add_subdirectory(Network/AutoReconnectionNetwork)
 add_subdirectory(Network/DoubleQueueNetwork)
 add_subdirectory(Network/NetworkDataHandler)
 add_subdirectory(Network/NetworkTransport)
 add_subdirectory(Profiler)
 add_subdirectory(SdlApp)
+add_subdirectory(UserInputManager)
 
 # Disable projects with Asio, OpenSSL and uWebSockets for Emscripten
 if (NOT EMSCRIPTEN)

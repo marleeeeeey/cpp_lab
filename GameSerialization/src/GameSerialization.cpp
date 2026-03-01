@@ -12,22 +12,8 @@ std::vector<uint8_t> GameSerialization::serializeInputPacket(const InputPacket& 
   return GameSerialization::serializeMemcpy(item);
 }
 
-InputPacket GameSerialization::deserializeInputPacket(const std::vector<uint8_t>& payload) {
+InputPacket GameSerialization::deserializeInputPacket(PayloadView payload) {
   return GameSerialization::deserializeMemcpy<InputPacket>(payload);
-}
-
-// -------------------
-// TimeStamp
-// -------------------
-
-std::vector<uint8_t> GameSerialization::serializeTimeStamp(const TimeStamp& p) {
-  const std::uint64_t ms = FlatBufferWrappers::serialize(p);
-  return serializeMemcpy(ms);
-}
-
-TimeStamp GameSerialization::deserializeTimeStamp(const std::vector<uint8_t>& payload) {
-  std::uint64_t ms = deserializeMemcpy<std::uint64_t>(payload);
-  return FlatBufferWrappers::deserialize(ms);
 }
 
 // ----------------
@@ -38,7 +24,7 @@ std::vector<uint8_t> GameSerialization::serializePlayer(const Player& player) {
   return FlatBufferTemplates::serialize(player);
 }
 
-Player GameSerialization::deserializePlayer(const std::vector<uint8_t>& payload) {
+Player GameSerialization::deserializePlayer(PayloadView payload) {
   auto fbPlayer = GameSerializationFlatbuffer::GetPlayer(payload.data());
   return FlatBufferWrappers::deserialize(fbPlayer);
 }
@@ -51,7 +37,7 @@ std::vector<uint8_t> GameSerialization::serializeChatMessage(const ChatMessage& 
   return FlatBufferTemplates::serialize(chatMessage);
 }
 
-ChatMessage GameSerialization::deserializeChatMessage(const std::vector<uint8_t>& payload) {
+ChatMessage GameSerialization::deserializeChatMessage(PayloadView payload) {
   auto fbChatMessage = GameSerializationFlatbuffer::GetChatMessage(payload.data());
   return FlatBufferWrappers::deserialize(fbChatMessage);
 }
@@ -64,7 +50,7 @@ std::vector<uint8_t> GameSerialization::serializeWorldSnapshot(const WorldSnapsh
   return FlatBufferTemplates::serialize(worldSnapshot);
 }
 
-WorldSnapshot GameSerialization::deserializeWorldSnapshot(const std::vector<uint8_t>& payload) {
+WorldSnapshot GameSerialization::deserializeWorldSnapshot(PayloadView payload) {
   auto fbWorldSnapshot = GameSerializationFlatbuffer::GetWorldSnapshot(payload.data());
   return FlatBufferWrappers::deserialize(fbWorldSnapshot);
 }

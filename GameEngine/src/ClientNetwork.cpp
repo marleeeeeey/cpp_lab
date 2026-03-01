@@ -7,6 +7,7 @@
 #include "GameSerialization/GameSerialization.h"
 #include "GameSerialization/MemcpySerialization.h"
 #include "GameShared/GameMessageTypes.h"
+#include "GlobalTypes/GlobalTypes.h"
 
 ClientNetwork::ClientNetwork(
     const std::string& url,
@@ -40,21 +41,19 @@ void ClientNetwork::stop() {
 
 void ClientNetwork::sendChatMessage(const ChatMessage& message) {
   auto payload = GameSerialization::serializeChatMessage(message);
-  payload = networkDataHandler_->addTypeForBinaryMessage(GMT_ChatMessage, payload);
+  payload = networkDataHandler_->makeBinaryMessage(GMT_ChatMessage, payload);
   autoReconnectionNetwork_->sendBinary(payload);
 }
 
 void ClientNetwork::sendPingFromClient() {
   auto now = std::chrono::system_clock::now();
-  auto payload = GameSerialization::serializeTimeStamp(now);
-  payload = networkDataHandler_->addTypeForBinaryMessage(GMT_PingFromClient, payload);
-  autoReconnectionNetwork_->sendBinary(payload);
+  auto message = networkDataHandler_->makeBinaryMessageMemcpy(GMT_PingFromClient, now);
+  autoReconnectionNetwork_->sendBinary(message);
 }
 
 void ClientNetwork::sendInputPacketFromClient(const InputPacket& inputPacket) {
-  auto payload = GameSerialization::serializeInputPacket(inputPacket);
-  payload = networkDataHandler_->addTypeForBinaryMessage(GMT_InputDataFromClient, payload);
-  autoReconnectionNetwork_->sendBinary(payload);
+  auto message = networkDataHandler_->makeBinaryMessageMemcpy(GMT_InputDataFromClient, inputPacket);
+  autoReconnectionNetwork_->sendBinary(message);
 }
 
 void ClientNetwork::initNetworkDataHandlers_() {
@@ -62,7 +61,7 @@ void ClientNetwork::initNetworkDataHandlers_() {
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_ChatMessage,
-      [this](const auto type, const std::vector<uint8_t>& payload) {
+      [this](const auto type, PayloadView payload) {
         auto newChatMessage = GameSerialization::deserializeChatMessage(payload);
         newChatMessage.receivedTimestamp = std::chrono::system_clock::now();
         if (auto renderer = chatRenderer_.lock()) {
@@ -73,7 +72,7 @@ void ClientNetwork::initNetworkDataHandlers_() {
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_NumberOfClients,
-      [this](const auto type, const std::vector<uint8_t>& payload) {
+      [this](const auto type, PayloadView payload) {
         int userNumber = GameSerialization::deserializeMemcpy<int>(payload);
         // set and log
         if (auto renderer = debugRender_.lock()) {
@@ -84,7 +83,7 @@ void ClientNetwork::initNetworkDataHandlers_() {
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_PlayerIdFromServer,
-      [this](const auto type, const std::vector<uint8_t>& payload) {
+      [this](const auto type, PayloadView payload) {
         auto player = GameSerialization::deserializePlayer(payload);
         if (auto renderer = gameWorldRenderer_.lock()) {
           renderer->myPlayerId = player.id;
@@ -98,8 +97,8 @@ void ClientNetwork::initNetworkDataHandlers_() {
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_PingFromClient,
-      [this](const auto type, const std::vector<uint8_t>& payload) {
-        auto creationTime = GameSerialization::deserializeTimeStamp(payload);
+      [this](const auto type, PayloadView payload) {
+        auto creationTime = GameSerialization::deserializeMemcpy<TimeStamp>(payload);
         auto now = std::chrono::system_clock::now();
         if (auto renderer = debugRender_.lock()) {
           auto pingMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - creationTime).count();
@@ -109,7 +108,7 @@ void ClientNetwork::initNetworkDataHandlers_() {
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_WorldSnapshot,
-      [this](const auto type, const std::vector<uint8_t>& payload) {
+      [this](const auto type, PayloadView payload) {
         auto worldSnapshot = GameSerialization::deserializeWorldSnapshot(payload);
         SPDLOG_TRACE("Message type GMT_WorldSnapshot received", type);
 
