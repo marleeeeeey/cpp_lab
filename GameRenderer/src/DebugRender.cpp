@@ -14,7 +14,7 @@ void DebugRender::addStaticLine(const std::string& key, const std::string& line)
 
 void DebugRender::render() {
   // Clear dynamic lines anyway
-  auto guard = makeExitGuard([this] { lines_.clear(); });
+  auto guard = makeScopeGuard([this] { lines_.clear(); });
 
   // ------------------------
   // Configure ImGui window

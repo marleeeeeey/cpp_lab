@@ -5,7 +5,6 @@
 add_executable(GameEngine
         src/ClientNetwork.cpp
         src/ClientApp.cpp
-        src/GameTimer.cpp
         src/SnowflakesSimulation.cpp
 )
 
@@ -20,6 +19,7 @@ target_link_libraries(GameEngine PRIVATE
         GameRenderer
         GameSerialization
         GameShared
+        GameUtils
 
         AutoReconnectionNetwork
         NetworkDataHandler

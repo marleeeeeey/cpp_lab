@@ -7,7 +7,7 @@
 #include "GameRenderer/IGameWorldRenderer.h"
 #include "GameShared/ChatMessage.h"
 #include "GameShared/InputPacket.h"
-#include "GameTimer.h"
+#include "GameUtils/GameTimer.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
 #include "SnowflakesSimulation.h"
 
