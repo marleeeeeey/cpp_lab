@@ -61,7 +61,7 @@ void ClientNetwork::initNetworkDataHandlers_() {
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_ChatMessage,
-      [this](const auto type, PayloadView payload) {
+      [this](PayloadType type, PayloadView payload) {
         auto newChatMessage = GameSerialization::deserializeChatMessage(payload);
         newChatMessage.receivedTimestamp = std::chrono::system_clock::now();
         if (auto renderer = chatRenderer_.lock()) {
@@ -72,7 +72,7 @@ void ClientNetwork::initNetworkDataHandlers_() {
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_NumberOfClients,
-      [this](const auto type, PayloadView payload) {
+      [this](PayloadType type, PayloadView payload) {
         int userNumber = GameSerialization::deserializeMemcpy<int>(payload);
         // set and log
         if (auto renderer = debugRender_.lock()) {
@@ -83,13 +83,13 @@ void ClientNetwork::initNetworkDataHandlers_() {
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_PlayerIdFromServer,
-      [this](const auto type, PayloadView payload) {
-        auto player = GameSerialization::deserializePlayer(payload);
+      [this](PayloadType type, PayloadView payload) {
+        auto playerId = GameSerialization::deserializeMemcpy<PlayerId>(payload);
         if (auto renderer = gameWorldRenderer_.lock()) {
-          renderer->myPlayerId = player.id;
+          renderer->myPlayerId = playerId;
         }
         if (auto debugRender = debugRender_.lock()) {
-          debugRender->addStaticLine("name", std::format("Name: {}", player.name));
+          debugRender->addStaticLine("playerId", std::format("playerId: {}", playerId));
         }
 
         sendPingFromClient();
@@ -97,7 +97,7 @@ void ClientNetwork::initNetworkDataHandlers_() {
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_PingFromClient,
-      [this](const auto type, PayloadView payload) {
+      [this](PayloadType type, PayloadView payload) {
         auto creationTime = GameSerialization::deserializeMemcpy<TimeStamp>(payload);
         auto now = std::chrono::system_clock::now();
         if (auto renderer = debugRender_.lock()) {
@@ -108,7 +108,7 @@ void ClientNetwork::initNetworkDataHandlers_() {
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_WorldSnapshot,
-      [this](const auto type, PayloadView payload) {
+      [this](PayloadType type, PayloadView payload) {
         auto worldSnapshot = GameSerialization::deserializeWorldSnapshot(payload);
         SPDLOG_TRACE("Message type GMT_WorldSnapshot received", type);
 

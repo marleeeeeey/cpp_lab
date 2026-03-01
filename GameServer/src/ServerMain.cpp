@@ -126,9 +126,9 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
       std::lock_guard lock(state->gameSession->mutex);
       state->gameSession->perSocketDatas.push_back(perSocketData);
     }
-    //
-    // std::vector<uint8_t> payload = GameSerialization::serializePlayer(player);
-    // sendTypedBinaryToWebSocket(GMT_AssignNameToThePlayer, ws, payload);  // TODO: send name only???
+
+    auto payload = GameSerialization::serializeMemcpy(player.id);
+    sendTypedBinaryToWebSocket(GMT_PlayerIdFromServer, ws, payload);
   };
 
   // -------------------------
@@ -175,7 +175,7 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
       SPDLOG_DEBUG("ws.message. From {}; op={}", perSocketData->player.name, magic_enum::enum_name(op));
       state->networkDataHandler->parseBinaryMessage(
         binaryMsg,
-        [&](const PayloadType type, PayloadView payload) {
+          [&](const PayloadType type, PayloadView payload) {
             state->binaryMessageParser->parseAnyBinaryMessage(type, payload, ws, perSocketData);
           });
     } };

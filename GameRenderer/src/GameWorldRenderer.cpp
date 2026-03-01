@@ -9,19 +9,35 @@ GameWorldRenderer::GameWorldRenderer(SDL_Renderer* renderer) {
 void GameWorldRenderer::render() {
   if (!isVisible_) return;
 
-  // Set brush color to white with full alpha
-  SDL_SetRenderDrawColor(renderer_, 255, 255, 255, SDL_ALPHA_OPAQUE);
+  // ---------------------------
+  // Draw snowflakes - White
+  // ---------------------------
 
+  SDL_SetRenderDrawColor(renderer_, 255, 255, 255, SDL_ALPHA_OPAQUE);
   for (const glm::vec2& point : snowflakes) {
     SDL_RenderPoint(renderer_, point.x, point.y);
   }
 
+  // -------------------------
+  // Draw opponents first
+  // -------------------------
+
   for (PlayerSnapshot& playerSnapshot : worldSnapshot.players) {
-    if (playerSnapshot.id == myPlayerId) {
-      SDL_SetRenderDrawColor(renderer_, 255, 0, 0, SDL_ALPHA_OPAQUE);  // RED - My Player
-    } else {
-      SDL_SetRenderDrawColor(renderer_, 0, 0, 255, SDL_ALPHA_OPAQUE);  // BLUE - Opponents
-    }
+    if (playerSnapshot.id == myPlayerId) continue;
+
+    SDL_SetRenderDrawColor(renderer_, 0, 0, 255, SDL_ALPHA_OPAQUE);  // BLUE - Opponents
+    SDL_FRect rect = {playerSnapshot.position.x, playerSnapshot.position.y, 10, 10};
+    SDL_RenderFillRect(renderer_, &rect);
+  }
+
+  // --------------------------------------
+  // Draw my player above all opponents
+  // --------------------------------------
+
+  for (PlayerSnapshot& playerSnapshot : worldSnapshot.players) {
+    if (playerSnapshot.id != myPlayerId) continue;
+
+    SDL_SetRenderDrawColor(renderer_, 255, 0, 0, SDL_ALPHA_OPAQUE);  // RED - My Player
     SDL_FRect rect = {playerSnapshot.position.x, playerSnapshot.position.y, 10, 10};
     SDL_RenderFillRect(renderer_, &rect);
   }

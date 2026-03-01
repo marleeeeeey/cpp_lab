@@ -12,5 +12,6 @@ struct PlayerSnapshot {
 
 struct WorldSnapshot {
   uint32_t serverTick;
+  // not possible to use std::unordered_map because of using Flatbuffers serialization
   std::vector<PlayerSnapshot> players;
 };

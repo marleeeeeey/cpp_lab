@@ -15,7 +15,7 @@ class GameLoop {
   // Signatures
   // ---------------------
 
-  using OnBroadcastMessageCallback = std::function<void(MessageType type, const std::vector<uint8_t>&)>;
+  using OnBroadcastMessageCallback = std::function<void(PayloadType, PayloadView)>;
 
   // -----------------------
   // Interface
