@@ -1,4 +1,4 @@
-#include "GameWorld.h"
+#include "SnowflakesSimulation.h"
 
 #include <SDL3/SDL.h>
 #include <spdlog/spdlog.h>
@@ -15,28 +15,21 @@ static constexpr int MAX_PIXELS_PER_SECOND = 60;  // move this many pixels per s
 namespace {
 }  // namespace
 
-GameWorld::GameWorld(std::weak_ptr<IGameWorldRenderer> gameWorldRenderer) {
+SnowflakesSimulation::SnowflakesSimulation(std::weak_ptr<IGameWorldRenderer> gameWorldRenderer) {
   gameWorldRenderer_ = gameWorldRenderer;
 }
 
-void GameWorld::iterate(double elapsed, const UserInputData& userInputData) {
+void SnowflakesSimulation::iterate(double elapsed, const UserInputData& userInputData) {
   impactOnSnowflakes_(elapsed, userInputData);
 }
 
-void GameWorld::onWindowSizeChanged(int width, int height) {
+void SnowflakesSimulation::onWindowSizeChanged(int width, int height) {
   windowWidth_ = width;
   windowHeight_ = height;
   updateSnowflakesCount_(width, height);
 }
 
-void GameWorld::setWorldSnapshot(const WorldSnapshot& worldSnapshot) {
-  worldSnapshot_ = worldSnapshot;
-  for (PlayerSnapshot& player : worldSnapshot_.players) {
-    SPDLOG_TRACE("Player {}: pos=({},{})", player.id, player.position.x, player.position.y);
-  }
-}
-
-void GameWorld::updateSnowflakesCount_(int width, int height) {
+void SnowflakesSimulation::updateSnowflakesCount_(int width, int height) {
   auto renderer = gameWorldRenderer_.lock();
   if (!renderer) return;
 
@@ -72,7 +65,7 @@ void GameWorld::updateSnowflakesCount_(int width, int height) {
   }
 }
 
-void GameWorld::impactOnSnowflakes_(double elapsed, const UserInputData& userInputData) {
+void SnowflakesSimulation::impactOnSnowflakes_(double elapsed, const UserInputData& userInputData) {
   auto renderer = gameWorldRenderer_.lock();
   if (!renderer) return;
 

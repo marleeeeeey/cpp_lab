@@ -9,12 +9,11 @@
 #include "UserInputManager/UserInputData.h"
 
 // Business logic for the game world.
-class GameWorld {
+class SnowflakesSimulation {
  public:
-  GameWorld(std::weak_ptr<IGameWorldRenderer> gameWorldRenderer);
+  SnowflakesSimulation(std::weak_ptr<IGameWorldRenderer> gameWorldRenderer);
   void iterate(double elapsed, const UserInputData& userInputData);
   void onWindowSizeChanged(int width, int height);
-  void setWorldSnapshot(const WorldSnapshot& worldSnapshot);
 
  private:
   void updateSnowflakesCount_(int width, int height);
@@ -28,5 +27,4 @@ class GameWorld {
   std::vector<float> snowflakesSpeed_;
   int windowWidth_{};
   int windowHeight_{};
-  WorldSnapshot worldSnapshot_;
 };

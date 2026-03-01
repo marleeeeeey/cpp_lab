@@ -5,6 +5,10 @@
 #include "GameShared/WorldSnapshot.h"
 #include "ServerState.h"
 
+constexpr int TICK_RATE = 60;
+constexpr int WORLD_WIDTH = 800;
+constexpr int WORLD_HEIGHT = 600;
+
 GameLoop::GameLoop(std::shared_ptr<ServerState> state, OnBroadcastMessageCallback onBroadcastMessageCallback) {
   state_ = state;
   onBroadcastMessageCallback_ = onBroadcastMessageCallback;
@@ -12,8 +16,7 @@ GameLoop::GameLoop(std::shared_ptr<ServerState> state, OnBroadcastMessageCallbac
 
 void GameLoop::start() {
   gameThread_ = std::thread([this]() {
-    const int tickRate = 60;
-    const auto tickDuration = std::chrono::milliseconds(1000 / tickRate);
+    const auto tickDuration = std::chrono::milliseconds(1000 / TICK_RATE);
 
     SPDLOG_INFO("GameLoop started");
 
@@ -44,7 +47,8 @@ void GameLoop::updateState_(std::shared_ptr<ServerState> state) {
     auto& player = psd->player;
     SPDLOG_TRACE("Player {}: pos=({},{})", player.id, player.state.position.x, player.state.position.y);
     SPDLOG_TRACE("Player {}: input=({},{})", player.id, player.lastInput.x, player.lastInput.y);
-    simulatePlayer(player.state, 1.0f / 60.0f, player.lastInput, 800, 600);
+    float dt = 1.0f / static_cast<float>(TICK_RATE);
+    simulatePlayer(player.state, dt, player.lastInput, WORLD_WIDTH, WORLD_HEIGHT);
   }
 }
 

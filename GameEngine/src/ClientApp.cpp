@@ -1,4 +1,4 @@
-#include "GameApp.h"
+#include "ClientApp.h"
 
 #include <imgui.h>
 #include <spdlog/spdlog.h>
@@ -13,20 +13,20 @@
 // ---------------------------
 
 std::unique_ptr<ISdlApp> ISdlApp::create() {
-  return std::make_unique<GameApp>();
+  return std::make_unique<ClientApp>();
 }
 
 // ------------------
 // SDL Based Steps
 // ------------------
 
-GameApp::~GameApp() {
+ClientApp::~ClientApp() {
   sdlWrapper_->onQuit();
   gameNetwork_->stop();
-  SPDLOG_CRITICAL("GameApp destroyed");
+  SPDLOG_CRITICAL("ClientApp destroyed");
 }
 
-SDL_AppResult GameApp::init(int argc, char* argv[]) {
+SDL_AppResult ClientApp::init(int argc, char* argv[]) {
   // ---------------------------
   // Init Auxiliary Components
   // ---------------------------
@@ -47,7 +47,7 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   // ---------------------
 
   userInputManager_ = IUserInputManager::create(dispatcher_);
-  dispatcher_.sink<KeyPressed>().connect<&GameApp::onKeyPressed>(this);
+  dispatcher_.sink<KeyPressed>().connect<&ClientApp::onKeyPressed>(this);
 
   // ----------------------
   // Init Domain Systems
@@ -76,12 +76,12 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   // Init Networking
   // -----------------------
 
-  gameNetwork_ = std::make_unique<GameNetwork>(
+  gameNetwork_ = std::make_unique<ClientNetwork>(
       appOptions_.url,
       debugRender_,
       chatRenderer_,
       gameWorldRenderer_,
-      gameWorld_,
+      snowflakesSimulation_,
       gameTimer_);
   gameNetwork_->start();
 
@@ -94,12 +94,12 @@ SDL_AppResult GameApp::init(int argc, char* argv[]) {
   return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult GameApp::onEvent(SDL_Event* event) {
+SDL_AppResult ClientApp::onEvent(SDL_Event* event) {
   sdlWrapper_->onEvent(event);
   return userInputManager_->applyEvent(event);
 }
 
-void GameApp::sendUserInputToServer_() {
+void ClientApp::sendUserInputToServer_() {
   auto userInputData = userInputManager_->getUserInputData();
 
   if (!userInputData.keyboardInputChanged) {
@@ -128,7 +128,7 @@ void GameApp::sendUserInputToServer_() {
   gameNetwork_->sendInputPacketFromClient(inputPacket);
 }
 
-SDL_AppResult GameApp::iterate() {
+SDL_AppResult ClientApp::iterate() {
   const float elapsed = sdlWrapper_->calculateDeltaTimeWhenFrameBegins();
 
   gameNetwork_->iterate();
@@ -155,7 +155,7 @@ SDL_AppResult GameApp::iterate() {
 // Input and Events
 // -------------------
 
-void GameApp::onKeyPressed(const KeyPressed& keyPressed) {
+void ClientApp::onKeyPressed(const KeyPressed& keyPressed) {
   // Tilda
   if (keyPressed.scancode == SDL_SCANCODE_GRAVE && !keyPressed.repeat) {
     showDebugWindows_ = !showDebugWindows_;
@@ -168,7 +168,7 @@ void GameApp::onKeyPressed(const KeyPressed& keyPressed) {
 // Init Steps
 // ------------
 
-void GameApp::initTracyProfiler_() {
+void ClientApp::initTracyProfiler_() {
 #if PROFILER_ENABLED
   SPDLOG_CRITICAL("PROFILER ENABLED");
 #else
@@ -178,7 +178,7 @@ void GameApp::initTracyProfiler_() {
   PROFILER_SET_THREAD_NAME("main");
 }
 
-void GameApp::initOptions_(int argc, char* argv[]) {
+void ClientApp::initOptions_(int argc, char* argv[]) {
   try {
     // Example of usage:
     // GameEngine.exe --url wss://marleeeeeey.duckdns.org
@@ -194,13 +194,13 @@ void GameApp::initOptions_(int argc, char* argv[]) {
   }
 }
 
-void GameApp::initGameWorld_() {
+void ClientApp::initGameWorld_() {
   gameWorldRenderer_ = IGameWorldRenderer::create(sdlWrapper_->getRenderer());
-  gameWorld_ = std::make_shared<GameWorld>(gameWorldRenderer_);
-  sdlWrapper_->onWindowSizeChangedSink().connect<&GameWorld::onWindowSizeChanged>(gameWorld_);
+  snowflakesSimulation_ = std::make_shared<SnowflakesSimulation>(gameWorldRenderer_);
+  sdlWrapper_->onWindowSizeChangedSink().connect<&SnowflakesSimulation::onWindowSizeChanged>(snowflakesSimulation_);
 }
 
-void GameApp::initChat_() {
+void ClientApp::initChat_() {
   chatRenderer_ = IChatRenderer::create();
   chatRenderer_->setVisible(showDebugWindows_);
 
@@ -215,7 +215,7 @@ void GameApp::initChat_() {
   };
 }
 
-void GameApp::initTimers_() {
+void ClientApp::initTimers_() {
   gameTimer_ = std::make_shared<GameTimer>();
   gameTimer_->scheduleRepeating(3, 3, -1, [this]() {
     gameNetwork_->sendPingFromClient();
@@ -226,12 +226,12 @@ void GameApp::initTimers_() {
 // Basic Iterate Steps
 // ---------------------
 
-void GameApp::iterateGameWorld_(const float elapsed) {
+void ClientApp::iterateGameWorld_(const float elapsed) {
   PROFILER_ZONE;
-  gameWorld_->iterate(elapsed, userInputManager_->getUserInputData());
+  snowflakesSimulation_->iterate(elapsed, userInputManager_->getUserInputData());
 }
 
-void GameApp::iterateDebugRender_() {
+void ClientApp::iterateDebugRender_() {
   if (!debugRender_) return;
 
   auto& userInputData = userInputManager_->getUserInputData();

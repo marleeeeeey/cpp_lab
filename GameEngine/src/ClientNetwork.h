@@ -8,17 +8,17 @@
 #include "GameShared/ChatMessage.h"
 #include "GameShared/InputPacket.h"
 #include "GameTimer.h"
-#include "GameWorld.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
+#include "SnowflakesSimulation.h"
 
-class GameNetwork {
+class ClientNetwork {
  public:
-  GameNetwork(
+  ClientNetwork(
       const std::string& url,
       std::weak_ptr<IDebugRender> debugRender,
       std::weak_ptr<IChatRenderer> chatRenderer,
       std::weak_ptr<IGameWorldRenderer> gameWorldRenderer,
-      std::weak_ptr<GameWorld> gameWorld,
+      std::weak_ptr<SnowflakesSimulation> snowflakesSimulation,
       std::weak_ptr<GameTimer> gameTimer);
 
   // ------------------------
@@ -60,6 +60,6 @@ class GameNetwork {
   std::weak_ptr<IDebugRender> debugRender_;
   std::weak_ptr<IChatRenderer> chatRenderer_;
   std::weak_ptr<IGameWorldRenderer> gameWorldRenderer_;
-  std::weak_ptr<GameWorld> gameWorld_;
+  std::weak_ptr<SnowflakesSimulation> snowflakesSimulation_;
   std::weak_ptr<GameTimer> gameTimer_;
 };

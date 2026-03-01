@@ -115,7 +115,8 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
     player.name = name;
     state->connectedClientNames.insert(name);
     SPDLOG_DEBUG("ws.open");
-    SPDLOG_INFO("{} connected from ip {}", player.name, perSocketData->clientIp);
+    SPDLOG_INFO("{} connected from ip {}. Player id: {}",
+                player.name, perSocketData->clientIp, player.id);
 
     // ---------------------------
     // Add user to game session

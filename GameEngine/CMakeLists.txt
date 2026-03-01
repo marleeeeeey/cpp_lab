@@ -3,10 +3,10 @@
 # ----------------------
 
 add_executable(GameEngine
-        src/GameApp.cpp
-        src/GameNetwork.cpp
+        src/ClientNetwork.cpp
+        src/ClientApp.cpp
         src/GameTimer.cpp
-        src/GameWorld.cpp
+        src/SnowflakesSimulation.cpp
 )
 
 

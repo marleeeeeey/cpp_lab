@@ -80,12 +80,4 @@ void simulatePlayer(PlayerState& state, float dt, const glm::vec2& input,
 
   state.position.x = wrapCoord(state.position.x, worldWidth);
   state.position.y = wrapCoord(state.position.y, worldHeight);
-
-  // ------------------------------
-  // Debug on position changed
-  // ------------------------------
-
-  if (oldPos != state.position) {
-    SPDLOG_INFO("Player moved from ({}, {}) to ({}, {})", oldPos.x, oldPos.y, state.position.x, state.position.y);
-  }
 }

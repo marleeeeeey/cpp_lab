@@ -1,4 +1,4 @@
-#include "GameNetwork.h"
+#include "ClientNetwork.h"
 
 #include <spdlog/spdlog.h>
 
@@ -7,56 +7,56 @@
 #include "GameSerialization/GameSerialization.h"
 #include "GameShared/GameMessageTypes.h"
 
-GameNetwork::GameNetwork(
+ClientNetwork::ClientNetwork(
     const std::string& url,
     std::weak_ptr<IDebugRender> debugRender,
     std::weak_ptr<IChatRenderer> chatRenderer,
     std::weak_ptr<IGameWorldRenderer> gameWorldRenderer,
-    std::weak_ptr<GameWorld> gameWorld,
+    std::weak_ptr<SnowflakesSimulation> snowflakesSimulation,
     std::weak_ptr<GameTimer> gameTimer) {
   url_ = url;
   debugRender_ = debugRender;
   chatRenderer_ = chatRenderer;
   gameWorldRenderer_ = gameWorldRenderer;
-  gameWorld_ = gameWorld;
+  snowflakesSimulation_ = snowflakesSimulation;
   gameTimer_ = gameTimer;
 
   initNetworkDataHandlers_();
   initAutoReconnectionNetwork_();
 }
 
-void GameNetwork::start() {
+void ClientNetwork::start() {
   autoReconnectionNetwork_->start();
 }
 
-void GameNetwork::iterate() {
+void ClientNetwork::iterate() {
   autoReconnectionNetwork_->iterate();
 }
 
-void GameNetwork::stop() {
+void ClientNetwork::stop() {
   autoReconnectionNetwork_->stop();
 }
 
-void GameNetwork::sendChatMessage(const ChatMessage& message) {
+void ClientNetwork::sendChatMessage(const ChatMessage& message) {
   auto payload = GameSerialization::serializeChatMessage(message);
   payload = networkDataHandler_->addTypeForBinaryMessage(GMT_ChatMessage, payload);
   autoReconnectionNetwork_->sendBinary(payload);
 }
 
-void GameNetwork::sendPingFromClient() {
+void ClientNetwork::sendPingFromClient() {
   auto now = std::chrono::system_clock::now();
   auto payload = GameSerialization::serializeTimeStamp(now);
   payload = networkDataHandler_->addTypeForBinaryMessage(GMT_PingFromClient, payload);
   autoReconnectionNetwork_->sendBinary(payload);
 }
 
-void GameNetwork::sendInputPacketFromClient(const InputPacket& inputPacket) {
+void ClientNetwork::sendInputPacketFromClient(const InputPacket& inputPacket) {
   auto payload = GameSerialization::serializeInputPacket(inputPacket);
   payload = networkDataHandler_->addTypeForBinaryMessage(GMT_InputDataFromClient, payload);
   autoReconnectionNetwork_->sendBinary(payload);
 }
 
-void GameNetwork::initNetworkDataHandlers_() {
+void ClientNetwork::initNetworkDataHandlers_() {
   networkDataHandler_ = INetworkDataHandler::create();
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
@@ -120,16 +120,13 @@ void GameNetwork::initNetworkDataHandlers_() {
           SPDLOG_TRACE("Received WorldSnapshot: p1 pos=({},{})", p1.position.x, p1.position.y);
         }
 
-        if (auto gameWorld = gameWorld_.lock()) {
-          gameWorld->setWorldSnapshot(worldSnapshot);
-        }
         if (auto gameRenderer = gameWorldRenderer_.lock()) {
           gameRenderer->worldSnapshot = worldSnapshot;
         }
       });
 }
 
-void GameNetwork::initAutoReconnectionNetwork_() {
+void ClientNetwork::initAutoReconnectionNetwork_() {
   autoReconnectionNetwork_ = IAutoReconnectionNetwork::create();
   autoReconnectionNetwork_->init(
       url_,
