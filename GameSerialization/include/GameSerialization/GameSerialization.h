@@ -8,6 +8,7 @@
 #include "GameShared/Player.h"
 #include "GameShared/TimeStamp.h"
 #include "GameShared/WorldSnapshot.h"
+#include "MemcpySerialization.h"
 
 namespace GameSerialization {
 

@@ -5,6 +5,7 @@
 #include <magic_enum/magic_enum.hpp>
 
 #include "GameSerialization/GameSerialization.h"
+#include "GameSerialization/MemcpySerialization.h"
 #include "GameShared/GameMessageTypes.h"
 
 ClientNetwork::ClientNetwork(
@@ -73,15 +74,12 @@ void ClientNetwork::initNetworkDataHandlers_() {
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
       GMT_NumberOfClients,
       [this](const auto type, const std::vector<uint8_t>& payload) {
-        // unpack number of users
-        int receivedNumber = 0;
-        std::memcpy(&receivedNumber, payload.data(), sizeof(receivedNumber));
-
+        int userNumber = GameSerialization::deserializeMemcpy<int>(payload);
         // set and log
         if (auto renderer = debugRender_.lock()) {
-          renderer->addStaticLine("user count", std::format("Users: {}", receivedNumber));
+          renderer->addStaticLine("user count", std::format("Users: {}", userNumber));
         }
-        SPDLOG_TRACE("Message type {} received: {}", type, receivedNumber);
+        SPDLOG_TRACE("Message type {} received: {}", type, userNumber);
       });
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(

@@ -9,15 +9,11 @@
 // ----------------
 
 std::vector<uint8_t> GameSerialization::serializeInputPacket(const InputPacket& item) {
-  std::vector<uint8_t> buffer(sizeof(InputPacket));
-  std::memcpy(buffer.data(), &item, sizeof(InputPacket));
-  return buffer;
+  return GameSerialization::serializeMemcpy(item);
 }
 
 InputPacket GameSerialization::deserializeInputPacket(const std::vector<uint8_t>& payload) {
-  InputPacket item;
-  std::memcpy(&item, payload.data(), sizeof(InputPacket));
-  return item;
+  return GameSerialization::deserializeMemcpy<InputPacket>(payload);
 }
 
 // -------------------
@@ -26,14 +22,11 @@ InputPacket GameSerialization::deserializeInputPacket(const std::vector<uint8_t>
 
 std::vector<uint8_t> GameSerialization::serializeTimeStamp(const TimeStamp& p) {
   const std::uint64_t ms = FlatBufferWrappers::serialize(p);
-  std::vector<std::uint8_t> payload(sizeof(ms));
-  std::memcpy(payload.data(), &ms, sizeof(ms));
-  return payload;
+  return serializeMemcpy(ms);
 }
 
 TimeStamp GameSerialization::deserializeTimeStamp(const std::vector<uint8_t>& payload) {
-  std::uint64_t ms = 0;
-  std::memcpy(&ms, payload.data(), sizeof(ms));
+  std::uint64_t ms = deserializeMemcpy<std::uint64_t>(payload);
   return FlatBufferWrappers::deserialize(ms);
 }
 
