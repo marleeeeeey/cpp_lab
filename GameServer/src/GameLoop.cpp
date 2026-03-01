@@ -9,9 +9,9 @@ constexpr int TICK_RATE = 60;
 constexpr int WORLD_WIDTH = 800;
 constexpr int WORLD_HEIGHT = 600;
 
-GameLoop::GameLoop(std::shared_ptr<ServerState> state, OnBroadcastMessageCallback onBroadcastMessageCallback) {
+GameLoop::GameLoop(std::shared_ptr<ServerState> state, BroadcastCb broadcastCb) {
   state_ = state;
-  onBroadcastMessageCallback_ = onBroadcastMessageCallback;
+  broadcastCb_ = broadcastCb;
 }
 
 void GameLoop::start() {
@@ -73,5 +73,5 @@ void GameLoop::sendStateToClients_(std::shared_ptr<ServerState> state) {
 
   // Send the same snapshot to all clients
   auto payload = GameSerialization::serializeWorldSnapshot(world);
-  onBroadcastMessageCallback_(GMT_WorldSnapshot, payload);
+  broadcastCb_(GMT_WorldSnapshot, payload);
 }

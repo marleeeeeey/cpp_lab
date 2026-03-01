@@ -1,27 +1,15 @@
 #pragma once
 
-#include <chrono>
 #include <functional>
 #include <memory>
-#include <mutex>
 #include <thread>
-#include <vector>
 
+#include "PerSocketData.h"
 #include "ServerState.h"
 
 class GameLoop {
  public:
-  // ---------------------
-  // Signatures
-  // ---------------------
-
-  using OnBroadcastMessageCallback = std::function<void(PayloadType, PayloadView)>;
-
-  // -----------------------
-  // Interface
-  // -----------------------
-
-  GameLoop(std::shared_ptr<ServerState> state, OnBroadcastMessageCallback onBroadcastMessageCallback);
+  GameLoop(std::shared_ptr<ServerState> state, BroadcastCb broadcastCb);
   void start();
   void stop();
 
@@ -32,5 +20,5 @@ class GameLoop {
   bool stopRequested_ = false;
   std::thread gameThread_;
   std::shared_ptr<ServerState> state_;
-  OnBroadcastMessageCallback onBroadcastMessageCallback_;
+  BroadcastCb broadcastCb_;
 };

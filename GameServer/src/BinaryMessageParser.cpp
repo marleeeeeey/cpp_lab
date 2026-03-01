@@ -10,12 +10,10 @@
 #include <magic_enum/magic_enum.hpp>
 
 BinaryMessageParser::BinaryMessageParser(
-    OnBroadcastMessageCallback onBroadcastMessageCallback,
-    OnSendTypedBinaryToTheSocketCallback onSendTypedBinaryToTheSocketCallback) {
-  onBroadcastMessageCallback_ = onBroadcastMessageCallback;
-  onSendTypedBinaryToTheSocketCallback_ = onSendTypedBinaryToTheSocketCallback;
-  assert(onBroadcastMessageCallback_);
-  assert(onSendTypedBinaryToTheSocketCallback_);
+    const BroadcastCb& broadcastCb,
+    const SendToSocketCb& sendToSocketCb) {
+  broadcastCb_ = broadcastCb;
+  sendToSocketCb_ = sendToSocketCb;
 }
 
 void BinaryMessageParser::parseAnyBinaryMessage(
@@ -41,12 +39,12 @@ void BinaryMessageParser::on_GMT_ChatMessage(PayloadView payload, PerSocketData*
   ChatMessage chatMessage = GameSerialization::deserializeChatMessage(payload);
   chatMessage.sender = perSocketData->player;  // Update sender data. Keep timestamp data and msg the same.
   auto replyPayload = GameSerialization::serializeChatMessage(chatMessage);
-  onBroadcastMessageCallback_(GMT_ChatMessage, replyPayload);
+  broadcastCb_(GMT_ChatMessage, replyPayload);
   SPDLOG_INFO("{}: {}", chatMessage.sender.name, chatMessage.message);
 }
 
 void BinaryMessageParser::on_GMT_PingFromClient(PayloadView payload, PerSocketData* perSocketData) const {
-  onSendTypedBinaryToTheSocketCallback_(GMT_PingFromClient, perSocketData->ws, payload);
+  sendToSocketCb_(GMT_PingFromClient, perSocketData->ws, payload);
 }
 
 void BinaryMessageParser::on_GMT_InputDataFromClient(PayloadView payload, PerSocketData* perSocketData) const {

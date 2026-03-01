@@ -1,12 +1,9 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 
 #include "GameRenderer/IGameWorldRenderer.h"
-#include "GameShared/WorldSnapshot.h"
-#include "UserInputManager/UserInputData.h"
 
 // Business logic for the game world.
 class SnowflakesSimulation {

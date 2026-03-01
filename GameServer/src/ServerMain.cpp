@@ -49,7 +49,7 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
   // Otherwise, "defer" callback will no be executed.
   uWS::Loop* mainLoop = uWS::Loop::get();
 
-  BinaryMessageParser::OnBroadcastMessageCallback onBroadcastMessageCallback =
+  BroadcastCb onBroadcastMessageCallback =
       [state, mainLoop](const PayloadType type, PayloadView replyPayload) {
         std::ostringstream oss;
         oss << std::this_thread::get_id();
