@@ -19,8 +19,8 @@ SnowflakesSimulation::SnowflakesSimulation(std::weak_ptr<IGameWorldRenderer> gam
   gameWorldRenderer_ = gameWorldRenderer;
 }
 
-void SnowflakesSimulation::iterate(double elapsed, const UserInputData& userInputData) {
-  impactOnSnowflakes_(elapsed, userInputData);
+void SnowflakesSimulation::iterate(double elapsed) {
+  impactOnSnowflakes_(elapsed);
 }
 
 void SnowflakesSimulation::onWindowSizeChanged(int width, int height) {
@@ -65,7 +65,7 @@ void SnowflakesSimulation::updateSnowflakesCount_(int width, int height) {
   }
 }
 
-void SnowflakesSimulation::impactOnSnowflakes_(double elapsed, const UserInputData& userInputData) {
+void SnowflakesSimulation::impactOnSnowflakes_(double elapsed) {
   auto renderer = gameWorldRenderer_.lock();
   if (!renderer) return;
 

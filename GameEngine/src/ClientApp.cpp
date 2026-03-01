@@ -228,7 +228,7 @@ void ClientApp::initTimers_() {
 
 void ClientApp::iterateGameWorld_(const float elapsed) {
   PROFILER_ZONE;
-  snowflakesSimulation_->iterate(elapsed, userInputManager_->getUserInputData());
+  snowflakesSimulation_->iterate(elapsed);
 }
 
 void ClientApp::iterateDebugRender_() {

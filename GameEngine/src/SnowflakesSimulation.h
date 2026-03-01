@@ -12,12 +12,12 @@
 class SnowflakesSimulation {
  public:
   SnowflakesSimulation(std::weak_ptr<IGameWorldRenderer> gameWorldRenderer);
-  void iterate(double elapsed, const UserInputData& userInputData);
+  void iterate(double elapsed);
   void onWindowSizeChanged(int width, int height);
 
  private:
   void updateSnowflakesCount_(int width, int height);
-  void impactOnSnowflakes_(double elapsed, const UserInputData& userInputData);
+  void impactOnSnowflakes_(double elapsed);
 
   // -------------------------
   // Private state
