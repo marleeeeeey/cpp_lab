@@ -101,6 +101,7 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
 
   auto onSocketOpen = [state, sendTypedBinaryToWebSocket](auto* ws) {
     PerSocketData* perSocketData = (PerSocketData*)ws->getUserData();
+    perSocketData->ws = ws;
     ws->subscribe(state->getBroadcastTopicName());
     state->incrementNumberOfClients();
 
@@ -137,6 +138,7 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
 
   auto onSocketClose = [state](auto* ws, int code, std::string_view msg) {
     PerSocketData* perSocketData = (PerSocketData*)ws->getUserData();
+    perSocketData->ws = nullptr;
     msg = msg.empty() ? wsCloseCodeToText(code) : msg;
     SPDLOG_DEBUG("ws.close. ip={}, name={}, code={}, msg={}",
                 perSocketData->clientIp, perSocketData->player.name, code, msg);
@@ -176,7 +178,7 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
       state->networkDataHandler->parseBinaryMessage(
         binaryMsg,
           [&](const PayloadType type, PayloadView payload) {
-            state->binaryMessageParser->parseAnyBinaryMessage(type, payload, ws, perSocketData);
+            state->binaryMessageParser->parseAnyBinaryMessage(type, payload, perSocketData);
           });
     } };
 

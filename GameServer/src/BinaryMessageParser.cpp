@@ -9,8 +9,6 @@
 #include <algorithm>
 #include <magic_enum/magic_enum.hpp>
 
-#include "GameShared/InputPacket.h"
-
 BinaryMessageParser::BinaryMessageParser(
     OnBroadcastMessageCallback onBroadcastMessageCallback,
     OnSendTypedBinaryToTheSocketCallback onSendTypedBinaryToTheSocketCallback) {
@@ -23,17 +21,16 @@ BinaryMessageParser::BinaryMessageParser(
 void BinaryMessageParser::parseAnyBinaryMessage(
     PayloadType type,
     PayloadView payload,
-    WsType* ws,
     PerSocketData* perSocketData) const {
   switch (type) {
     case GMT_ChatMessage:
       on_GMT_ChatMessage(payload, perSocketData);
       break;
     case GMT_PingFromClient:
-      on_GMT_PingFromClient(payload, ws, perSocketData);
+      on_GMT_PingFromClient(payload, perSocketData);
       break;
     case GMT_InputDataFromClient:
-      on_GMT_InputDataFromClient(payload, ws, perSocketData);
+      on_GMT_InputDataFromClient(payload, perSocketData);
       break;
     default:
       SPDLOG_ERROR("Unknown message type: ()", type);
@@ -48,11 +45,11 @@ void BinaryMessageParser::on_GMT_ChatMessage(PayloadView payload, PerSocketData*
   SPDLOG_INFO("{}: {}", chatMessage.sender.name, chatMessage.message);
 }
 
-void BinaryMessageParser::on_GMT_PingFromClient(PayloadView payload, WsType* ws, PerSocketData* perSocketData) const {
-  onSendTypedBinaryToTheSocketCallback_(GMT_PingFromClient, ws, payload);
+void BinaryMessageParser::on_GMT_PingFromClient(PayloadView payload, PerSocketData* perSocketData) const {
+  onSendTypedBinaryToTheSocketCallback_(GMT_PingFromClient, perSocketData->ws, payload);
 }
 
-void BinaryMessageParser::on_GMT_InputDataFromClient(PayloadView payload, WsType* ws, PerSocketData* perSocketData) const {
+void BinaryMessageParser::on_GMT_InputDataFromClient(PayloadView payload, PerSocketData* perSocketData) const {
   auto inputPacket = GameSerialization::deserializeInputPacket(payload);
   auto& player = perSocketData->player;
   player.lastInput.x = std::clamp(inputPacket.moveX, -1.0f, 1.0f);

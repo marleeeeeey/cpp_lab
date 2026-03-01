@@ -32,7 +32,6 @@ class BinaryMessageParser {
   void parseAnyBinaryMessage(
       PayloadType type,
       PayloadView payload,
-      WsType* ws,
       // from which socket we received this message
       PerSocketData* perSocketData) const;  // data assigned with this socket
 
@@ -45,6 +44,6 @@ class BinaryMessageParser {
   OnSendTypedBinaryToTheSocketCallback onSendTypedBinaryToTheSocketCallback_;
 
   void on_GMT_ChatMessage(PayloadView payload, PerSocketData* perSocketData) const;
-  void on_GMT_PingFromClient(PayloadView payload, WsType* ws, PerSocketData* perSocketData) const;
-  void on_GMT_InputDataFromClient(PayloadView payload, WsType* ws, PerSocketData* perSocketData) const;
+  void on_GMT_PingFromClient(PayloadView payload, PerSocketData* perSocketData) const;
+  void on_GMT_InputDataFromClient(PayloadView payload, PerSocketData* perSocketData) const;
 };
