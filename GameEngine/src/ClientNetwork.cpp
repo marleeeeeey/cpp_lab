@@ -85,11 +85,13 @@ void ClientNetwork::initNetworkDataHandlers_() {
       GMT_PlayerIdFromServer,
       [this](PayloadType type, PayloadView payload) {
         auto playerId = GameSerialization::deserializeMemcpy<PlayerId>(payload);
+
         if (auto renderer = gameWorldRenderer_.lock()) {
           renderer->myPlayerId = playerId;
         }
+
         if (auto debugRender = debugRender_.lock()) {
-          debugRender->addStaticLine("playerId", std::format("playerId: {}", playerId));
+          debugRender->addStaticLine("playerId", std::format("Player Id: {}", playerId));
         }
 
         sendPingFromClient();
@@ -110,15 +112,13 @@ void ClientNetwork::initNetworkDataHandlers_() {
       GMT_WorldSnapshot,
       [this](PayloadType type, PayloadView payload) {
         auto worldSnapshot = GameSerialization::deserializeWorldSnapshot(payload);
-        SPDLOG_TRACE("Message type GMT_WorldSnapshot received", type);
-
-        if (!worldSnapshot.players.empty()) {
-          auto& p1 = worldSnapshot.players[0];
-          SPDLOG_TRACE("Received WorldSnapshot: p1 pos=({},{})", p1.position.x, p1.position.y);
-        }
 
         if (auto gameRenderer = gameWorldRenderer_.lock()) {
           gameRenderer->worldSnapshot = worldSnapshot;
+        }
+
+        if (auto renderer = debugRender_.lock()) {
+          renderer->addStaticLine("serverTick", std::format("Tick: {}", worldSnapshot.serverTick));
         }
       });
 }
