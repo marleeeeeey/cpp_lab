@@ -54,10 +54,11 @@ SDL_AppResult ClientApp::init(int argc, char* argv[]) {
   // Init Domain Systems
   // ----------------------
 
+  debugRender_ = IDebugRender::create();
+
   initGameWorld_();
   initChat_();
 
-  debugRender_ = IDebugRender::create();
   debugRender_->setVisible(showDebugWindows_);
   debugRender_->setOnDebugToggleCallback([this]() {
     showDebugWindows_ = !showDebugWindows_;
@@ -77,13 +78,18 @@ SDL_AppResult ClientApp::init(int argc, char* argv[]) {
   // Init Networking
   // -----------------------
 
+  auto onWorldSnapshotReceivedCb = [this](const WorldSnapshot& snapshot) {
+    worldInterpolation_->addSnapshot(snapshot);
+  };
+
   gameNetwork_ = std::make_unique<ClientNetwork>(
       appOptions_.url,
       debugRender_,
       chatRenderer_,
       gameWorldRenderer_,
       snowflakesSimulation_,
-      gameTimer_);
+      gameTimer_,
+      onWorldSnapshotReceivedCb);
   gameNetwork_->start();
 
   // -----------------------
@@ -197,6 +203,12 @@ void ClientApp::initOptions_(int argc, char* argv[]) {
 
 void ClientApp::initGameWorld_() {
   gameWorldRenderer_ = IGameWorldRenderer::create(sdlWrapper_->getRenderer());
+
+  auto interpolatedCb = [worldRender = gameWorldRenderer_](const WorldSnapshot& snapshot) {
+    worldRender->interpolatedWorldSnapshot = snapshot;
+  };
+
+  worldInterpolation_ = std::make_shared<WorldInterpolation>(interpolatedCb, debugRender_);
   snowflakesSimulation_ = std::make_shared<SnowflakesSimulation>(gameWorldRenderer_);
   sdlWrapper_->onWindowSizeChangedSink().connect<&SnowflakesSimulation::onWindowSizeChanged>(snowflakesSimulation_);
 }
@@ -230,6 +242,7 @@ void ClientApp::initTimers_() {
 void ClientApp::iterateGameWorld_(const float elapsed) {
   PROFILER_ZONE;
   snowflakesSimulation_->iterate(elapsed);
+  worldInterpolation_->iterate(elapsed);
 }
 
 void ClientApp::iterateDebugRender_() {
@@ -238,8 +251,11 @@ void ClientApp::iterateDebugRender_() {
   auto& userInputData = userInputManager_->getUserInputData();
   auto& m = userInputData.mouse;
 
-  debugRender_->addLine(std::format("Mouse diff: ({}, {})", m.dx, m.dy));
-  debugRender_->addLine(std::format("Mouse abs: ({}, {})", m.winX, m.winY));
-  debugRender_->addLine(std::format("Mouse screen: ({}, {})", m.screenX, m.screenY));
-  debugRender_->addLine(std::format("Mouse wheel: ({}, {})", m.wheelX, m.wheelY));
+  constexpr bool showTouchDebug = false;  // TODO: enable when create mobile touch/mouse support
+  if (showTouchDebug) {
+    debugRender_->addLine(std::format("Mouse diff: ({}, {})", m.dx, m.dy));
+    debugRender_->addLine(std::format("Mouse abs: ({}, {})", m.winX, m.winY));
+    debugRender_->addLine(std::format("Mouse screen: ({}, {})", m.screenX, m.screenY));
+    debugRender_->addLine(std::format("Mouse wheel: ({}, {})", m.wheelX, m.wheelY));
+  }
 }

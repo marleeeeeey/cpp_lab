@@ -6,6 +6,7 @@ add_executable(GameEngine
         src/ClientNetwork.cpp
         src/ClientApp.cpp
         src/SnowflakesSimulation.cpp
+        src/WorldInterpolation.cpp
 )
 
 

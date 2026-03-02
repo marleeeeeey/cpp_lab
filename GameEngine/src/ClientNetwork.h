@@ -13,13 +13,16 @@
 
 class ClientNetwork {
  public:
+  using OnWorldSnapshotReceivedCb = std::function<void(const WorldSnapshot&)>;
+
   ClientNetwork(
       const std::string& url,
       std::weak_ptr<IDebugRender> debugRender,
       std::weak_ptr<IChatRenderer> chatRenderer,
       std::weak_ptr<IGameWorldRenderer> gameWorldRenderer,
       std::weak_ptr<SnowflakesSimulation> snowflakesSimulation,
-      std::weak_ptr<GameTimer> gameTimer);
+      std::weak_ptr<GameTimer> gameTimer,
+      OnWorldSnapshotReceivedCb onWorldSnapshotReceivedCb);
 
   // ------------------------
   // Connection Interface
@@ -44,6 +47,7 @@ class ClientNetwork {
 
   void initNetworkDataHandlers_();
   void initAutoReconnectionNetwork_();
+  OnWorldSnapshotReceivedCb onWorldSnapshotReceivedCb_;
 
   // ---------------------
   // Ownership data

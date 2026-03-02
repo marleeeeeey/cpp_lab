@@ -15,13 +15,15 @@ ClientNetwork::ClientNetwork(
     std::weak_ptr<IChatRenderer> chatRenderer,
     std::weak_ptr<IGameWorldRenderer> gameWorldRenderer,
     std::weak_ptr<SnowflakesSimulation> snowflakesSimulation,
-    std::weak_ptr<GameTimer> gameTimer) {
+    std::weak_ptr<GameTimer> gameTimer,
+    OnWorldSnapshotReceivedCb onWorldSnapshotReceivedCb) {
   url_ = url;
   debugRender_ = debugRender;
   chatRenderer_ = chatRenderer;
   gameWorldRenderer_ = gameWorldRenderer;
   snowflakesSimulation_ = snowflakesSimulation;
   gameTimer_ = gameTimer;
+  onWorldSnapshotReceivedCb_ = onWorldSnapshotReceivedCb;
 
   initNetworkDataHandlers_();
   initAutoReconnectionNetwork_();
@@ -114,9 +116,10 @@ void ClientNetwork::initNetworkDataHandlers_() {
         auto worldSnapshot = GameSerialization::deserializeWorldSnapshot(payload);
 
         if (auto gameRenderer = gameWorldRenderer_.lock()) {
-          gameRenderer->worldSnapshot = worldSnapshot;
+          if (onWorldSnapshotReceivedCb_) {
+            onWorldSnapshotReceivedCb_(worldSnapshot);
+          }
         }
-
         if (auto renderer = debugRender_.lock()) {
           renderer->addStaticLine("serverTick", std::format("Tick: {}", worldSnapshot.serverTick));
         }

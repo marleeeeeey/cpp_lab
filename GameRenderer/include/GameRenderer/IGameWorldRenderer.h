@@ -1,5 +1,6 @@
 #pragma once
 
+#include <deque>
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
@@ -27,5 +28,5 @@ class IGameWorldRenderer : public IRenderer {
   // TODO: covert this fields to methods?
   std::vector<glm::vec2> snowflakes;
   PlayerId myPlayerId;
-  WorldSnapshot worldSnapshot;
+  WorldSnapshot interpolatedWorldSnapshot;
 };

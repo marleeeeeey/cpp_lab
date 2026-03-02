@@ -12,6 +12,7 @@
 #include "SdlApp/SdlWithImGuiWrapper.h"
 #include "SnowflakesSimulation.h"
 #include "UserInputManager/IUserInputManager.h"
+#include "WorldInterpolation.h"
 
 // ------------------------------------
 // Forward declarations
@@ -64,6 +65,7 @@ class ClientApp : public ISdlApp {
 
   std::shared_ptr<SnowflakesSimulation> snowflakesSimulation_;
   std::shared_ptr<GameTimer> gameTimer_;
+  std::shared_ptr<WorldInterpolation> worldInterpolation_;
 
   // ---------------------
   // Application Options

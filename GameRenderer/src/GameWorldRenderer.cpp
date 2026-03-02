@@ -1,5 +1,8 @@
 #include "GameWorldRenderer.h"
 
+#include <spdlog/spdlog.h>
+
+#include <algorithm>
 #include <ranges>
 
 GameWorldRenderer::GameWorldRenderer(SDL_Renderer* renderer) {
@@ -22,7 +25,7 @@ void GameWorldRenderer::render() {
   // Draw opponents first
   // -------------------------
 
-  for (PlayerSnapshot& playerSnapshot : worldSnapshot.players) {
+  for (PlayerSnapshot& playerSnapshot : interpolatedWorldSnapshot.players) {
     if (playerSnapshot.id == myPlayerId) continue;
 
     SDL_SetRenderDrawColor(renderer_, 0, 0, 255, SDL_ALPHA_OPAQUE);  // BLUE - Opponents
@@ -34,7 +37,7 @@ void GameWorldRenderer::render() {
   // Draw my player above all opponents
   // --------------------------------------
 
-  for (PlayerSnapshot& playerSnapshot : worldSnapshot.players) {
+  for (PlayerSnapshot& playerSnapshot : interpolatedWorldSnapshot.players) {
     if (playerSnapshot.id != myPlayerId) continue;
 
     SDL_SetRenderDrawColor(renderer_, 255, 0, 0, SDL_ALPHA_OPAQUE);  // RED - My Player

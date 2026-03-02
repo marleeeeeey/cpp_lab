@@ -23,8 +23,8 @@ void DebugRender::render() {
   ImGuiIO& io = ImGui::GetIO();
 
   ImVec2 halfDisplaySize = io.DisplaySize;
-  halfDisplaySize.y /= 2;
-  ImGui::SetNextWindowPos(ImVec2{0, 0}, ImGuiCond_Always);
+  halfDisplaySize.x /= 2;
+  ImGui::SetNextWindowPos(ImVec2{halfDisplaySize.x, 0}, ImGuiCond_Always);
   ImGui::SetNextWindowSize(halfDisplaySize, ImGuiCond_Always);
   ImGui::SetNextWindowBgAlpha(0.0f);
 

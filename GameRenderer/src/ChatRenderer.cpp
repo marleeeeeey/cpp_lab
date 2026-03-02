@@ -19,8 +19,8 @@ void ChatRenderer::render() {
 
   // This window always occupies the entire screen of the host window
   ImVec2 halfDisplaySize = io.DisplaySize;
-  halfDisplaySize.y /= 2;
-  ImGui::SetNextWindowPos(ImVec2{0, halfDisplaySize.y}, ImGuiCond_Always);
+  halfDisplaySize.x /= 2;
+  ImGui::SetNextWindowPos(ImVec2{0, 0}, ImGuiCond_Always);
   ImGui::SetNextWindowSize(halfDisplaySize, ImGuiCond_Always);
   ImGui::SetNextWindowBgAlpha(0.0f);  // Background fully transparent
 
