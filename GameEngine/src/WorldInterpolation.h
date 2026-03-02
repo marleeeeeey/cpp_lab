@@ -11,13 +11,13 @@ class WorldInterpolation {
   // Signatures
   // -------------
 
-  using InterpolatedCb = std::function<void(const WorldSnapshot&)>;
+  using ApplySnapshotToRenderCb = std::function<void(const WorldSnapshot&)>;
 
   // --------------
   // Constructor
   // --------------
 
-  WorldInterpolation(const InterpolatedCb& cb, std::weak_ptr<IDebugRender> debugRender);
+  WorldInterpolation(const ApplySnapshotToRenderCb& cb, std::weak_ptr<IDebugRender> debugRender);
 
   // ------------
   // Interface
@@ -34,11 +34,11 @@ class WorldInterpolation {
   // ----------------
 
  private:
-  float estimatedServerTime_ = 0.0f;          // (seconds)
-  uint32_t lastReceivedServerTick_ = 0;       // Latest tick received from server
-  static constexpr float tickRate_ = 60.0f;   // TODO: make it global (per second)
-  std::deque<WorldSnapshot> snapshotBuffer_;  // Buffer of snapshots received from server
-  InterpolatedCb interpolatedCb_;             // Callback to call when interpolated snapshot is ready
+  float estimatedServerTime_ = 0.0f;              // (seconds)
+  uint32_t lastReceivedServerTick_ = 0;           // Latest tick received from server
+  static constexpr float tickRate_ = 60.0f;       // TODO: make it global (per second)
+  std::deque<WorldSnapshot> snapshotBuffer_;      // Buffer of snapshots received from server
+  ApplySnapshotToRenderCb applySnapshotToRender;  // Callback to call when interpolated snapshot is ready
 
   std::weak_ptr<IDebugRender> debugRender_;
 };

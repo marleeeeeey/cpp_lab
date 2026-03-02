@@ -7,8 +7,19 @@
 #include "GameRenderer/IDebugRender.h"
 #include "GameUtils/MakeScopeGuard.h"
 
-WorldInterpolation::WorldInterpolation(const InterpolatedCb& cb, std::weak_ptr<IDebugRender> debugRender) {
-  interpolatedCb_ = cb;
+// Interpolation delay in seconds.
+// User will see not the latest world state from the server but state from the past:
+// Latest world state - INTERPOLATION_DELAY_SECONDS (based on server tick rate 16ms).
+// This delay is used to smooth out the latency between the client and server.
+constexpr float INTERPOLATION_DELAY_SECONDS = 0.1f;
+
+// Number of frames to store.
+// It impacts on the maximum delay time (INTERPOLATION_DELAY_SECONDS) possible for interpolation.
+// 32 frames equal to 32x16 = 512ms delay (16ms match to 60 Hz server tick rate).
+constexpr size_t SIZE_OF_SNAPSHOTS_BUFFER = 32;
+
+WorldInterpolation::WorldInterpolation(const ApplySnapshotToRenderCb& cb, std::weak_ptr<IDebugRender> debugRender) {
+  applySnapshotToRender = cb;
   debugRender_ = debugRender;
 }
 
@@ -22,38 +33,91 @@ void WorldInterpolation::addSnapshot(const WorldSnapshot& snapshot) {
     snapshotBuffer_.pop_front();
 }
 
+/*
+ * Real Server Time  ----------------------------------------------->
+ *
+ *                      Latest received snapshot
+ *                                 |
+ *                                 v
+ *    ----S100----S101----S102----S103----S104----S105
+ *                                    ^
+ *                                    |
+ *                           estimatedServerTime
+ *
+ * Client renders NOT latest snapshot,
+ * but some time in the past:
+ *
+ * renderTime = estimatedServerTime - INTERPOLATION_DELAY
+ *
+ *    ----S100----S101----S102----S103----S104----S105
+ *                         ^
+ *                         |
+ *                     renderTick
+ *
+ * We find two snapshots around renderTick:
+ * *    ----S100----S101----S102----S103----S104----S105
+ *                         |         |
+ *                         A         B
+ *                           ^
+ *                           |
+ *                        renderTick
+ *
+ * Then interpolate between A and B.
+ */
 void WorldInterpolation::iterate(float elapsed) {
-  auto scopeGuard = makeScopeGuard([&] {
-    // Advance estimated server time smoothly at the end of the iteration.
-    // Because we have just received a snapshot. This advance should be applied to the next frame.
-    estimatedServerTime_ += elapsed;
+  if (snapshotBuffer_.empty()) return;
+
+  // --------------------------------------
+  // Auto Apply Default Snapshot On Exit
+  // --------------------------------------
+
+  // Update snapshotForInterpolation pointer on a specific snapshot to render
+  const WorldSnapshot* snapshotForInterpolation = &snapshotBuffer_.back();
+  auto interpolateGuard = makeScopeGuard([this, &snapshotForInterpolation]() {
+    if (applySnapshotToRender) applySnapshotToRender(*snapshotForInterpolation);
   });
 
+  // --------------------------
   // Safe method to debug
+  // --------------------------
+
   auto debug = [debugRender = debugRender_.lock()](const std::string& key, const std::string& line) {
     if (!debugRender) return;
     debugRender->addStaticLine(key, line);
   };
 
-  constexpr float interpolationDelaySeconds = 0.045f;  // 45 ms
-  debug("interpolationDelaySeconds", std::format("Interpolation Delay: {} ms", interpolationDelaySeconds * 1000.0f));
-  float renderTimeSeconds = std::max(0.0f, estimatedServerTime_ - interpolationDelaySeconds);
+  // --------------------------------
+  // Update time and tick counters
+  // --------------------------------
 
-  // Convert render time to tick space
-  uint32_t renderTick = uint32_t(renderTimeSeconds * tickRate_);
+  estimatedServerTime_ += elapsed;
+  debug("interpolationDelaySeconds", std::format("Interpolation Delay: {} ms", INTERPOLATION_DELAY_SECONDS * 1000.0f));
+  float renderTimeSeconds = std::max(0.0f, estimatedServerTime_ - INTERPOLATION_DELAY_SECONDS);
+  uint32_t renderTick = int32_t(renderTimeSeconds * tickRate_);  // Convert render time to tick space
+  debug("renderTickDiff", std::format("Render Tick Diff: {}", lastReceivedServerTick_ - renderTick));
 
-  debug("renderTickDiff", std::format("Render Tick Diff: -{}", lastReceivedServerTick_ - renderTick));
+  // -----------------------------
+  // Bad Frames Statistics
+  // -----------------------------
 
-  // --------------------------------------------
+  static uint32_t firstTickForThisClient = lastReceivedServerTick_;
+  static uint32_t badFramesCounter = 0;
+  badFramesCounter++;  // increment counter by default (correct for any return). Later decrement if we find a good frame
+  uint32_t tickSinceFirstTick = lastReceivedServerTick_ - firstTickForThisClient;
+  float percentOfBadFrames = badFramesCounter / (float)tickSinceFirstTick;
+  debug("badFramesCounter", std::format("Bad frames counter: {}", badFramesCounter));
+  debug("percentOfBadFrames", std::format("Percent of BAD frames: {:.2f} %", percentOfBadFrames * 100));
+
+  // -----------------------
   // Not enough snapshots
-  // --------------------------------------------
+  // -----------------------
 
   if (snapshotBuffer_.size() < 2) {
     if (!snapshotBuffer_.empty()) {
-      SPDLOG_WARN("Not enough snapshots for interpolation, using last snapshot");
+      SPDLOG_TRACE("Not enough snapshots for interpolation, using last snapshot");
       return;
     }
-    SPDLOG_ERROR("Not enough snapshots for interpolation");
+    SPDLOG_TRACE("Not enough snapshots for interpolation");
     return;
   }
 
@@ -72,46 +136,51 @@ void WorldInterpolation::iterate(float elapsed) {
         next.serverTick >= renderTick) {
       A = &current;
       B = &next;
+
+      debug("Buffer IDs", std::format("Found Buffer IDs: {} - {} from {}", i, i + 1, snapshotBuffer_.size()));
       break;
     }
   }
 
-  // Fallback if no valid pair was found
   if (!A || !B) {
-    SPDLOG_WARN("No valid snapshot pair found, using last snapshot");
     return;
   }
 
-  // --------------------------------------------
+  // ----------------------------------------------
+  // Frame Found: Update Good Stats
+  // ----------------------------------------------
+
+  badFramesCounter--;
+
+  // -------------------------------
   // Compute interpolation factor
-  // --------------------------------------------
+  // -------------------------------
 
   float tickDelta = float(B->serverTick - A->serverTick);
-
-  debug("tickDelta", std::format("Tick Delta: {}", tickDelta));  // TODO: problem: Tick Delta always "1"
+  debug("tickDelta", std::format("Tick Delta: {}", tickDelta));
 
   float t = 0.0f;
   if (tickDelta > 0.0f) {
     t = float(renderTick - A->serverTick) / tickDelta;
   }
-
   t = std::clamp(t, 0.0f, 1.0f);
-
   debug("Interpolation factor", std::format("Interpolation factor: {}", t));
 
   if (t == 0.0f) {
     // No interpolation, just use the first snapshot
-    interpolatedCb_(*A);
+    snapshotForInterpolation = A;
+    return;
   }
 
   if (t == 1.0f) {
     // No interpolation, just use the second snapshot
-    interpolatedCb_(*B);
+    snapshotForInterpolation = B;
+    return;
   }
 
-  // --------------------------------------------
+  // -------------------------------
   // Build interpolated snapshot
-  // --------------------------------------------
+  // -------------------------------
 
   WorldSnapshot interpolatedSnapshot;
   interpolatedSnapshot.serverTick = renderTick;
@@ -141,14 +210,5 @@ void WorldInterpolation::iterate(float elapsed) {
             interpolatedPos});
   }
 
-  // -----------------------------
-  // Notify about interpolation
-  // -----------------------------
-
-  if (!interpolatedCb_) {
-    SPDLOG_WARN("No interpolated callback set");
-    return;
-  }
-
-  interpolatedCb_(interpolatedSnapshot);
+  snapshotForInterpolation = &interpolatedSnapshot;
 }
