@@ -9,6 +9,7 @@
 
 #include "GameRenderer/IGameWorldRenderer.h"
 
+// TODO: Options for Snowflakes simulation
 static constexpr int MIN_PIXELS_PER_SECOND = 30;  // move at least this many pixels per second
 static constexpr int MAX_PIXELS_PER_SECOND = 60;  // move this many pixels per second at most
 

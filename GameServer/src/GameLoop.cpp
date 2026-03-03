@@ -5,6 +5,10 @@
 #include "GameShared/WorldSnapshot.h"
 #include "ServerState.h"
 
+// ----------------------------
+// TODO: Options for GameLoop
+// ----------------------------
+
 constexpr int TICK_RATE = 60;
 constexpr int WORLD_WIDTH = 800;
 constexpr int WORLD_HEIGHT = 600;

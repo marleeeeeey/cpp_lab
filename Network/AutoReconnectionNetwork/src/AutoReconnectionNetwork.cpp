@@ -4,6 +4,16 @@
 
 #include <magic_enum/magic_enum.hpp>
 
+// --------------------------------------------
+// TODO: Options for AutoReconnectionNetwork
+// --------------------------------------------
+
+constexpr int MAX_EVENTS_PER_FRAME = 256;
+
+// --------------------------
+// Implementation
+// --------------------------
+
 AutoReconnectionNetwork::~AutoReconnectionNetwork() {
   AutoReconnectionNetwork::stop();
 }
@@ -64,8 +74,7 @@ void AutoReconnectionNetwork::setStateAndNotify_(State newState) {
 void AutoReconnectionNetwork::pollNetworkEvents_() {
   IDoubleQueueNetwork::NetEvent ev{};
   int processed = 0;
-  constexpr int kMaxEventsPerFrame = 256;
-  while (processed < kMaxEventsPerFrame && doubleQueueNetwork_->poll(ev)) {
+  while (processed < MAX_EVENTS_PER_FRAME && doubleQueueNetwork_->poll(ev)) {
     ++processed;
     SPDLOG_TRACE("Net: Polling Event type={}", magic_enum::enum_name(ev.type));
     switch (ev.type) {

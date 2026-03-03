@@ -6,6 +6,12 @@
 
 #include "NetworkTransport/INetworkTransport.h"
 
+// ----------------------------------------
+// TODO: Options for DoubleQueueNetwork
+// ----------------------------------------
+
+constexpr int MAX_MESSAGES_PER_DRAIN = 512;  // Set queue processing limit
+
 DoubleQueueNetwork::DoubleQueueNetwork() {
   networkTransport_ = INetworkTransport::create();
   SPDLOG_TRACE("Network transport created");
@@ -94,11 +100,8 @@ void DoubleQueueNetwork::drainOutboundQueue() {
     return;
   }
 
-  // Set queue processing limit
-  constexpr int kMaxMessagesPerDrain = 512;
-
   int processed = 0;
-  while (processed < kMaxMessagesPerDrain) {
+  while (processed < MAX_MESSAGES_PER_DRAIN) {
     NetEvent ev;
     if (!outboundEventQueue_.try_dequeue(ev)) {
       break;

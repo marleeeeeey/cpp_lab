@@ -9,8 +9,13 @@
 
 #include "Profiler/Profiler.h"
 
+// ------------------------------------
+// TODO: Options for SDL and Window
+// ------------------------------------
+
 constexpr int INITIAL_WINDOWS_WIDTH = 800;
 constexpr int INITIAL_WINDOWS_HEIGHT = 600;
+constexpr bool ENABLE_VSYNC = true;
 
 // -----------------------
 // Public Interface
@@ -56,7 +61,7 @@ float SdlWithImGuiWrapper::calculateDeltaTimeWhenFrameBegins() {
   return elapsed;
 }
 
-void SdlWithImGuiWrapper::render(std::function<void()> userRenderCallback) {
+void SdlWithImGuiWrapper::render(const std::function<void()>& userRenderCallback) {
   {
     PROFILER_ZONE_NAMED("RenderFrame");
 
@@ -78,7 +83,7 @@ void SdlWithImGuiWrapper::render(std::function<void()> userRenderCallback) {
     ImGui::NewFrame();
 
     if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable) {
-      ImGui::DockSpaceOverViewport(0, 0, ImGuiDockNodeFlags_PassthruCentralNode);
+      ImGui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
     }
 
     // -------------------------
@@ -148,9 +153,11 @@ SDL_AppResult SdlWithImGuiWrapper::initSDL_() {
     return SDL_APP_FAILURE;
   }
 
-  // VSync should be enabled to decrease CPU loading!
-  if (!SDL_SetRenderVSync(sdlRenderer_, 1)) {
-    SPDLOG_ERROR("SDL_SetRenderVSync() failed: {}", SDL_GetError());
+  if (ENABLE_VSYNC) {
+    // VSync should be enabled to decrease CPU loading!
+    if (!SDL_SetRenderVSync(sdlRenderer_, 1)) {
+      SPDLOG_ERROR("SDL_SetRenderVSync() failed: {}", SDL_GetError());
+    }
   }
 
   return SDL_APP_CONTINUE; /* carry on with the program! */

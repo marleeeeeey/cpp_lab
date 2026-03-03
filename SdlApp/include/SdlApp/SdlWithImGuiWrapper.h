@@ -25,7 +25,7 @@ class SdlWithImGuiWrapper {
 
   bool onEvent(SDL_Event* event);
   float calculateDeltaTimeWhenFrameBegins();
-  void render(std::function<void()> userRenderCallback);
+  void render(const std::function<void()>& userRenderCallback);
   void onQuit();
   entt::sink<OnWindowSizeChangedSignal> onWindowSizeChangedSink();
 

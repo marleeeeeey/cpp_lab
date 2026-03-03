@@ -7,6 +7,10 @@
 #include "GameRenderer/IDebugRender.h"
 #include "GameUtils/MakeScopeGuard.h"
 
+// ------------------------------------
+// TODO: Options for Interpolation
+// ------------------------------------
+
 // Interpolation delay in seconds.
 // User will see not the latest world state from the server but state from the past:
 // Latest world state - INTERPOLATION_DELAY_SECONDS (based on server tick rate 16ms).
@@ -17,6 +21,10 @@ constexpr float INTERPOLATION_DELAY_SECONDS = 0.1f;
 // It impacts on the maximum delay time (INTERPOLATION_DELAY_SECONDS) possible for interpolation.
 // 32 frames equal to 32x16 = 512ms delay (16ms match to 60 Hz server tick rate).
 constexpr size_t SIZE_OF_SNAPSHOTS_BUFFER = 32;
+
+// ----------------------------
+// Implementation
+// ----------------------------
 
 WorldInterpolation::WorldInterpolation(const ApplySnapshotToRenderCb& cb, std::weak_ptr<IDebugRender> debugRender) {
   applySnapshotToRender = cb;
@@ -50,12 +58,12 @@ void WorldInterpolation::addSnapshot(const WorldSnapshot& snapshot) {
  * renderTime = estimatedServerTime - INTERPOLATION_DELAY
  *
  *    ----S100----S101----S102----S103----S104----S105
- *                         ^
- *                         |
- *                     renderTick
+ *                            ^
+ *                            |
+ *                        renderTick
  *
  * We find two snapshots around renderTick:
- * *    ----S100----S101----S102----S103----S104----S105
+ *    ----S100----S101----S102----S103----S104----S105
  *                         |         |
  *                         A         B
  *                           ^
@@ -71,10 +79,12 @@ void WorldInterpolation::iterate(float elapsed) {
   // Auto Apply Default Snapshot On Exit
   // --------------------------------------
 
-  // Update snapshotForInterpolation pointer on a specific snapshot to render
+  // Use snapshotForInterpolation pointer later to set the actual snapshot to render
   const WorldSnapshot* snapshotForInterpolation = &snapshotBuffer_.back();
   auto interpolateGuard = makeScopeGuard([this, &snapshotForInterpolation]() {
-    if (applySnapshotToRender) applySnapshotToRender(*snapshotForInterpolation);
+    if (applySnapshotToRender) {
+      applySnapshotToRender(*snapshotForInterpolation);
+    }
   });
 
   // --------------------------
@@ -105,8 +115,8 @@ void WorldInterpolation::iterate(float elapsed) {
   badFramesCounter++;  // increment counter by default (correct for any return). Later decrement if we find a good frame
   uint32_t tickSinceFirstTick = lastReceivedServerTick_ - firstTickForThisClient;
   float percentOfBadFrames = badFramesCounter / (float)tickSinceFirstTick;
-  debug("badFramesCounter", std::format("Bad frames counter: {}", badFramesCounter));
-  debug("percentOfBadFrames", std::format("Percent of BAD frames: {:.2f} %", percentOfBadFrames * 100));
+  debug("badFramesCounter", std::format("BAD frames counter: {}", badFramesCounter));
+  debug("percentOfBadFrames", std::format("BAD frames: {:.2f} %", percentOfBadFrames * 100));
 
   // -----------------------
   // Not enough snapshots
