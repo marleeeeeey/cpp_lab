@@ -9,6 +9,12 @@
 #include "GameShared/ChatMessage.h"
 #include "Profiler/Profiler.h"
 
+// ----------------------------
+// TODO: Options for ClientApp
+// ----------------------------
+
+constexpr int CLIENT_TICK_RATE_FPS = 60;  // should be the same as SERVER_TICK_RATE_FPS
+
 // ---------------------------
 // ISdlApp Factory Method
 // ---------------------------
@@ -135,25 +141,62 @@ void ClientApp::sendUserInputToServer_() {
   gameNetwork_->sendInputPacketFromClient(inputPacket);
 }
 
+// https://gafferongames.com/post/fix_your_timestep/
 SDL_AppResult ClientApp::iterate() {
-  const float elapsed = sdlWrapper_->calculateDeltaTimeWhenFrameBegins();
+  float frameTimeSeconds = sdlWrapper_->calculateDeltaTimeWhenFrameBegins();
+  constexpr float dt = 1.0f / CLIENT_TICK_RATE_FPS;
+  constexpr float maxFrameTimeSeconds = 10 * dt;  // 10 times over dt
+
+  // --------------------------------------------------------------
+  // Limit frame time in case of an intense load of simulation
+  // --------------------------------------------------------------
+
+  if (frameTimeSeconds > maxFrameTimeSeconds) {
+    frameTimeSeconds = maxFrameTimeSeconds;
+  }
+
+  // -------------------------------
+  // Non blocking iterate methods
+  // -------------------------------
 
   gameNetwork_->iterate();
-
-  gameTimer_->iterate(elapsed);
-
   sendUserInputToServer_();
 
-  iterateGameWorld_(elapsed);
+  // ----------------------------
+  // Fixed rate simulation
+  // ----------------------------
+
+  accumulator_ += frameTimeSeconds;
+
+  while (accumulator_ >= dt) {
+    // prevState = curState // TODO
+    gameTimer_->iterate(dt);
+    iterateGameWorld_(dt);
+    accumulator_ -= dt;
+  }
+
+  // ---------------------------
+  // Interpolate via blending // TODO
+  // ---------------------------
+
+  // const double alpha = accumulator / dt;
+  // State state = currentState * alpha +
+  //     previousState * ( 1.0 - alpha );
+
+  // ------------
+  // Rendering
+  // ------------
 
   iterateDebugRender_();
-
   sdlWrapper_->render([this]() {
     renderContainer_->render();
   });
 
-  userInputManager_->onFrameEnd();
+  // ----------------
+  // Finalization
+  // ----------------
 
+  userInputManager_->onFrameEnd();
   PROFILER_FRAME_MARK;  // Mark end of frame for TRACY
   return SDL_APP_CONTINUE;
 }

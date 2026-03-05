@@ -60,12 +60,12 @@ class ClientApp : public ISdlApp {
   std::shared_ptr<IRenderContainer> renderContainer_;
 
   // ------------------
-  // Game Domain Data
+  // Game Simulation
   // ------------------
 
   std::shared_ptr<SnowflakesSimulation> snowflakesSimulation_;
-  std::shared_ptr<GameTimer> gameTimer_;
   std::shared_ptr<WorldInterpolation> worldInterpolation_;
+  float accumulator_ = 0.0f;
 
   // ---------------------
   // Application Options
@@ -92,9 +92,10 @@ class ClientApp : public ISdlApp {
   void iterateGameWorld_(float elapsed);
   void iterateDebugRender_();
 
-  // ---------
-  // Network
-  // ---------
+  // ----------------------------
+  // Tools: Network and Timers
+  // ----------------------------
 
   std::shared_ptr<ClientNetwork> gameNetwork_;
+  std::shared_ptr<GameTimer> gameTimer_;
 };

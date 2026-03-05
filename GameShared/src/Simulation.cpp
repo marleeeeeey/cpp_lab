@@ -26,9 +26,9 @@ float wrapCoord(float v, float maxExclusive) {
 
 }  // namespace
 
-void simulatePlayer(PlayerState& state, float dt, const glm::vec2& input,
+void simulatePlayer(PlayerState& state, float dtSeconds, const glm::vec2& input,
                     float worldWidth, float worldHeight) {
-  SPDLOG_TRACE("simulatePlayer: dt={}, input=({},{})", dt, input.x, input.y);
+  SPDLOG_TRACE("simulatePlayer: dt={}, input=({},{})", dtSeconds, input.x, input.y);
 
   // ----------------------------------
   // Motion Params (px/s and px/s^2)
@@ -51,7 +51,7 @@ void simulatePlayer(PlayerState& state, float dt, const glm::vec2& input,
   // Accelerate/Decelerate
   // ---------------------------
 
-  const float maxDelta = (hasInput ? accel : decel) * dt;
+  const float maxDelta = (hasInput ? accel : decel) * dtSeconds;
   state.velocity = approachVec2(state.velocity, targetVelocity, maxDelta);
 
   // -----------------------
@@ -72,7 +72,7 @@ void simulatePlayer(PlayerState& state, float dt, const glm::vec2& input,
   // Move Player (px/s * s = px)
   // ---------------------------------
 
-  state.position += state.velocity * dt;
+  state.position += state.velocity * dtSeconds;
 
   // --------------------------
   // Wrap Player Position

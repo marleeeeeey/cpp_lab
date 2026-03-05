@@ -14,7 +14,7 @@ class GameLoop {
   void stop();
 
  private:
-  void updateState_(std::shared_ptr<ServerState> state);
+  void updateState_(std::shared_ptr<ServerState> state, float dtSeconds);
   void sendStateToClients_(std::shared_ptr<ServerState> state);
 
   bool stopRequested_ = false;

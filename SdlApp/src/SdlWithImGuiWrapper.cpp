@@ -48,7 +48,7 @@ bool SdlWithImGuiWrapper::onEvent(SDL_Event* event) {
 float SdlWithImGuiWrapper::calculateDeltaTimeWhenFrameBegins() {
   PROFILER_ZONE;
 
-  // send initial window size event
+  // Call Once: send initial window size event
   if (!onWindowSizeChangedInitialCallbackCalled_) {
     onWindowSizeChangedInitialCallbackCalled_ = true;
     SDL_GetWindowSize(window_, &windowWidth_, &windowHeight_);

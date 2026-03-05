@@ -9,7 +9,8 @@
 // TODO: Options for GameLoop
 // ----------------------------
 
-constexpr int TICK_RATE = 60;
+// TODO: test game with 20 FPS on server and 60 FPS on client. It looks strange.
+constexpr int SERVER_TICK_RATE_FPS = 60;  // should be the same as CLIENT_TICK_RATE_FPS
 constexpr int WORLD_WIDTH = 800;
 constexpr int WORLD_HEIGHT = 600;
 
@@ -20,7 +21,10 @@ GameLoop::GameLoop(std::shared_ptr<ServerState> state, BroadcastCb broadcastCb) 
 
 void GameLoop::start() {
   gameThread_ = std::thread([this]() {
-    const auto tickDuration = std::chrono::milliseconds(1000 / TICK_RATE);
+    // TODO: think about using MS everywhere in the Game instaed of float seconds
+    int dtMs = 1000 / SERVER_TICK_RATE_FPS;
+    float dtSeconds = 1.0f / SERVER_TICK_RATE_FPS;
+    const auto tickDuration = std::chrono::milliseconds(dtMs);
 
     SPDLOG_INFO("GameLoop started");
 
@@ -29,7 +33,7 @@ void GameLoop::start() {
 
       {
         std::lock_guard lock(state_->gameSession->mutex);
-        updateState_(state_);
+        updateState_(state_, dtSeconds);
         sendStateToClients_(state_);
         state_->gameSession->tick++;
       }
@@ -46,13 +50,10 @@ void GameLoop::stop() {
   }
 }
 
-void GameLoop::updateState_(std::shared_ptr<ServerState> state) {
+void GameLoop::updateState_(std::shared_ptr<ServerState> state, float dtSeconds) {
   for (PerSocketData* psd : state->gameSession->perSocketDatas) {
     auto& player = psd->player;
-    SPDLOG_TRACE("Player {}: pos=({},{})", player.id, player.state.position.x, player.state.position.y);
-    SPDLOG_TRACE("Player {}: input=({},{})", player.id, player.lastInput.x, player.lastInput.y);
-    float dt = 1.0f / static_cast<float>(TICK_RATE);
-    simulatePlayer(player.state, dt, player.lastInput, WORLD_WIDTH, WORLD_HEIGHT);
+    simulatePlayer(player.state, dtSeconds, player.lastInput, WORLD_WIDTH, WORLD_HEIGHT);
   }
 }
 
