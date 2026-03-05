@@ -2,17 +2,11 @@
 
 #include "GameSerialization/GameSerialization.h"
 #include "GameShared/Simulation.h"
+#include "GameShared/SimulationTickRate.h"
+#include "GameShared/WorldSize.h"
 #include "GameShared/WorldSnapshot.h"
+#include "Profiler/Profiler.h"
 #include "ServerState.h"
-
-// ----------------------------
-// TODO: Options for GameLoop
-// ----------------------------
-
-// TODO: test game with 20 FPS on server and 60 FPS on client. It looks strange.
-constexpr int SERVER_TICK_RATE_FPS = 60;  // should be the same as CLIENT_TICK_RATE_FPS
-constexpr int WORLD_WIDTH = 800;
-constexpr int WORLD_HEIGHT = 600;
 
 GameLoop::GameLoop(std::shared_ptr<ServerState> state, BroadcastCb broadcastCb) {
   state_ = state;
@@ -21,24 +15,39 @@ GameLoop::GameLoop(std::shared_ptr<ServerState> state, BroadcastCb broadcastCb) 
 
 void GameLoop::start() {
   gameThread_ = std::thread([this]() {
-    // TODO: think about using MS everywhere in the Game instaed of float seconds
-    int dtMs = 1000 / SERVER_TICK_RATE_FPS;
-    float dtSeconds = 1.0f / SERVER_TICK_RATE_FPS;
-    const auto tickDuration = std::chrono::milliseconds(dtMs);
-
     SPDLOG_INFO("GameLoop started");
 
+    // TODO: think about using MS everywhere in the Game instead of float seconds
+    constexpr auto tickDuration = std::chrono::nanoseconds(1'000'000'000 / SERVER_SIMULATION_TICK_RATE);
+    constexpr float dtSeconds = 1.0f / SERVER_SIMULATION_TICK_RATE;
+
+    SPDLOG_INFO("Tick duration: {} ns",
+                std::chrono::duration_cast<std::chrono::nanoseconds>(tickDuration).count());
+
+    auto nextTick = std::chrono::steady_clock::now();
+
     while (stopRequested_ == false) {
-      auto start = std::chrono::steady_clock::now();
+      PROFILER_ZONE_NAMED("Server: Tick");
+      nextTick += tickDuration;
 
       {
+        PROFILER_ZONE_NAMED("Server: Simulation");
         std::lock_guard lock(state_->gameSession->mutex);
         updateState_(state_, dtSeconds);
         sendStateToClients_(state_);
         state_->gameSession->tick++;
       }
 
-      std::this_thread::sleep_until(start + tickDuration);
+      {
+        PROFILER_ZONE_NAMED("Server: Sleep");
+        auto now = std::chrono::steady_clock::now();
+        if (nextTick < now) {
+          nextTick = now;
+        }
+        std::this_thread::sleep_until(nextTick);
+      }
+
+      PROFILER_FRAME_MARK;
     }
   });
 }
@@ -69,11 +78,6 @@ void GameLoop::sendStateToClients_(std::shared_ptr<ServerState> state) {
     snap.position = player.state.position;
 
     world.players.push_back(snap);
-  }
-
-  if (!world.players.empty()) {
-    auto& p1 = world.players[0];
-    SPDLOG_TRACE("Sending WorldSnapshot: p1 pos=({},{}) ptr={}", p1.position.x, p1.position.y, (uint64_t)&state->gameSession->perSocketDatas[0]->player);
   }
 
   // Send the same snapshot to all clients

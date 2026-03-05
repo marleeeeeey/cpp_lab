@@ -6,14 +6,10 @@
 
 #include <cxxopts.hpp>
 
+#include "ClientWorldSimulation.h"
 #include "GameShared/ChatMessage.h"
+#include "GameShared/SimulationTickRate.h"
 #include "Profiler/Profiler.h"
-
-// ----------------------------
-// TODO: Options for ClientApp
-// ----------------------------
-
-constexpr int CLIENT_TICK_RATE_FPS = 60;  // should be the same as SERVER_TICK_RATE_FPS
 
 // ---------------------------
 // ISdlApp Factory Method
@@ -85,7 +81,7 @@ SDL_AppResult ClientApp::init(int argc, char* argv[]) {
   // -----------------------
 
   auto onWorldSnapshotReceivedCb = [this](const WorldSnapshot& snapshot) {
-    worldInterpolation_->addSnapshot(snapshot);
+    clientWorldSimulation_->addSnapshot(snapshot);
   };
 
   gameNetwork_ = std::make_unique<ClientNetwork>(
@@ -95,6 +91,7 @@ SDL_AppResult ClientApp::init(int argc, char* argv[]) {
       gameWorldRenderer_,
       snowflakesSimulation_,
       gameTimer_,
+      clientWorldSimulation_,
       onWorldSnapshotReceivedCb);
   gameNetwork_->start();
 
@@ -139,12 +136,13 @@ void ClientApp::sendUserInputToServer_() {
   inputPacket.moveY = dir.y;
   SPDLOG_TRACE("Sending input: ({}, {})", inputPacket.moveX, inputPacket.moveY);
   gameNetwork_->sendInputPacketFromClient(inputPacket);
+  clientWorldSimulation_->setMyLastInputPacket(inputPacket);
 }
 
 // https://gafferongames.com/post/fix_your_timestep/
 SDL_AppResult ClientApp::iterate() {
   float frameTimeSeconds = sdlWrapper_->calculateDeltaTimeWhenFrameBegins();
-  constexpr float dt = 1.0f / CLIENT_TICK_RATE_FPS;
+  constexpr float dt = 1.0f / CLIENT_SIMULATION_TICK_RATE;
   constexpr float maxFrameTimeSeconds = 10 * dt;  // 10 times over dt
 
   // --------------------------------------------------------------
@@ -171,7 +169,8 @@ SDL_AppResult ClientApp::iterate() {
   while (accumulator_ >= dt) {
     // prevState = curState // TODO
     gameTimer_->iterate(dt);
-    iterateGameWorld_(dt);
+    float gameTime = gameTimer_->time();
+    iterateGameWorld_(dt, gameTime);
     accumulator_ -= dt;
   }
 
@@ -246,12 +245,7 @@ void ClientApp::initOptions_(int argc, char* argv[]) {
 
 void ClientApp::initGameWorld_() {
   gameWorldRenderer_ = IGameWorldRenderer::create(sdlWrapper_->getRenderer());
-
-  auto interpolatedCb = [worldRender = gameWorldRenderer_](const WorldSnapshot& snapshot) {
-    worldRender->interpolatedWorldSnapshot = snapshot;
-  };
-
-  worldInterpolation_ = std::make_shared<WorldInterpolation>(interpolatedCb, debugRender_);
+  clientWorldSimulation_ = std::make_shared<ClientWorldSimulation>(debugRender_);
   snowflakesSimulation_ = std::make_shared<SnowflakesSimulation>(gameWorldRenderer_);
   sdlWrapper_->onWindowSizeChangedSink().connect<&SnowflakesSimulation::onWindowSizeChanged>(snowflakesSimulation_);
 }
@@ -282,10 +276,11 @@ void ClientApp::initTimers_() {
 // Basic Iterate Steps
 // ---------------------
 
-void ClientApp::iterateGameWorld_(const float elapsed) {
+void ClientApp::iterateGameWorld_(const float dt, const float gameTime) {
   PROFILER_ZONE;
-  snowflakesSimulation_->iterate(elapsed);
-  worldInterpolation_->iterate(elapsed);
+  snowflakesSimulation_->iterate(dt);
+  clientWorldSimulation_->iterate(dt, gameTime);
+  gameWorldRenderer_->setWorldSnapshot(clientWorldSimulation_->getResultSnapshot());
 }
 
 void ClientApp::iterateDebugRender_() {

@@ -16,6 +16,7 @@ ClientNetwork::ClientNetwork(
     std::weak_ptr<IGameWorldRenderer> gameWorldRenderer,
     std::weak_ptr<SnowflakesSimulation> snowflakesSimulation,
     std::weak_ptr<GameTimer> gameTimer,
+    std::weak_ptr<ClientWorldSimulation> clientWorldSimulation,
     OnWorldSnapshotReceivedCb onWorldSnapshotReceivedCb) {
   url_ = url;
   debugRender_ = debugRender;
@@ -23,6 +24,7 @@ ClientNetwork::ClientNetwork(
   gameWorldRenderer_ = gameWorldRenderer;
   snowflakesSimulation_ = snowflakesSimulation;
   gameTimer_ = gameTimer;
+  clientWorldSimulation_ = clientWorldSimulation;
   onWorldSnapshotReceivedCb_ = onWorldSnapshotReceivedCb;
 
   initNetworkDataHandlers_();
@@ -89,7 +91,11 @@ void ClientNetwork::initNetworkDataHandlers_() {
         auto playerId = GameSerialization::deserializeMemcpy<PlayerId>(payload);
 
         if (auto renderer = gameWorldRenderer_.lock()) {
-          renderer->myPlayerId = playerId;
+          renderer->setMyPlayerId(playerId);
+        }
+
+        if (auto clientWorldSimulation = clientWorldSimulation_.lock()) {
+          clientWorldSimulation->setMyPlayerId(playerId);
         }
 
         if (auto debugRender = debugRender_.lock()) {

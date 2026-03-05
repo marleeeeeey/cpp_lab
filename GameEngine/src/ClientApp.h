@@ -4,15 +4,16 @@
 #include <memory>
 
 #include "ClientNetwork.h"
+#include "ClientWorldSimulation.h"
 #include "GameRenderer/IChatRenderer.h"
 #include "GameRenderer/IDebugRender.h"
 #include "GameRenderer/IRenderContainer.h"
 #include "GameUtils/GameTimer.h"
+#include "IWorldInterpolation.h"
 #include "SdlApp/ISdlApp.h"
 #include "SdlApp/SdlWithImGuiWrapper.h"
 #include "SnowflakesSimulation.h"
 #include "UserInputManager/IUserInputManager.h"
-#include "WorldInterpolation.h"
 
 // ------------------------------------
 // Forward declarations
@@ -64,7 +65,7 @@ class ClientApp : public ISdlApp {
   // ------------------
 
   std::shared_ptr<SnowflakesSimulation> snowflakesSimulation_;
-  std::shared_ptr<WorldInterpolation> worldInterpolation_;
+  std::shared_ptr<ClientWorldSimulation> clientWorldSimulation_;
   float accumulator_ = 0.0f;
 
   // ---------------------
@@ -89,7 +90,7 @@ class ClientApp : public ISdlApp {
   // Basic Iterate Steps
   // ----------------------
 
-  void iterateGameWorld_(float elapsed);
+  void iterateGameWorld_(float dt, float gameTime);
   void iterateDebugRender_();
 
   // ----------------------------

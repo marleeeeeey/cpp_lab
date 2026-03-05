@@ -53,7 +53,7 @@ auto serialize(flatbuffers::FlatBufferBuilder& builder, const Player& player) {
 }
 
 Player deserialize(const GameSerializationFlatbuffer::Player* fbPlayer) {
-  Player player;
+  Player player{};
   player.name = fbPlayer->name()->str();
   player.messagesSent = fbPlayer->messages_sent();
   player.state.position = deserialize(fbPlayer->position());
@@ -77,7 +77,7 @@ auto serialize(flatbuffers::FlatBufferBuilder& builder, const ChatMessage& chatM
 }
 
 ChatMessage deserialize(const GameSerializationFlatbuffer::ChatMessage* fbChatMessage) {
-  ChatMessage chatMessage;
+  ChatMessage chatMessage{};
   chatMessage.sender = deserialize(fbChatMessage->sender());
   chatMessage.message = fbChatMessage->message()->str();
   chatMessage.sentTimestamp = deserialize(fbChatMessage->sent_timestamp());
@@ -96,7 +96,7 @@ auto serialize(flatbuffers::FlatBufferBuilder& builder, const PlayerSnapshot& sn
 }
 
 PlayerSnapshot deserialize(const GameSerializationFlatbuffer::PlayerSnapshot* fbSnapshot) {
-  PlayerSnapshot snapshot;
+  PlayerSnapshot snapshot{};
 
   snapshot.id = fbSnapshot->id();
   snapshot.position = deserialize(fbSnapshot->position());
@@ -123,7 +123,7 @@ auto serialize(flatbuffers::FlatBufferBuilder& builder, const WorldSnapshot& wor
 }
 
 WorldSnapshot deserialize(const GameSerializationFlatbuffer::WorldSnapshot* fbWorld) {
-  WorldSnapshot worldSnapshot;
+  WorldSnapshot worldSnapshot{};
 
   worldSnapshot.serverTick = fbWorld->server_tick();
 

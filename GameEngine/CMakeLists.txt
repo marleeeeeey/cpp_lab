@@ -7,6 +7,7 @@ add_executable(GameEngine
         src/ClientApp.cpp
         src/SnowflakesSimulation.cpp
         src/WorldInterpolation.cpp
+        src/ClientWorldSimulation.cpp
 )
 
 
@@ -26,7 +27,6 @@ target_link_libraries(GameEngine PRIVATE
         AutoReconnectionNetwork
         NetworkDataHandler
 
-        Profiler
         SdlApp
 
         # 3rd_party libraries
@@ -39,6 +39,8 @@ target_link_libraries(GameEngine PRIVATE
         magic_enum::magic_enum
 )
 
+include("${CPP_LAB_ROOT}/cmake/Profiler.cmake")
+cpp_lab_enable_profiling(GameEngine FALSE)
 
 # -----------------------------------
 # Post build actions: copy libraries

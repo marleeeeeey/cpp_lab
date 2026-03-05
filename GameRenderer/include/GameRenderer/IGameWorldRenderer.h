@@ -27,6 +27,7 @@ class IGameWorldRenderer : public IRenderer {
 
   // TODO: covert this fields to methods?
   std::vector<glm::vec2> snowflakes;
-  PlayerId myPlayerId;
-  WorldSnapshot interpolatedWorldSnapshot;
+
+  virtual void setMyPlayerId(const PlayerId& playerId) = 0;
+  virtual void setWorldSnapshot(const WorldSnapshot& worldSnapshot) = 0;
 };

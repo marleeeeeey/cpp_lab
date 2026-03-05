@@ -25,3 +25,6 @@ target_link_libraries(GameServer PRIVATE
         magic_enum::magic_enum
         # SDL3::SDL3 # SDL should not be used in Server!
 )
+
+include("${CPP_LAB_ROOT}/cmake/Profiler.cmake")
+cpp_lab_enable_profiling(GameServer FALSE)

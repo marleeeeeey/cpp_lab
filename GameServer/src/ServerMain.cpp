@@ -107,7 +107,7 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
 
     Player& player = perSocketData->player;
     static PlayerId nextPlayerId = 0;
-    player.id = nextPlayerId++;
+    player.id = ++nextPlayerId;
     auto name = player.name;
     player.state.position = {100.0f, 100.0f};
     while (state->connectedClientNames.contains(name)) {

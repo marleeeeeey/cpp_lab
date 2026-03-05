@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "GameRenderer/IDebugRender.h"
+#include "GameShared/SimulationTickRate.h"
 #include "GameUtils/MakeScopeGuard.h"
 
 // ------------------------------------
@@ -33,7 +34,7 @@ WorldInterpolation::WorldInterpolation(const ApplySnapshotToRenderCb& cb, std::w
 
 void WorldInterpolation::addSnapshot(const WorldSnapshot& snapshot) {
   lastReceivedServerTick_ = snapshot.serverTick;
-  estimatedServerTime_ = float(snapshot.serverTick) / tickRate_;
+  estimatedServerTime_ = float(snapshot.serverTick) / CLIENT_INTERPOLATION_TICK_RATE;
   snapshotBuffer_.push_back(snapshot);
 
   // 32 is the max number of snapshots
@@ -72,7 +73,7 @@ void WorldInterpolation::addSnapshot(const WorldSnapshot& snapshot) {
  *
  * Then interpolate between A and B.
  */
-void WorldInterpolation::iterate(float elapsed) {
+void WorldInterpolation::iterate(float dt, float gameTime) {
   if (snapshotBuffer_.empty()) return;
 
   // --------------------------------------
@@ -87,6 +88,10 @@ void WorldInterpolation::iterate(float elapsed) {
     }
   });
 
+  if (!isEnabled_) {
+    return;
+  }
+
   // --------------------------
   // Safe method to debug
   // --------------------------
@@ -100,10 +105,10 @@ void WorldInterpolation::iterate(float elapsed) {
   // Update time and tick counters
   // --------------------------------
 
-  estimatedServerTime_ += elapsed;
+  estimatedServerTime_ += dt;
   debug("interpolationDelaySeconds", std::format("Interpolation Delay: {} ms", INTERPOLATION_DELAY_SECONDS * 1000.0f));
   float renderTimeSeconds = std::max(0.0f, estimatedServerTime_ - INTERPOLATION_DELAY_SECONDS);
-  uint32_t renderTick = int32_t(renderTimeSeconds * tickRate_);  // Convert render time to tick space
+  uint32_t renderTick = int32_t(renderTimeSeconds * CLIENT_INTERPOLATION_TICK_RATE);  // Convert render time to tick space
   debug("renderTickDiff", std::format("Render Tick Diff: {}", lastReceivedServerTick_ - renderTick));
 
   // -----------------------------

@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "AutoReconnectionNetwork/IAutoReconnectionNetwork.h"
+#include "ClientWorldSimulation.h"
 #include "GameRenderer/IChatRenderer.h"
 #include "GameRenderer/IDebugRender.h"
 #include "GameRenderer/IGameWorldRenderer.h"
@@ -22,6 +23,7 @@ class ClientNetwork {
       std::weak_ptr<IGameWorldRenderer> gameWorldRenderer,
       std::weak_ptr<SnowflakesSimulation> snowflakesSimulation,
       std::weak_ptr<GameTimer> gameTimer,
+      std::weak_ptr<ClientWorldSimulation> clientWorldSimulation,
       OnWorldSnapshotReceivedCb onWorldSnapshotReceivedCb);
 
   // ------------------------
@@ -66,4 +68,5 @@ class ClientNetwork {
   std::weak_ptr<IGameWorldRenderer> gameWorldRenderer_;
   std::weak_ptr<SnowflakesSimulation> snowflakesSimulation_;
   std::weak_ptr<GameTimer> gameTimer_;
+  std::weak_ptr<ClientWorldSimulation> clientWorldSimulation_;
 };

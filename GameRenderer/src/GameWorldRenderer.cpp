@@ -25,8 +25,8 @@ void GameWorldRenderer::render() {
   // Draw opponents first
   // -------------------------
 
-  for (PlayerSnapshot& playerSnapshot : interpolatedWorldSnapshot.players) {
-    if (playerSnapshot.id == myPlayerId) continue;
+  for (PlayerSnapshot& playerSnapshot : worldSnapshot_.players) {
+    if (myPlayerId_ && playerSnapshot.id == myPlayerId_.value()) continue;
 
     SDL_SetRenderDrawColor(renderer_, 0, 0, 255, SDL_ALPHA_OPAQUE);  // BLUE - Opponents
     SDL_FRect rect = {playerSnapshot.position.x, playerSnapshot.position.y, 10, 10};
@@ -37,11 +37,19 @@ void GameWorldRenderer::render() {
   // Draw my player above all opponents
   // --------------------------------------
 
-  for (PlayerSnapshot& playerSnapshot : interpolatedWorldSnapshot.players) {
-    if (playerSnapshot.id != myPlayerId) continue;
+  for (PlayerSnapshot& playerSnapshot : worldSnapshot_.players) {
+    if (myPlayerId_ && playerSnapshot.id != myPlayerId_.value()) continue;
 
     SDL_SetRenderDrawColor(renderer_, 255, 0, 0, SDL_ALPHA_OPAQUE);  // RED - My Player
     SDL_FRect rect = {playerSnapshot.position.x, playerSnapshot.position.y, 10, 10};
     SDL_RenderFillRect(renderer_, &rect);
   }
+}
+
+void GameWorldRenderer::setWorldSnapshot(const WorldSnapshot& worldSnapshot) {
+  worldSnapshot_ = worldSnapshot;
+}
+
+void GameWorldRenderer::setMyPlayerId(const PlayerId& playerId) {
+  myPlayerId_ = playerId;
 }
