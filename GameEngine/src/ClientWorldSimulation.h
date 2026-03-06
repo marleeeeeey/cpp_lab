@@ -25,7 +25,7 @@ class ClientWorldSimulation {
   void iterate(float dt, float gameTime);
   void setMyPlayerId(uint32_t playerId);
   void setMyLastInputPacket(const InputPacket& input);
-  const DataForRenderer& getDataForRenderer() const;
+  std::shared_ptr<DataForRenderer> getDataForRenderer() const;
 
   // ----------------
   // Private state
@@ -33,7 +33,7 @@ class ClientWorldSimulation {
 
  private:
   std::deque<WorldSnapshot> snapshotBuffer_;  // Buffer of snapshots received from the server
-  DataForRenderer dataForRenderer_;
+  std::shared_ptr<DataForRenderer> dataForRenderer_;
   std::weak_ptr<IDebugRender> debugRender_;
   std::optional<PlayerId> myPlayerId_;
   float lastGameTimeSimulationCompleted_{};

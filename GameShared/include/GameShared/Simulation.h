@@ -6,3 +6,5 @@
 
 void simulatePlayer(PlayerState& state, float dtSeconds, const glm::vec2& input,
                     float worldWidth, float worldHeight);
+
+PlayerState interpolatePlayerPosition(const PlayerState& from, const PlayerState& to, float deltaTime);

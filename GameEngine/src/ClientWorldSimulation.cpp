@@ -24,6 +24,7 @@ constexpr size_t SIZE_OF_SNAPSHOTS_BUFFER = 32;
 
 ClientWorldSimulation::ClientWorldSimulation(std::weak_ptr<IDebugRender> debugRender) {
   debugRender_ = debugRender;
+  dataForRenderer_ = std::make_shared<DataForRenderer>();
 }
 
 void ClientWorldSimulation::addSnapshot(const WorldSnapshot& snapshot) {
@@ -39,18 +40,18 @@ void ClientWorldSimulation::iterate(float dt, float gameTime) {
     debugRender->addStaticLine(key, line);
   };
 
-  debug("dt", std::format("dt: {}", dt));
-  debug("gameTime", std::format("gameTime: {}", gameTime));
+  debug("dt", std::format("dt: {:.3f} seconds", dt));
+  debug("gameTime", std::format("gameTime: {:.1f} seconds", gameTime));
 
   if (snapshotBuffer_.empty()) return;
 
   const auto& latestSnapshotFromServer = snapshotBuffer_.back();
-  dataForRenderer_.snapshot = latestSnapshotFromServer;
+  dataForRenderer_->snapshot = latestSnapshotFromServer;
 
-  for (auto& playerSnapshot : dataForRenderer_.snapshot.players) {
+  for (auto& playerSnapshot : dataForRenderer_->snapshot.players) {
     if (myPlayerId_ && playerSnapshot.id == myPlayerId_.value()) {
       // For the first time init a local player from the server package
-      auto& localPlayer = dataForRenderer_.localPlayer;
+      auto& localPlayer = dataForRenderer_->localPlayer;
       if (!localPlayer) {
         localPlayer = Player{
             .id = playerSnapshot.id,
@@ -61,7 +62,7 @@ void ClientWorldSimulation::iterate(float dt, float gameTime) {
                 .velocity = {},
             },
             .lastInput = {}};
-        SPDLOG_INFO("My player id: {}", dataForRenderer_.localPlayer->id);
+        SPDLOG_INFO("My player id: {}", dataForRenderer_->localPlayer->id);
       }
 
       // For local player simulation should be done locally
@@ -75,11 +76,11 @@ void ClientWorldSimulation::setMyPlayerId(uint32_t playerId) {
 }
 
 void ClientWorldSimulation::setMyLastInputPacket(const InputPacket& input) {
-  if (!dataForRenderer_.localPlayer) return;
-  dataForRenderer_.localPlayer->lastInput.x = input.moveX;
-  dataForRenderer_.localPlayer->lastInput.y = input.moveY;
+  if (!dataForRenderer_->localPlayer) return;
+  dataForRenderer_->localPlayer->lastInput.x = input.moveX;
+  dataForRenderer_->localPlayer->lastInput.y = input.moveY;
 }
 
-const DataForRenderer& ClientWorldSimulation::getDataForRenderer() const {
+std::shared_ptr<DataForRenderer> ClientWorldSimulation::getDataForRenderer() const {
   return dataForRenderer_;
 }

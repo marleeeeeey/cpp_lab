@@ -77,6 +77,15 @@ SDL_AppResult ClientApp::init(int argc, char* argv[]) {
   renderContainer_->addComponent(gameWorldRenderer_);
 
   // -----------------------
+  // Set Debug Callback
+  // -----------------------
+
+  StaticDebugCb staticDebugCb = [this](const std::string& key, const std::string& line) {
+    debugRender_->addStaticLine(key, line);
+  };
+  gameWorldRenderer_->setStaticDebugCb(staticDebugCb);
+
+  // -----------------------
   // Init Networking
   // -----------------------
 

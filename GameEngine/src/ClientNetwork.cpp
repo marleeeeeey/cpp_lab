@@ -90,10 +90,6 @@ void ClientNetwork::initNetworkDataHandlers_() {
       [this](PayloadType type, PayloadView payload) {
         auto playerId = GameSerialization::deserializeMemcpy<PlayerId>(payload);
 
-        if (auto renderer = gameWorldRenderer_.lock()) {
-          renderer->setMyPlayerId(playerId);
-        }
-
         if (auto clientWorldSimulation = clientWorldSimulation_.lock()) {
           clientWorldSimulation->setMyPlayerId(playerId);
         }

@@ -29,6 +29,5 @@ class IGameWorldRenderer : public IRenderer {
   // TODO: covert this fields to methods?
   std::vector<glm::vec2> snowflakes;
 
-  virtual void setMyPlayerId(const PlayerId& playerId) = 0;
-  virtual void setDataForRenderer(const DataForRenderer& dataForRenderer) = 0;
+  virtual void setDataForRenderer(std::shared_ptr<DataForRenderer> dataForRenderer) = 0;
 };

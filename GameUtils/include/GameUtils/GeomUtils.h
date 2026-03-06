@@ -5,6 +5,8 @@
 
 class GeomUtils {
  public:
+  static constexpr float EPSILON = glm::epsilon<float>();
+
   static glm::vec2 safeNormalize(glm::vec2 v, float eps = glm::epsilon<float>());
 
   static float approach(float current, float target, float maxDelta);
