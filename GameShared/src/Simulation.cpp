@@ -2,29 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
-namespace {
-
-float approach(float current, float target, float maxDelta) {
-  const float delta = target - current;
-  if (delta > maxDelta) return current + maxDelta;
-  if (delta < -maxDelta) return current - maxDelta;
-  return target;
-}
-
-glm::vec2 approachVec2(const glm::vec2& current, const glm::vec2& target, float maxDelta) {
-  return glm::vec2(
-      approach(current.x, target.x, maxDelta),
-      approach(current.y, target.y, maxDelta));
-}
-
-float wrapCoord(float v, float maxExclusive) {
-  if (maxExclusive <= 0.0f) return 0.0f;
-  v = std::fmod(v, maxExclusive);
-  if (v < 0.0f) v += maxExclusive;
-  return v;
-}
-
-}  // namespace
+#include "GameUtils/GeomUtils.h"
 
 void simulatePlayer(PlayerState& state, float dtSeconds, const glm::vec2& input,
                     float worldWidth, float worldHeight) {
@@ -52,7 +30,7 @@ void simulatePlayer(PlayerState& state, float dtSeconds, const glm::vec2& input,
   // ---------------------------
 
   const float maxDelta = (hasInput ? accel : decel) * dtSeconds;
-  state.velocity = approachVec2(state.velocity, targetVelocity, maxDelta);
+  state.velocity = GeomUtils::approachVec2(state.velocity, targetVelocity, maxDelta);
 
   // -----------------------
   // Minimal speed to stop
@@ -78,6 +56,6 @@ void simulatePlayer(PlayerState& state, float dtSeconds, const glm::vec2& input,
   // Wrap Player Position
   // --------------------------
 
-  state.position.x = wrapCoord(state.position.x, worldWidth);
-  state.position.y = wrapCoord(state.position.y, worldHeight);
+  state.position.x = GeomUtils::wrapCoord(state.position.x, worldWidth);
+  state.position.y = GeomUtils::wrapCoord(state.position.y, worldHeight);
 }
