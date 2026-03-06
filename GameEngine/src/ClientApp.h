@@ -9,7 +9,6 @@
 #include "GameRenderer/IDebugRender.h"
 #include "GameRenderer/IRenderContainer.h"
 #include "GameUtils/GameTimer.h"
-#include "IWorldInterpolation.h"
 #include "SdlApp/ISdlApp.h"
 #include "SdlApp/SdlWithImGuiWrapper.h"
 #include "SnowflakesSimulation.h"

@@ -7,7 +7,6 @@
 
 #include "GameRenderer/DataForRenderer.h"
 #include "GameRenderer/IDebugRender.h"
-#include "IWorldInterpolation.h"
 
 class ClientWorldSimulation {
  public:
