@@ -45,13 +45,14 @@ void ClientWorldSimulation::iterate(float dt, float gameTime) {
   if (snapshotBuffer_.empty()) return;
 
   const auto& latestSnapshotFromServer = snapshotBuffer_.back();
-  resultSnapshot_ = latestSnapshotFromServer;
+  dataForRenderer_.snapshot = latestSnapshotFromServer;
 
-  for (auto& playerSnapshot : resultSnapshot_.players) {
+  for (auto& playerSnapshot : dataForRenderer_.snapshot.players) {
     if (myPlayerId_ && playerSnapshot.id == myPlayerId_.value()) {
       // For the first time init a local player from the server package
-      if (!myPlayer_) {
-        myPlayer_ = Player{
+      auto& localPlayer = dataForRenderer_.localPlayer;
+      if (!localPlayer) {
+        localPlayer = Player{
             .id = playerSnapshot.id,
             .name = {},
             .messagesSent = {},
@@ -60,15 +61,11 @@ void ClientWorldSimulation::iterate(float dt, float gameTime) {
                 .velocity = {},
             },
             .lastInput = {}};
-        SPDLOG_INFO("My player id: {}", myPlayer_->id);
+        SPDLOG_INFO("My player id: {}", dataForRenderer_.localPlayer->id);
       }
 
       // For local player simulation should be done locally
-      simulatePlayer(myPlayer_->state, dt, myPlayer_->lastInput, WORLD_WIDTH, WORLD_HEIGHT);
-
-      // Modify local player after simulation
-      // TODO: think how to fix server-client discrepancy simulation
-      playerSnapshot.position = myPlayer_->state.position;
+      simulatePlayer(localPlayer->state, dt, localPlayer->lastInput, WORLD_WIDTH, WORLD_HEIGHT);
     }
   }
 }
@@ -78,11 +75,11 @@ void ClientWorldSimulation::setMyPlayerId(uint32_t playerId) {
 }
 
 void ClientWorldSimulation::setMyLastInputPacket(const InputPacket& input) {
-  if (!myPlayer_) return;
-  myPlayer_->lastInput.x = input.moveX;
-  myPlayer_->lastInput.y = input.moveY;
+  if (!dataForRenderer_.localPlayer) return;
+  dataForRenderer_.localPlayer->lastInput.x = input.moveX;
+  dataForRenderer_.localPlayer->lastInput.y = input.moveY;
 }
 
-const WorldSnapshot& ClientWorldSimulation::getResultSnapshot() const {
-  return resultSnapshot_;
+const DataForRenderer& ClientWorldSimulation::getDataForRenderer() const {
+  return dataForRenderer_;
 }

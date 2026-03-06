@@ -5,6 +5,7 @@
 #include <deque>
 #include <optional>
 
+#include "GameRenderer/DataForRenderer.h"
 #include "GameRenderer/IDebugRender.h"
 #include "IWorldInterpolation.h"
 
@@ -24,7 +25,7 @@ class ClientWorldSimulation {
   void iterate(float dt, float gameTime);
   void setMyPlayerId(uint32_t playerId);
   void setMyLastInputPacket(const InputPacket& input);
-  const WorldSnapshot& getResultSnapshot() const;
+  const DataForRenderer& getDataForRenderer() const;
 
   // ----------------
   // Private state
@@ -32,9 +33,8 @@ class ClientWorldSimulation {
 
  private:
   std::deque<WorldSnapshot> snapshotBuffer_;  // Buffer of snapshots received from the server
-  WorldSnapshot resultSnapshot_{};            // Will be used by Renderer. Probably renderer initiates interpolation
+  DataForRenderer dataForRenderer_;
   std::weak_ptr<IDebugRender> debugRender_;
-  std::optional<Player> myPlayer_;
   std::optional<PlayerId> myPlayerId_;
   float lastGameTimeSimulationCompleted_{};
 };

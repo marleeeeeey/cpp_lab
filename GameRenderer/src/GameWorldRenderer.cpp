@@ -25,7 +25,9 @@ void GameWorldRenderer::render() {
   // Draw opponents first
   // -------------------------
 
-  for (PlayerSnapshot& playerSnapshot : worldSnapshot_.players) {
+  auto& snapshot = dataForRenderer_.snapshot;
+
+  for (PlayerSnapshot& playerSnapshot : snapshot.players) {
     if (myPlayerId_ && playerSnapshot.id == myPlayerId_.value()) continue;
 
     SDL_SetRenderDrawColor(renderer_, 0, 0, 255, SDL_ALPHA_OPAQUE);  // BLUE - Opponents
@@ -37,7 +39,7 @@ void GameWorldRenderer::render() {
   // Draw my player above all opponents
   // --------------------------------------
 
-  for (PlayerSnapshot& playerSnapshot : worldSnapshot_.players) {
+  for (PlayerSnapshot& playerSnapshot : snapshot.players) {
     if (myPlayerId_ && playerSnapshot.id != myPlayerId_.value()) continue;
 
     SDL_SetRenderDrawColor(renderer_, 255, 0, 0, SDL_ALPHA_OPAQUE);  // RED - My Player
@@ -46,8 +48,8 @@ void GameWorldRenderer::render() {
   }
 }
 
-void GameWorldRenderer::setWorldSnapshot(const WorldSnapshot& worldSnapshot) {
-  worldSnapshot_ = worldSnapshot;
+void GameWorldRenderer::setDataForRenderer(const DataForRenderer& dataForRenderer) {
+  dataForRenderer_ = dataForRenderer;
 }
 
 void GameWorldRenderer::setMyPlayerId(const PlayerId& playerId) {

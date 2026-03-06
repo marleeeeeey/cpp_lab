@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+#include "GameRenderer/DataForRenderer.h"
 #include "GameShared/Player.h"
 #include "GameShared/WorldSnapshot.h"
 #include "IRenderer.h"
@@ -29,5 +30,5 @@ class IGameWorldRenderer : public IRenderer {
   std::vector<glm::vec2> snowflakes;
 
   virtual void setMyPlayerId(const PlayerId& playerId) = 0;
-  virtual void setWorldSnapshot(const WorldSnapshot& worldSnapshot) = 0;
+  virtual void setDataForRenderer(const DataForRenderer& dataForRenderer) = 0;
 };

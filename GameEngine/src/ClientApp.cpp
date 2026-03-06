@@ -280,7 +280,7 @@ void ClientApp::iterateGameWorld_(const float dt, const float gameTime) {
   PROFILER_ZONE;
   snowflakesSimulation_->iterate(dt);
   clientWorldSimulation_->iterate(dt, gameTime);
-  gameWorldRenderer_->setWorldSnapshot(clientWorldSimulation_->getResultSnapshot());
+  gameWorldRenderer_->setDataForRenderer(clientWorldSimulation_->getDataForRenderer());
 }
 
 void ClientApp::iterateDebugRender_() {
