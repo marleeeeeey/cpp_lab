@@ -8,7 +8,7 @@ void ChatRenderer::addMessage(const ChatMessage& message) {
   chatHistory_.push_back(message);
 }
 
-void ChatRenderer::render() {
+void ChatRenderer::render(float dt, float gameTime) {
   if (!isVisible_) return;
 
   // ------------------------

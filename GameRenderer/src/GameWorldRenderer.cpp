@@ -9,7 +9,7 @@ GameWorldRenderer::GameWorldRenderer(SDL_Renderer* renderer) {
   renderer_ = renderer;
 }
 
-void GameWorldRenderer::render() {
+void GameWorldRenderer::render(float dt, float gameTime) {
   if (!isVisible_) return;
 
   // ---------------------------

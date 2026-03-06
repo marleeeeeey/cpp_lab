@@ -16,10 +16,10 @@ void RenderContainer::addComponent(std::weak_ptr<IRenderer> component) {
   components_.push_back(component);
 }
 
-void RenderContainer::render() {
+void RenderContainer::render(float dt, float gameTime) {
   for (const auto& renderer : components_) {
     if (auto r = renderer.lock()) {
-      r->render();
+      r->render(dt, gameTime);
     }
   }
 }

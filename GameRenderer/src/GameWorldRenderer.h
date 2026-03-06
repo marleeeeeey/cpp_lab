@@ -9,7 +9,7 @@
 class GameWorldRenderer : public IGameWorldRenderer {
  public:
   explicit GameWorldRenderer(SDL_Renderer* renderer);
-  void render() override;
+  void render(float dt, float gameTime) override;
   void setDataForRenderer(const DataForRenderer& dataForRenderer) override;
   void setMyPlayerId(const PlayerId& playerId) override;
 

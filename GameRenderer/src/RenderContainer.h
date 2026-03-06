@@ -18,7 +18,7 @@ class RenderContainer : public IRenderContainer {
  public:
   explicit RenderContainer(SDL_Renderer* sdlRenderer);
   void addComponent(std::weak_ptr<IRenderer> component) override;
-  void render() override;
+  void render(float dt, float gameTime) override;
 
  private:
   SDL_Renderer* sdlRenderer_ = nullptr;

@@ -8,7 +8,7 @@
 class ChatRenderer : public IChatRenderer {
  public:
   void addMessage(const ChatMessage& message) override;
-  void render() override;
+  void render(float dt, float gameTime) override;
 
  private:
   std::vector<ChatMessage> chatHistory_;

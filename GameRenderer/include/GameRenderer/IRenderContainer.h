@@ -18,5 +18,5 @@ class IRenderContainer {
   // -------------
 
   virtual void addComponent(std::weak_ptr<IRenderer> component) = 0;
-  virtual void render() = 0;
+  virtual void render(float dt, float gameTime) = 0;
 };

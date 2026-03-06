@@ -187,8 +187,8 @@ SDL_AppResult ClientApp::iterate() {
   // ------------
 
   iterateDebugRender_();
-  sdlWrapper_->render([this]() {
-    renderContainer_->render();
+  sdlWrapper_->render([this, frameTimeSeconds]() {
+    renderContainer_->render(frameTimeSeconds, gameTimer_->time());
   });
 
   // ----------------

@@ -10,7 +10,7 @@ class DebugRender : public IDebugRender {
  public:
   void addLine(const std::string& line) override;
   void addStaticLine(const std::string& key, const std::string& line) override;
-  void render() override;
+  void render(float dt, float gameTime) override;
   void setOnDebugToggleCallback(std::function<void()> callback) override;
   void addButtonWithCallback(const std::string& label, std::function<void()> callback) override;
 

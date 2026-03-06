@@ -4,7 +4,7 @@
 class IRenderer {
  public:
   virtual ~IRenderer() = default;
-  virtual void render() = 0;
+  virtual void render(float dt, float gameTime) = 0;
   void setVisible(bool flag) { isVisible_ = flag; }
 
  protected:

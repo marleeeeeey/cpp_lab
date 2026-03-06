@@ -12,7 +12,7 @@ void DebugRender::addStaticLine(const std::string& key, const std::string& line)
   staticLines_[key] = line;
 }
 
-void DebugRender::render() {
+void DebugRender::render(float dt, float gameTime) {
   // ------------------------
   // Configure ImGui window
   // ------------------------
