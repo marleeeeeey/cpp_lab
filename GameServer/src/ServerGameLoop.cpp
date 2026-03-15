@@ -34,7 +34,7 @@ void ServerGameLoop::start() {
         PROFILER_ZONE_NAMED("Server: Simulation");
         std::lock_guard lock(state_->gameSession->mutex);
         updateState_(state_, dtSeconds);
-        sendStateToClients_(state_);
+        createWorldSnapshotAndSendToClients_(state_);
         state_->gameSession->tick++;
       }
 
@@ -62,11 +62,11 @@ void ServerGameLoop::stop() {
 void ServerGameLoop::updateState_(std::shared_ptr<ServerState> state, float dtSeconds) {
   for (PerSocketData* psd : state->gameSession->perSocketDatas) {
     auto& player = psd->player;
-    simulatePlayer(player.state, dtSeconds, player.lastInput, WORLD_WIDTH, WORLD_HEIGHT);
+    simulatePlayer(player.state, dtSeconds, player.lastInput.move, WORLD_WIDTH, WORLD_HEIGHT);
   }
 }
 
-void ServerGameLoop::sendStateToClients_(std::shared_ptr<ServerState> state) {
+void ServerGameLoop::createWorldSnapshotAndSendToClients_(std::shared_ptr<ServerState> state) const {
   WorldSnapshot world;
   world.serverTick = state->gameSession->tick;
 

@@ -66,7 +66,7 @@ void ClientWorldSimulation::iterate(float dt, float gameTime) {
       }
 
       // For local player simulation should be done locally
-      simulatePlayer(localPlayer->state, dt, localPlayer->lastInput, WORLD_WIDTH, WORLD_HEIGHT);
+      simulatePlayer(localPlayer->state, dt, localPlayer->lastInput.move, WORLD_WIDTH, WORLD_HEIGHT);
     }
   }
 }
@@ -77,8 +77,8 @@ void ClientWorldSimulation::setMyPlayerId(uint32_t playerId) {
 
 void ClientWorldSimulation::setMyLastInputPacket(const InputPacket& input) {
   if (!dataForRenderer_->localPlayer) return;
-  dataForRenderer_->localPlayer->lastInput.x = input.moveX;
-  dataForRenderer_->localPlayer->lastInput.y = input.moveY;
+  dataForRenderer_->localPlayer->lastInput.move.x = input.moveX;
+  dataForRenderer_->localPlayer->lastInput.move.y = input.moveY;
 }
 
 std::shared_ptr<DataForRenderer> ClientWorldSimulation::getDataForRenderer() const {

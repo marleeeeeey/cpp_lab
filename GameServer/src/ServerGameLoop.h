@@ -15,7 +15,7 @@ class ServerGameLoop {
 
  private:
   void updateState_(std::shared_ptr<ServerState> state, float dtSeconds);
-  void sendStateToClients_(std::shared_ptr<ServerState> state);
+  void createWorldSnapshotAndSendToClients_(std::shared_ptr<ServerState> state) const;
 
   bool stopRequested_ = false;
   std::thread gameThread_;

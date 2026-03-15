@@ -50,6 +50,6 @@ void BinaryMessageParser::on_GMT_PingFromClient(PayloadView payload, PerSocketDa
 void BinaryMessageParser::on_GMT_InputDataFromClient(PayloadView payload, PerSocketData* perSocketData) const {
   auto inputPacket = GameSerialization::deserializeInputPacket(payload);
   auto& player = perSocketData->player;
-  player.lastInput.x = std::clamp(inputPacket.moveX, -1.0f, 1.0f);
-  player.lastInput.y = std::clamp(inputPacket.moveY, -1.0f, 1.0f);
+  player.lastInput.move.x = std::clamp(inputPacket.moveX, -1.0f, 1.0f);
+  player.lastInput.move.y = std::clamp(inputPacket.moveY, -1.0f, 1.0f);
 }

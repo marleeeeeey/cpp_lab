@@ -10,10 +10,14 @@ struct PlayerState {
 
 using PlayerId = uint32_t;
 
+struct PlayerInput {
+  glm::vec2 move{0};
+};
+
 struct Player {
   PlayerId id;
   std::string name;
   int messagesSent{0};
   PlayerState state;
-  glm::vec2 lastInput{0};
+  PlayerInput lastInput;
 };
