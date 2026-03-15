@@ -1,4 +1,4 @@
-#include "GameLoop.h"
+#include "ServerGameLoop.h"
 
 #include "GameSerialization/GameSerialization.h"
 #include "GameShared/Simulation.h"
@@ -8,12 +8,12 @@
 #include "Profiler/Profiler.h"
 #include "ServerState.h"
 
-GameLoop::GameLoop(std::shared_ptr<ServerState> state, BroadcastCb broadcastCb) {
+ServerGameLoop::ServerGameLoop(std::shared_ptr<ServerState> state, BroadcastCb broadcastCb) {
   state_ = state;
   broadcastCb_ = broadcastCb;
 }
 
-void GameLoop::start() {
+void ServerGameLoop::start() {
   gameThread_ = std::thread([this]() {
     SPDLOG_INFO("GameLoop started");
 
@@ -52,21 +52,21 @@ void GameLoop::start() {
   });
 }
 
-void GameLoop::stop() {
+void ServerGameLoop::stop() {
   stopRequested_ = true;
   if (gameThread_.joinable()) {
     gameThread_.join();
   }
 }
 
-void GameLoop::updateState_(std::shared_ptr<ServerState> state, float dtSeconds) {
+void ServerGameLoop::updateState_(std::shared_ptr<ServerState> state, float dtSeconds) {
   for (PerSocketData* psd : state->gameSession->perSocketDatas) {
     auto& player = psd->player;
     simulatePlayer(player.state, dtSeconds, player.lastInput, WORLD_WIDTH, WORLD_HEIGHT);
   }
 }
 
-void GameLoop::sendStateToClients_(std::shared_ptr<ServerState> state) {
+void ServerGameLoop::sendStateToClients_(std::shared_ptr<ServerState> state) {
   WorldSnapshot world;
   world.serverTick = state->gameSession->tick;
 

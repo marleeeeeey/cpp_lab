@@ -1,6 +1,7 @@
 #pragma once
 
 // Avoid "enum class" to allow implicit conversions
+// "GMT" stands for "Game Message Type"
 enum GameMessageType {
   GMT_ChatMessage = 3333,
   GMT_NumberOfClients = 3334,

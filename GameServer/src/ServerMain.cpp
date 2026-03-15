@@ -11,11 +11,11 @@
 #include <string_view>
 
 #include "CommandLineParser.h"
-#include "GameLoop.h"
 #include "GetClientIpText.h"
 #include "HumanHash.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
 #include "PerSocketData.h"
+#include "ServerGameLoop.h"
 #include "ServerState.h"
 #include "WsCloseCodeToText.h"
 
@@ -210,7 +210,7 @@ int main(int argc, char** argv) {  // Uncomment the next line for Debug
   // Start Game Loop
   // ------------------
 
-  GameLoop gameLoop(state, onBroadcastMessageCallback);
+  ServerGameLoop gameLoop(state, onBroadcastMessageCallback);
   gameLoop.start();
 
   // ---------------------------------

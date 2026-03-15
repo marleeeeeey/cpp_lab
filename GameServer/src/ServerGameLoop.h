@@ -7,9 +7,9 @@
 #include "PerSocketData.h"
 #include "ServerState.h"
 
-class GameLoop {
+class ServerGameLoop {
  public:
-  GameLoop(std::shared_ptr<ServerState> state, BroadcastCb broadcastCb);
+  ServerGameLoop(std::shared_ptr<ServerState> state, BroadcastCb broadcastCb);
   void start();
   void stop();
 

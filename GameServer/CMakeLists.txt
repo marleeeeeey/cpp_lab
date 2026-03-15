@@ -9,7 +9,7 @@ add_executable(GameServer
         src/CommandLineParser.cpp
         src/ServerState.cpp
         src/BinaryMessageParser.cpp
-        src/GameLoop.cpp
+        src/ServerGameLoop.cpp
 )
 
 target_link_libraries(GameServer PRIVATE
