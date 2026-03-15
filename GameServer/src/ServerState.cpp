@@ -27,7 +27,7 @@ const std::string_view& ServerState::getBroadcastTopicName() const { return broa
 
 void ServerState::broadcastNumberClients_() {
   // add a message type to the payload
-  auto typedPayload = networkDataHandler->makeBinaryMessageMemcpy(GMT_NumberOfClients, numberOfClients_);
+  auto typedPayload = networkDataHandler->makeBinaryMessageMemcpy(GMT_NumberOfClientsFromServer, numberOfClients_);
 
   // anyway std::string_view is needed even to send binary data
   std::string_view messageStringView(reinterpret_cast<const char*>(typedPayload.data()), typedPayload.size());

@@ -3,12 +3,12 @@
 #include <glm/glm.hpp>
 #include <string>
 
+using PlayerId = uint32_t;
+
 struct PlayerState {
   glm::vec2 position{0};
   glm::vec2 velocity{0};
 };
-
-using PlayerId = uint32_t;
 
 struct PlayerInput {
   glm::vec2 move{0};

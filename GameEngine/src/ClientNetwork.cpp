@@ -75,7 +75,7 @@ void ClientNetwork::initNetworkDataHandlers_() {
       });
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
-      GMT_NumberOfClients,
+      GMT_NumberOfClientsFromServer,
       [this](PayloadType type, PayloadView payload) {
         int userNumber = GameSerialization::deserializeMemcpy<int>(payload);
         // set and log
@@ -113,7 +113,7 @@ void ClientNetwork::initNetworkDataHandlers_() {
       });
 
   networkDataHandler_->registerCallbackForBinaryMessageWithType(
-      GMT_WorldSnapshot,
+      GMT_WorldSnapshotFromServer,
       [this](PayloadType type, PayloadView payload) {
         auto worldSnapshot = GameSerialization::deserializeWorldSnapshot(payload);
 

@@ -82,5 +82,5 @@ void ServerGameLoop::createWorldSnapshotAndSendToClients_(std::shared_ptr<Server
 
   // Send the same snapshot to all clients
   auto payload = GameSerialization::serializeWorldSnapshot(world);
-  broadcastCb_(GMT_WorldSnapshot, payload);
+  broadcastCb_(GMT_WorldSnapshotFromServer, payload);
 }
