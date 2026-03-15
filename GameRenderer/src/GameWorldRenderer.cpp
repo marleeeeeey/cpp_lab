@@ -84,14 +84,20 @@ void GameWorldRenderer::render(float dt, float gameTime) {
   SDL_RenderFillRect(renderer_, &rect);
 
   // --------------------------------------
-  // Draw my player from Server
+  // Draw my player from Server simulation
   // --------------------------------------
 
-  SDL_SetRenderDrawColor(renderer_, 0, 255, 0, SDL_ALPHA_OPAQUE);  // GREEN - My Player From Server
-  rect = {localPlayerStateFromServer.position.x, localPlayerStateFromServer.position.y, 10, 10};
-  SDL_RenderFillRect(renderer_, &rect);
+  if (debugServerPositionForLocalPlayer_) {
+    SDL_SetRenderDrawColor(renderer_, 0, 255, 0, SDL_ALPHA_OPAQUE);  // GREEN - My Player From Server
+    rect = {localPlayerStateFromServer.position.x, localPlayerStateFromServer.position.y, 10, 10};
+    SDL_RenderFillRect(renderer_, &rect);
+  }
 }
 
 void GameWorldRenderer::setDataForRenderer(std::shared_ptr<DataForRenderer> dataForRenderer) {
   dataForRenderer_ = dataForRenderer;
+}
+
+void GameWorldRenderer::debugServerPositionForLocalPlayer(bool enabled) {
+  debugServerPositionForLocalPlayer_ = enabled;
 }

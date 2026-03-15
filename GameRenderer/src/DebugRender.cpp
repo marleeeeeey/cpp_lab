@@ -68,8 +68,25 @@ void DebugRender::render(float dt, float gameTime) {
 
   if (!isVisible_) return;
 
+  ImGui::BeginChild("##dbg_lines",
+                    ImVec2(0, 0),
+                    ImGuiChildFlags_Borders,
+                    ImGuiWindowFlags_HorizontalScrollbar);
+
   // ----------------------
-  // Draw Debug Console
+  // Draw Checkboxes
+  // ----------------------
+
+  for (auto& checkboxData : checkboxes_) {
+    ImGui::Checkbox(checkboxData.label.c_str(), &checkboxData.value);
+    if (checkboxData.value != checkboxData.oldValue) {
+      checkboxData.callback(checkboxData.value);
+      checkboxData.oldValue = checkboxData.value;
+    }
+  }
+
+  // ----------------------
+  // Draw Buttons
   // ----------------------
 
   for (const auto& [label, callback] : buttonCallbacks_) {
@@ -78,10 +95,9 @@ void DebugRender::render(float dt, float gameTime) {
     }
   }
 
-  ImGui::BeginChild("##dbg_lines",
-                    ImVec2(0, 0),
-                    ImGuiChildFlags_Borders,
-                    ImGuiWindowFlags_HorizontalScrollbar);
+  // ----------------------
+  // Draw Static Lines
+  // ----------------------
 
   const bool hasFilter = filter[0] != '\0';
 
@@ -93,6 +109,10 @@ void DebugRender::render(float dt, float gameTime) {
     }
     ImGui::TextUnformatted(line.c_str());
   }
+
+  // ----------------------
+  // Draw Frame Text Lines
+  // ----------------------
 
   for (const auto& line : lines_) {
     if (hasFilter) {
@@ -112,4 +132,8 @@ void DebugRender::setOnDebugToggleCallback(std::function<void()> callback) {
 
 void DebugRender::addButtonWithCallback(const std::string& label, std::function<void()> callback) {
   buttonCallbacks_[label] = callback;
+}
+
+void DebugRender::addCheckboxWithCallback(const std::string& label, std::function<void(bool newValue)> callback) {
+  checkboxes_.push_back({.label = label, .callback = callback, .value = false, .oldValue = false});
 }

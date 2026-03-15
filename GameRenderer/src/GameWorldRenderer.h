@@ -11,8 +11,10 @@ class GameWorldRenderer : public IGameWorldRenderer {
   explicit GameWorldRenderer(SDL_Renderer* renderer);
   void render(float dt, float gameTime) override;
   void setDataForRenderer(std::shared_ptr<DataForRenderer> dataForRenderer) override;
+  void debugServerPositionForLocalPlayer(bool enabled) override;
 
  private:
   SDL_Renderer* renderer_ = nullptr;
   std::shared_ptr<DataForRenderer> dataForRenderer_;
+  bool debugServerPositionForLocalPlayer_ = false;
 };

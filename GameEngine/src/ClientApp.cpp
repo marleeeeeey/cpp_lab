@@ -56,6 +56,8 @@ SDL_AppResult ClientApp::init(int argc, char* argv[]) {
   // Init Domain Systems
   // ----------------------
 
+  // TODO: all smart pointers should be created first and then initialized.
+  // Because other subsystems may need these pointers even if they initialized later.
   debugRender_ = IDebugRender::create();
 
   initGameWorld_();
@@ -66,6 +68,10 @@ SDL_AppResult ClientApp::init(int argc, char* argv[]) {
     showDebugWindows_ = !showDebugWindows_;
     debugRender_->setVisible(showDebugWindows_);
     chatRenderer_->setVisible(showDebugWindows_);
+  });
+
+  debugRender_->addCheckboxWithCallback("Debug Sever Position For Local Player", [this](bool newValue) {
+    gameWorldRenderer_->debugServerPositionForLocalPlayer(newValue);
   });
 
   // -----------------------
