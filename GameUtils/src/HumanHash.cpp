@@ -1,4 +1,4 @@
-#include "HumanHash.h"
+#include "GameUtils/HumanHash.h"
 
 #include <array>
 #include <cstdint>

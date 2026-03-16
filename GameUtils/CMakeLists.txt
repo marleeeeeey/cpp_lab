@@ -6,6 +6,8 @@ add_library(GameUtils
         src/GameTimer.cpp
         src/TimeUtils.cpp
         src/GeomUtils.cpp
+        src/HumanHash.cpp
+        src/WsCloseCodeToText.cpp
 )
 
 

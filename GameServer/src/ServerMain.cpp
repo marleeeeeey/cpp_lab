@@ -11,13 +11,13 @@
 #include <string_view>
 
 #include "CommandLineParser.h"
+#include "GameUtils/HumanHash.h"
+#include "GameUtils/WsCloseCodeToText.h"
 #include "GetClientIpText.h"
-#include "HumanHash.h"
 #include "NetworkDataHandler/INetworkDataHandler.h"
 #include "PerSocketData.h"
 #include "ServerGameLoop.h"
 #include "ServerState.h"
-#include "WsCloseCodeToText.h"
 
 int main(int argc, char** argv) {  // Uncomment the next line for Debug
   // spdlog::set_level(spdlog::level::trace);

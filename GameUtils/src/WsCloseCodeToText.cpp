@@ -1,4 +1,4 @@
-#include "WsCloseCodeToText.h"
+#include "GameUtils/WsCloseCodeToText.h"
 
 std::string_view wsCloseCodeToText(int code) {
   // Source: https://github.com/Luka967/websocket-close-codes

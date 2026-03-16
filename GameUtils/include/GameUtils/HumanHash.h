@@ -4,6 +4,6 @@
 
 class HumanHash {
  public:
-  // Hash key to a short human-readable string. Example: "MilaRaven42"
+  // Hash key to a short human-readable string. Example: "MilaRaven"
   static std::string getShortHumanName(std::string_view key);
 };

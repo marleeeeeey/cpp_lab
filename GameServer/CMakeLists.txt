@@ -4,8 +4,6 @@ project(GameServer)
 add_executable(GameServer
         src/ServerMain.cpp
         src/GetClientIpText.cpp
-        src/WsCloseCodeToText.cpp
-        src/HumanHash.cpp
         src/CommandLineParser.cpp
         src/ServerState.cpp
         src/BinaryMessageParser.cpp
@@ -18,6 +16,7 @@ target_link_libraries(GameServer PRIVATE
         GameShared
         GameSerialization
         GlobalTypes
+        GameUtils
 
         # 3rd_party libraries
         uWebSockets::uWebSockets
