@@ -3,16 +3,16 @@
 # ---------
 
 add_library(GameRenderer
-        src/IRenderContainer.cpp
+        src/factories/IRenderContainer.cpp
         src/RenderContainer.cpp
 
-        src/IChatRenderer.cpp
+        src/factories/IChatRenderer.cpp
         src/ChatRenderer.cpp
 
-        src/IGameWorldRenderer.cpp
+        src/factories/IGameWorldRenderer.cpp
         src/GameWorldRenderer.cpp
 
-        src/IDebugRender.cpp
+        src/factories/IDebugRender.cpp
         src/DebugRender.cpp
 )
 
